@@ -1,17 +1,17 @@
-const repoName = process.env.GITHUB_REPOSITORY?.split('/')[1];
-const inferredBasePath = process.env.GITHUB_ACTIONS === 'true' && repoName ? `/${repoName}` : '';
-const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? inferredBasePath;
+const kRepoName = process.env.GITHUB_REPOSITORY?.split('/')[1];
+const kInferredBasePath = process.env.GITHUB_ACTIONS === 'true' && kRepoName ? `/${kRepoName}` : '';
+const kBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? kInferredBasePath;
 
 // Static export (GitHub Pages) is opt-in via STATIC_EXPORT=true.
 // The default build runs in server mode so GitHub OAuth / API routes work.
-const staticExport = process.env.STATIC_EXPORT === 'true';
+const kStaticExport = process.env.STATIC_EXPORT === 'true';
 
 /** @type {import('next').NextConfig} */
-const nextConfig = {
-  ...(staticExport ? { output: 'export' } : {}),
+const kNextConfig = {
+  ...(kStaticExport ? { output: 'export' } : {}),
   trailingSlash: true,
-  basePath,
-  assetPrefix: basePath || undefined,
+  basePath: kBasePath,
+  assetPrefix: kBasePath || undefined,
   images: {
     unoptimized: true,
     remotePatterns: [
@@ -23,4 +23,4 @@ const nextConfig = {
   }
 };
 
-export default nextConfig;
+export default kNextConfig;

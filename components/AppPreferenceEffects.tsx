@@ -6,15 +6,15 @@ import { useSettingsStore } from '@/store/useSettingsStore';
 
 export function AppPreferenceEffects() {
   const mounted = useMounted();
-  const textSize = useSettingsStore((state) => state.textSize);
+  const text_size = useSettingsStore((state) => state.textSize);
 
   useEffect(() => {
     if (!mounted) return;
-    document.documentElement.dataset.textSize = textSize;
+    document.documentElement.dataset.textSize = text_size;
     return () => {
       delete document.documentElement.dataset.textSize;
     };
-  }, [mounted, textSize]);
+  }, [mounted, text_size]);
 
   return null;
 }

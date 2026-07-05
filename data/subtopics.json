@@ -578,11 +578,11 @@
     "deep_dive": [
       {
         "title": "倍增建構後綴陣列",
-        "body": "```cpp\n// s: input string.\nvector<int> buildSA(const string& s) {\n    int n = s.size();\n    vector<int> sa(n), rk(n), tmp(n);\n    iota(sa.begin(), sa.end(), 0);\n    for (int i = 0; i < n; i++) {\n        rk[i] = s[i];  // Initial rank = ASCII value\n    }\n\n    for (int gap = 1; gap < n; gap <<= 1) {\n        // Sort by (rk[i], rk[i+gap])\n        auto cmp = [&rk, gap, n](int a, int b) {\n            if (rk[a] != rk[b]) {\n                return rk[a] < rk[b];\n            }\n            int ra = a + gap < n ? rk[a + gap] : -1;\n            int rb = b + gap < n ? rk[b + gap] : -1;\n            return ra < rb;\n        };\n        sort(sa.begin(), sa.end(), cmp);\n        tmp[sa[0]] = 0;\n        for (int i = 1; i < n; i++) {\n            tmp[sa[i]] = tmp[sa[i - 1]] + (cmp(sa[i - 1], sa[i]) ? 1 : 0);\n        }\n        rk = tmp;\n        if (rk[sa[n - 1]] == n - 1) {\n            break;  // All ranks distinct, done early\n        }\n    }\n    return sa;\n}\n```"
+        "body": "```cpp\n// s: input string.\nvector<int> buildSa(const string& s) {\n    int n = s.size();\n    vector<int> sa(n), rk(n), tmp(n);\n    iota(sa.begin(), sa.end(), 0);\n    for (int i = 0; i < n; i++) {\n        rk[i] = s[i];  // Initial rank = ASCII value\n    }\n\n    for (int gap = 1; gap < n; gap <<= 1) {\n        // Sort by (rk[i], rk[i+gap])\n        auto cmp = [&rk, gap, n](int a, int b) {\n            if (rk[a] != rk[b]) {\n                return rk[a] < rk[b];\n            }\n            int ra = a + gap < n ? rk[a + gap] : -1;\n            int rb = b + gap < n ? rk[b + gap] : -1;\n            return ra < rb;\n        };\n        sort(sa.begin(), sa.end(), cmp);\n        tmp[sa[0]] = 0;\n        for (int i = 1; i < n; i++) {\n            tmp[sa[i]] = tmp[sa[i - 1]] + (cmp(sa[i - 1], sa[i]) ? 1 : 0);\n        }\n        rk = tmp;\n        if (rk[sa[n - 1]] == n - 1) {\n            break;  // All ranks distinct, done early\n        }\n    }\n    return sa;\n}\n```"
       },
       {
         "title": "Kasai 算法建構 LCP 陣列",
-        "body": "```cpp\n// s: input string.\n// sa: input or working vector used by the algorithm.\nvector<int> buildLCP(const string& s, const vector<int>& sa) {\n    int n = s.size();\n    vector<int> rank_(n), lcp(n, 0);\n    for (int i = 0; i < n; i++) {\n        rank_[sa[i]] = i;\n    }\n    int h = 0;\n    for (int i = 0; i < n; i++) {\n        if (rank_[i] > 0) {\n            int j = sa[rank_[i] - 1];  // Previous suffix in sorted order\n            while (i + h < n && j + h < n && s[i + h] == s[j + h]) {\n                h++;\n            }\n            lcp[rank_[i]] = h;\n            if (h > 0) {\n                h--;  // Key: h decreases by at most 1 each step\n            }\n        }\n    }\n    return lcp;\n}\n```\n\n**Kasai 的關鍵不等式**：若從位置 i 計算得 `lcp = h`，則從位置 i+1 計算的 lcp ≥ h-1。因此 h 的總增量 = O(n)，算法整體 O(n)。"
+        "body": "```cpp\n// s: input string.\n// sa: input or working vector used by the algorithm.\nvector<int> buildLcp(const string& s, const vector<int>& sa) {\n    int n = s.size();\n    vector<int> rank_(n), lcp(n, 0);\n    for (int i = 0; i < n; i++) {\n        rank_[sa[i]] = i;\n    }\n    int h = 0;\n    for (int i = 0; i < n; i++) {\n        if (rank_[i] > 0) {\n            int j = sa[rank_[i] - 1];  // Previous suffix in sorted order\n            while (i + h < n && j + h < n && s[i + h] == s[j + h]) {\n                h++;\n            }\n            lcp[rank_[i]] = h;\n            if (h > 0) {\n                h--;  // Key: h decreases by at most 1 each step\n            }\n        }\n    }\n    return lcp;\n}\n```\n\n**Kasai 的關鍵不等式**：若從位置 i 計算得 `lcp = h`，則從位置 i+1 計算的 lcp ≥ h-1。因此 h 的總增量 = O(n)，算法整體 O(n)。"
       },
       {
         "title": "LCP 的應用：最長重複子字串",
@@ -2776,7 +2776,7 @@
     "deep_dive": [
       {
         "title": "以 i 結尾的子序列 DP",
-        "body": "範例：最長遞增子序列（LIS）以 `dp[i]` = 以 a[i] 結尾的最長長度。\n\n```cpp\nint lengthOfLIS(vector<int>& a){\n    vector<int> tails;                  // tails[k]=長度 k+1 的最小結尾\n    for(int x : a){\n        auto it=lower_bound(tails.begin(),tails.end(),x);\n        if(it==tails.end()) tails.push_back(x);\n        else *it=x;\n    }\n    return tails.size();\n}\n```\n\n計數型（合法子序列數）通常維護「以每個值/狀態結尾的方案數」並用前綴和加總；不相交區間選取則按右端排序後 `dp` 轉移自最後一個不重疊區間。"
+        "body": "範例：最長遞增子序列（LIS）以 `dp[i]` = 以 a[i] 結尾的最長長度。\n\n```cpp\nint lengthOfLIS(vector<int>& a){\n    vector<int> tails;\n    for(int x : a){\n        auto it=lower_bound(tails.begin(),tails.end(),x);\n        if(it==tails.end()) tails.push_back(x);\n        else *it=x;\n    }\n    return tails.size();\n}\n```\n\n計數型（合法子序列數）通常維護「以每個值/狀態結尾的方案數」並用前綴和加總；不相交區間選取則按右端排序後 `dp` 轉移自最後一個不重疊區間。"
       }
     ],
     "reference_links": [
@@ -2851,7 +2851,7 @@
     "deep_dive": [
       {
         "title": "左右前後綴合併",
-        "body": "以「除自身以外陣列的乘積」為例：每位答案 = 左前綴積 × 右後綴積。\n\n```cpp\nvector<int> productExceptSelf(vector<int>& a){\n    int n=a.size(); vector<int> res(n,1);\n    for(int i=1;i<n;i++) res[i]=res[i-1]*a[i-1];   // 左前綴積\n    int suf=1;\n    for(int i=n-1;i>=0;i--){ res[i]*=suf; suf*=a[i]; } // 右後綴積即時合併\n    return res;\n}\n```\n\n「買賣股票（先買後賣的最大利潤）」也是此型：`pre[i]` 維護左側最小價、`suf[i]` 維護右側最大價，枚舉分割點。"
+        "body": "以「除自身以外陣列的乘積」為例：每位答案 = 左前綴積 × 右後綴積。\n\n```cpp\nvector<int> productExceptSelf(vector<int>& a){\n    int n=a.size(); vector<int> res(n,1);\n    for(int i=1;i<n;i++) res[i]=res[i-1]*a[i-1];\n    int suf=1;\n    for(int i=n-1;i>=0;i--){ res[i]*=suf; suf*=a[i]; }\n    return res;\n}\n```\n\n「買賣股票（先買後賣的最大利潤）」也是此型：`pre[i]` 維護左側最小價、`suf[i]` 維護右側最大價，枚舉分割點。"
       }
     ],
     "reference_links": [
@@ -5157,7 +5157,7 @@
       },
       {
         "title": "二維差分：矩形區域加值",
-        "body": "```cpp\n// 2D difference array: add v to rectangle (r1, c1)-(r2, c2) in O(1)\nstruct Diff2D {\n    int rowCount, col_count;\n    vector<vector<long long>> d;\n    // row_count_: number of rows.\n    // col_count_: number of columns.\n    Diff2d(int row_count_, int col_count_)\n        : rowCount(row_count_),\n          // col_count_: input value used by the function.\n          col_count(col_count_),\n          // rowCount: number of rows.\n          // col_count: input or working vector used by the algorithm.\n          d(rowCount + 2, vector<long long>(col_count + 2, 0)) {}\n    // r1: right index of the first interval/string segment.\n    // c1: first column or character index.\n    // r2: right index of the second interval/string segment.\n    // c2: second column or character index.\n    // v: neighbor node or right endpoint.\n    void add(int r1, int c1, int r2, int c2, long long v) {\n        d[r1][c1] += v;\n        d[r1][c2 + 1] -= v;\n        d[r2 + 1][c1] -= v;\n        d[r2 + 1][c2 + 1] += v;  // Double-subtract fix\n    }\n    // Recover matrix via 2D prefix sum\n    vector<vector<long long>> build() {\n        vector<vector<long long>> a(rowCount, vector<long long>(col_count, 0));\n        for (int i = 0; i < rowCount; i++) {\n            for (int j = 0; j < col_count; j++) {\n                d[i][j] +=\n                    (i ? d[i - 1][j] : 0) + (j ? d[i][j - 1] : 0) - (i && j ? d[i - 1][j - 1] : 0);\n                a[i][j] = d[i][j];\n            }\n        }\n        return a;\n    }\n};\n```\n\n二維差分四個角落的加減是容斥原理的體現（與二維前綴和的拆法對稱）：加左上角、減兩個端線角、加右下角，使前綴和後正好在矩形內多 v、矩形外為 0。"
+        "body": "```cpp\n// 2D difference array: add v to rectangle (r1, c1)-(r2, c2) in O(1)\nstruct Diff2d {\n    int row_count, col_count;\n    vector<vector<long long>> d;\n    // row_count_: number of rows.\n    // col_count_: number of columns.\n    Diff2d(int row_count_, int col_count_)\n        : row_count(row_count_),\n          // col_count_: input value used by the function.\n          col_count(col_count_),\n          // row_count: number of rows.\n          // col_count: input or working vector used by the algorithm.\n          d(row_count + 2, vector<long long>(col_count + 2, 0)) {}\n    // r1: right index of the first interval/string segment.\n    // c1: first column or character index.\n    // r2: right index of the second interval/string segment.\n    // c2: second column or character index.\n    // v: neighbor node or right endpoint.\n    void add(int r1, int c1, int r2, int c2, long long v) {\n        d[r1][c1] += v;\n        d[r1][c2 + 1] -= v;\n        d[r2 + 1][c1] -= v;\n        d[r2 + 1][c2 + 1] += v;  // Double-subtract fix\n    }\n    // Recover matrix via 2D prefix sum\n    vector<vector<long long>> build() {\n        vector<vector<long long>> a(row_count, vector<long long>(col_count, 0));\n        for (int i = 0; i < row_count; i++) {\n            for (int j = 0; j < col_count; j++) {\n                d[i][j] +=\n                    (i ? d[i - 1][j] : 0) + (j ? d[i][j - 1] : 0) - (i && j ? d[i - 1][j - 1] : 0);\n                a[i][j] = d[i][j];\n            }\n        }\n        return a;\n    }\n};\n```\n\n二維差分四個角落的加減是容斥原理的體現（與二維前綴和的拆法對稱）：加左上角、減兩個端線角、加右下角，使前綴和後正好在矩形內多 v、矩形外為 0。"
       }
     ],
     "reference_links": [
@@ -6345,7 +6345,7 @@
       },
       {
         "title": "枚舉非樹邊求次小生成樹",
-        "body": "```cpp\n// Find strict second MST weight\n// Requires: mst_weight, in_mst flags from Kruskal, and queryMaxEdge precomputed\n// mst_weight: total weight of the minimum spanning tree.\n// edges: edge list used by the algorithm.\n// w: edge weight or node weight.\n// u: current node or left endpoint.\n// in_mst: input or working vector used by the algorithm.\nlong long secondMST(long long mst_weight,\n                    const vector<tuple<int, int, int>>& edges,  // All edges sorted: {w, u, v}\n                    const vector<bool>& in_mst) {               // in_mst[i] = true if edge i is in MST\n    long long ans = LLONG_MAX;\n    for (int i = 0; i < (int)edges.size(); i++) {\n        if (in_mst[i]) {\n            continue;  // Skip MST edges\n        }\n        auto [w, u, v] = edges[i];\n        int mx = queryMaxEdge(u, v);  // Max edge on MST path from u to v\n        if (w == mx) {\n            continue;  // Would not change total weight (strict 2nd MST)\n        }\n        ans = min(ans, mst_weight - mx + w);\n    }\n    return ans;  // LLONG_MAX if no valid second MST exists\n}\n\n// Main driver: Kruskal -> DFS -> queryMaxEdge -> secondMST\n// 1. kruskalWithEdges(n, edges, in_mst) -> mst_weight, builds in_mst flags\n// 2. Build mst_graph (adjacency list from MST edges)\n// 3. dfs(root=0, par=-1, dep=0, mst_graph); max_e[root][0] = 0;\n// 4. secondMST(mst_weight, edges, in_mst)\n```\n\n對每條非樹邊 e=(u,v,w')，加入後 MST 上 u→v 路徑形成環；刪去路徑上最大邊打破環，新生成樹總重為 `mstWeight - mx + w'`。若 `w' == mx` 表示換入換出等重，新舊生成樹總重相同，不計為**嚴格**次小生成樹（依題意調整）。"
+        "body": "```cpp\n// Find strict second MST weight\n// Requires: mst_weight, in_mst flags from Kruskal, and queryMaxEdge precomputed\n// mst_weight: total weight of the minimum spanning tree.\n// edges: edge list used by the algorithm.\n// w: edge weight or node weight.\n// u: current node or left endpoint.\n// in_mst: input or working vector used by the algorithm.\nlong long secondMst(long long mst_weight,\n                    const vector<tuple<int, int, int>>& edges,  // All edges sorted: {w, u, v}\n                    const vector<bool>& in_mst) {               // in_mst[i] = true if edge i is in MST\n    long long ans = LLONG_MAX;\n    for (int i = 0; i < (int)edges.size(); i++) {\n        if (in_mst[i]) {\n            continue;  // Skip MST edges\n        }\n        auto [w, u, v] = edges[i];\n        int mx = queryMaxEdge(u, v);  // Max edge on MST path from u to v\n        if (w == mx) {\n            continue;  // Would not change total weight (strict 2nd MST)\n        }\n        ans = min(ans, mst_weight - mx + w);\n    }\n    return ans;  // LLONG_MAX if no valid second MST exists\n}\n\n// Main driver: Kruskal -> DFS -> queryMaxEdge -> secondMst\n// 1. kruskalWithEdges(n, edges, in_mst) -> mst_weight, builds in_mst flags\n// 2. Build mst_graph (adjacency list from MST edges)\n// 3. dfs(root=0, par=-1, dep=0, mst_graph); max_e[root][0] = 0;\n// 4. secondMst(mst_weight, edges, in_mst)\n```\n\n對每條非樹邊 e=(u,v,w')，加入後 MST 上 u→v 路徑形成環；刪去路徑上最大邊打破環，新生成樹總重為 `mstWeight - mx + w'`。若 `w' == mx` 表示換入換出等重，新舊生成樹總重相同，不計為**嚴格**次小生成樹（依題意調整）。"
       }
     ],
     "reference_links": [
@@ -7287,7 +7287,7 @@
       },
       {
         "title": "區間賦值（Range Assignment）懶標記",
-        "body": "```cpp\nvector<long long> treeA, assign_lazy;\nconst long long kNoTag = LLONG_MIN;\n\n// node: segment tree node index.\n// len: length of the segment represented by node.\n// val: value being inserted, queried, or compared.\nvoid applyAssign(int node, int len, long long val) {\n    treeA[node] = val * len;\n    assign_lazy[node] = val;\n}\n\n// node: segment tree node index.\n// l: left boundary or endpoint.\n// r: right boundary, row, or endpoint.\nvoid pushdownA(int node, int l, int r) {\n    if (assign_lazy[node] == kNoTag || l == r) {\n        return;\n    }\n    int mid = l + (r - l) / 2;\n    applyAssign(node * 2, mid - l + 1, assign_lazy[node]);\n    applyAssign(node * 2 + 1, r - mid, assign_lazy[node]);\n    assign_lazy[node] = kNoTag;\n}\n\n// node: segment tree node index.\n// l: left boundary or endpoint.\n// r: right boundary, row, or endpoint.\n// ql: left boundary of the query range.\n// qr: right boundary of the query range.\n// val: value being inserted, queried, or compared.\nvoid rangeAssign(int node, int l, int r, int ql, int qr, long long val) {\n    if (ql <= l && r <= qr) {\n        applyAssign(node, r - l + 1, val);\n        return;\n    }\n    pushdownA(node, l, r);\n    int mid = l + (r - l) / 2;\n    if (ql <= mid) {\n        rangeAssign(node * 2, l, mid, ql, qr, val);\n    }\n    if (qr > mid) {\n        rangeAssign(node * 2 + 1, mid + 1, r, ql, qr, val);\n    }\n    treeA[node] = treeA[node * 2] + treeA[node * 2 + 1];\n}\n```\n區間賦值不是「累加」而是「覆蓋」，所以不能再用 `0` 當作沒有標記的哨兵值。這種情況通常要額外維護 `NO_TAG` 或布林旗標，表示目前節點是否有待下推的賦值操作。"
+        "body": "```cpp\nvector<long long> tree_a, assign_lazy;\nconst long long kNoTag = LLONG_MIN;\n\n// node: segment tree node index.\n// len: length of the segment represented by node.\n// val: value being inserted, queried, or compared.\nvoid applyAssign(int node, int len, long long val) {\n    tree_a[node] = val * len;\n    assign_lazy[node] = val;\n}\n\n// node: segment tree node index.\n// l: left boundary or endpoint.\n// r: right boundary, row, or endpoint.\nvoid pushdownA(int node, int l, int r) {\n    if (assign_lazy[node] == kNoTag || l == r) {\n        return;\n    }\n    int mid = l + (r - l) / 2;\n    applyAssign(node * 2, mid - l + 1, assign_lazy[node]);\n    applyAssign(node * 2 + 1, r - mid, assign_lazy[node]);\n    assign_lazy[node] = kNoTag;\n}\n\n// node: segment tree node index.\n// l: left boundary or endpoint.\n// r: right boundary, row, or endpoint.\n// ql: left boundary of the query range.\n// qr: right boundary of the query range.\n// val: value being inserted, queried, or compared.\nvoid rangeAssign(int node, int l, int r, int ql, int qr, long long val) {\n    if (ql <= l && r <= qr) {\n        applyAssign(node, r - l + 1, val);\n        return;\n    }\n    pushdownA(node, l, r);\n    int mid = l + (r - l) / 2;\n    if (ql <= mid) {\n        rangeAssign(node * 2, l, mid, ql, qr, val);\n    }\n    if (qr > mid) {\n        rangeAssign(node * 2 + 1, mid + 1, r, ql, qr, val);\n    }\n    tree_a[node] = tree_a[node * 2] + tree_a[node * 2 + 1];\n}\n```\n區間賦值不是「累加」而是「覆蓋」，所以不能再用 `0` 當作沒有標記的哨兵值。這種情況通常要額外維護 `NO_TAG` 或布林旗標，表示目前節點是否有待下推的賦值操作。"
       }
     ],
     "reference_links": [
@@ -7830,7 +7830,7 @@
       },
       {
         "title": "應用：網格圖 0-1 BFS",
-        "body": "```cpp\n// Grid shortest path: moving to '#' costs 1, '.' costs 0\n// grid: input or working vector used by the algorithm.\n// src: source node index.\n// dst: destination node index.\nint gridMin01Bfs(vector<string>& grid, pair<int, int> src, pair<int, int> dst) {\n    int rowCount = grid.size(), col_count = grid[0].size();\n    vector<vector<int>> dist(rowCount, vector<int>(col_count, INT_MAX));\n    deque<pair<int, int>> dq;\n    dist[src.first][src.second] = 0;\n    dq.push_back(src);\n    const int dx[] = {0, 0, 1, -1}, dy[] = {1, -1, 0, 0};\n    while (!dq.empty()) {\n        auto [x, y] = dq.front();\n        dq.pop_front();\n        for (int d = 0; d < 4; d++) {\n            int nx = x + dx[d], ny = y + dy[d];\n            if (nx < 0 || nx >= rowCount || ny < 0 || ny >= col_count) {\n                continue;\n            }\n            int cost = (grid[nx][ny] == '#') ? 1 : 0;  // Obstacle costs 1\n            if (dist[x][y] + cost < dist[nx][ny]) {\n                dist[nx][ny] = dist[x][y] + cost;\n                if (cost == 0) {\n                    dq.push_front({nx, ny});\n                }\n                else {\n                    dq.push_back({nx, ny});\n                }\n            }\n        }\n    }\n    return dist[dst.first][dst.second];\n}\n```\n\n0-1 BFS 最常見的應用場景：**網格最短路**。當「穿越某種格子」、「換方向」或「使用特殊移動」有 0/1 費用差異時，直接套用。解題關鍵在於識別「哪些操作費用為 0，哪些為 1」，然後建圖跑 0-1 BFS。"
+        "body": "```cpp\n// Grid shortest path: moving to '#' costs 1, '.' costs 0\n// grid: input or working vector used by the algorithm.\n// src: source node index.\n// dst: destination node index.\nint gridMin01Bfs(vector<string>& grid, pair<int, int> src, pair<int, int> dst) {\n    int row_count = grid.size(), col_count = grid[0].size();\n    vector<vector<int>> dist(row_count, vector<int>(col_count, INT_MAX));\n    deque<pair<int, int>> dq;\n    dist[src.first][src.second] = 0;\n    dq.push_back(src);\n    const int kDx[] = {0, 0, 1, -1}, kDy[] = {1, -1, 0, 0};\n    while (!dq.empty()) {\n        auto [x, y] = dq.front();\n        dq.pop_front();\n        for (int d = 0; d < 4; d++) {\n            int nx = x + kDx[d], ny = y + kDy[d];\n            if (nx < 0 || nx >= row_count || ny < 0 || ny >= col_count) {\n                continue;\n            }\n            int cost = (grid[nx][ny] == '#') ? 1 : 0;  // Obstacle costs 1\n            if (dist[x][y] + cost < dist[nx][ny]) {\n                dist[nx][ny] = dist[x][y] + cost;\n                if (cost == 0) {\n                    dq.push_front({nx, ny});\n                }\n                else {\n                    dq.push_back({nx, ny});\n                }\n            }\n        }\n    }\n    return dist[dst.first][dst.second];\n}\n```\n\n0-1 BFS 最常見的應用場景：**網格最短路**。當「穿越某種格子」、「換方向」或「使用特殊移動」有 0/1 費用差異時，直接套用。解題關鍵在於識別「哪些操作費用為 0，哪些為 1」，然後建圖跑 0-1 BFS。"
       }
     ],
     "reference_links": [
@@ -8361,7 +8361,7 @@
       },
       {
         "title": "選課問題：有依賴的樹上背包",
-        "body": "```cpp\n// Course selection: selecting course c requires selecting its prerequisite parent\n// Build a virtual root connected to all roots of prerequisite trees\n// dp[v][j] = max value taking j courses from subtree of v (v must be taken if j>=1)\nvector<int> val;\nvector<vector<int>> adj;  // prerequisite tree + virtual root 0\nvector<vector<int>> dp;\nvector<int> sz;\nint K;\n\n// v: neighbor node or right endpoint.\n// par: parent node.\nvoid dfs(int v, int par) {\n    sz[v] = 1;\n    dp[v].assign(K + 2, 0);\n    if (v != 0) {\n        dp[v][1] = val[v];  // Must select v to take any child\n    }\n    for (int c : adj[v]) {\n        if (c == par) {\n            continue;\n        }\n        dfs(c, v);\n        for (int j = min(sz[v], K + 1); j >= (v != 0 ? 1 : 0); j--) {\n            for (int k = 1; k <= min(sz[c], K + 1 - j); k++) {\n                dp[v][j + k] = max(dp[v][j + k], dp[v][j] + dp[c][k]);\n            }\n        }\n        sz[v] += sz[c];\n    }\n}\n\n// n: number of nodes or elements.\n// _K: requested selection limit.\nint courseSelection(int n, int _K) {\n    K = _K;  // Select at most K non-root courses\n    dp.assign(n + 1, {});\n    sz.assign(n + 1, 0);\n    dfs(0, -1);           // Virtual root 0\n    return dp[0][K + 1];  // +1 accounts for the virtual root not counted\n}\n```\n\n「洛谷 P2014 選課」問題要求：選某門課前必須先選其先修課（樹狀依賴）。做法是建立虛擬根節點 0，所有無先修課的課程連到 0，利用「選 j 個子樹節點時 v 必須被選（j≥1）」的約束直接套用樹上背包框架。"
+        "body": "```cpp\n// Course selection: selecting course c requires selecting its prerequisite parent\n// Build a virtual root connected to all roots of prerequisite trees\n// dp[v][j] = max value taking j courses from subtree of v (v must be taken if j>=1)\nvector<int> val;\nvector<vector<int>> adj;  // prerequisite tree + virtual root 0\nvector<vector<int>> dp;\nvector<int> sz;\nint course_limit;\n\n// v: neighbor node or right endpoint.\n// par: parent node.\nvoid dfs(int v, int par) {\n    sz[v] = 1;\n    dp[v].assign(course_limit + 2, 0);\n    if (v != 0) {\n        dp[v][1] = val[v];  // Must select v to take any child\n    }\n    for (int c : adj[v]) {\n        if (c == par) {\n            continue;\n        }\n        dfs(c, v);\n        for (int j = min(sz[v], course_limit + 1); j >= (v != 0 ? 1 : 0); j--) {\n            for (int k = 1; k <= min(sz[c], course_limit + 1 - j); k++) {\n                dp[v][j + k] = max(dp[v][j + k], dp[v][j] + dp[c][k]);\n            }\n        }\n        sz[v] += sz[c];\n    }\n}\n\n// n: number of nodes or elements.\n// course_limit_input: requested selection limit.\nint courseSelection(int n, int course_limit_input) {\n    course_limit = course_limit_input;  // Select at most course_limit non-root courses\n    dp.assign(n + 1, {});\n    sz.assign(n + 1, 0);\n    dfs(0, -1);                      // Virtual root 0\n    return dp[0][course_limit + 1];  // +1 accounts for the virtual root not counted\n}\n```\n\n「洛谷 P2014 選課」問題要求：選某門課前必須先選其先修課（樹狀依賴）。做法是建立虛擬根節點 0，所有無先修課的課程連到 0，利用「選 j 個子樹節點時 v 必須被選（j≥1）」的約束直接套用樹上背包框架。"
       }
     ],
     "reference_links": [
@@ -9976,7 +9976,7 @@
     "deep_dive": [
       {
         "title": "前綴和 + 雜湊表計數",
-        "body": "以「和為 k 的子陣列個數」為例。\n\n```cpp\nint subarraySum(vector<int>& a, int k){\n    unordered_map<long long,int> cnt; cnt[0]=1; // 空前綴\n    long long pre=0; int ans=0;\n    for(int x : a){\n        pre += x;\n        ans += cnt[pre - k];  // 需要左前綴 = pre-k\n        cnt[pre]++;           // 把當前前綴存入供右側查詢\n    }\n    return ans;\n}\n```\n\n先查後存，保證每個左端點都在右端點之前被計入。求「最長」改存每個前綴最早出現的下標。"
+        "body": "以「和為 k 的子陣列個數」為例。\n\n```cpp\nint subarraySum(vector<int>& a, int k){\n    unordered_map<long long,int> cnt; cnt[0]=1;\n    long long pre=0; int ans=0;\n    for(int x : a){\n        pre += x;\n        ans += cnt[pre - k];\n        cnt[pre]++;\n    }\n    return ans;\n}\n```\n\n先查後存，保證每個左端點都在右端點之前被計入。求「最長」改存每個前綴最早出現的下標。"
       }
     ],
     "reference_links": [
@@ -10367,11 +10367,11 @@
     "deep_dive": [
       {
         "title": "DFS 數島嶼 / 算面積",
-        "body": "方向陣列 + 就地標記（把走過的陸地改成水）避免額外 visited：\n\n```cpp\nint dr[] = {-1, 1, 0, 0}, dc[] = {0, 0, -1, 1};\n// g: grid or adjacency structure used by the algorithm.\n// r: right boundary, row, or endpoint.\n// c: candidate character or capacity value.\nint dfs(vector<vector<char>>& g, int r, int c) {\n    int rowCount = g.size(), col_count = g[0].size();\n    if (r < 0 || r >= rowCount || c < 0 || c >= col_count || g[r][c] != '1') {\n        return 0;\n    }\n    g[r][c] = '0';  // mark visited in place\n    int area = 1;\n    for (int k = 0; k < 4; k++) {\n        area += dfs(g, r + dr[k], c + dc[k]);\n    }\n    return area;\n}\n// g: grid or adjacency structure used by the algorithm.\nint numIslands(vector<vector<char>>& g) {\n    int cnt = 0;\n    for (int r = 0; r < (int)g.size(); r++) {\n        for (int c = 0; c < (int)g[0].size(); c++) {\n            if (g[r][c] == '1') {\n                dfs(g, r, c);\n                cnt++;\n            }\n        }\n    }\n    return cnt;\n}\n```\n\n大網格用遞迴 DFS 可能 stack overflow，改用顯式 stack 或 BFS 較安全。"
+        "body": "方向陣列 + 就地標記（把走過的陸地改成水）避免額外 visited：\n\n```cpp\nint dr[] = {-1, 1, 0, 0}, dc[] = {0, 0, -1, 1};\n// g: grid or adjacency structure used by the algorithm.\n// r: right boundary, row, or endpoint.\n// c: candidate character or capacity value.\nint dfs(vector<vector<char>>& g, int r, int c) {\n    int row_count = g.size(), col_count = g[0].size();\n    if (r < 0 || r >= row_count || c < 0 || c >= col_count || g[r][c] != '1') {\n        return 0;\n    }\n    g[r][c] = '0';  // mark visited in place\n    int area = 1;\n    for (int k = 0; k < 4; k++) {\n        area += dfs(g, r + dr[k], c + dc[k]);\n    }\n    return area;\n}\n// g: grid or adjacency structure used by the algorithm.\nint numIslands(vector<vector<char>>& g) {\n    int cnt = 0;\n    for (int r = 0; r < (int)g.size(); r++) {\n        for (int c = 0; c < (int)g[0].size(); c++) {\n            if (g[r][c] == '1') {\n                dfs(g, r, c);\n                cnt++;\n            }\n        }\n    }\n    return cnt;\n}\n```\n\n大網格用遞迴 DFS 可能 stack overflow，改用顯式 stack 或 BFS 較安全。"
       },
       {
         "title": "多源 BFS：最短距離 / 腐爛橘子",
-        "body": "所有源點同時 enqueue，按層擴散，第一次到達即最短：\n\n```cpp\n// g: grid or adjacency structure used by the algorithm.\nint orangesRotting(vector<vector<int>>& g) {\n    int rowCount = g.size(), col_count = g[0].size(), fresh = 0;\n    queue<pair<int, int>> q;\n    for (int r = 0; r < rowCount; r++) {\n        for (int c = 0; c < col_count; c++) {\n            if (g[r][c] == 2) {\n                q.push({r, c});  // all sources enqueued first\n            }\n            else if (g[r][c] == 1) {\n                fresh++;\n            }\n        }\n    }\n    int dr[] = {-1, 1, 0, 0}, dc[] = {0, 0, -1, 1}, minutes = 0;\n    while (!q.empty() && fresh) {\n        int sz = q.size();\n        while (sz--) {\n            auto [r, c] = q.front();\n            q.pop();\n            for (int k = 0; k < 4; k++) {\n                int nr = r + dr[k], nc = c + dc[k];\n                if (nr < 0 || nr >= rowCount || nc < 0 || nc >= col_count || g[nr][nc] != 1) {\n                    continue;\n                }\n                g[nr][nc] = 2;\n                fresh--;\n                q.push({nr, nc});\n            }\n        }\n        minutes++;  // one layer = one minute\n    }\n    return fresh ? -1 : minutes;\n}\n```\n\n每處理完一整層 `minutes++`，這就是 BFS「按邊數分層」的特性；多源只是初始把所有起點放進同一層。"
+        "body": "所有源點同時 enqueue，按層擴散，第一次到達即最短：\n\n```cpp\n// g: grid or adjacency structure used by the algorithm.\nint orangesRotting(vector<vector<int>>& g) {\n    int row_count = g.size(), col_count = g[0].size(), fresh = 0;\n    queue<pair<int, int>> q;\n    for (int r = 0; r < row_count; r++) {\n        for (int c = 0; c < col_count; c++) {\n            if (g[r][c] == 2) {\n                q.push({r, c});  // all sources enqueued first\n            }\n            else if (g[r][c] == 1) {\n                fresh++;\n            }\n        }\n    }\n    int dr[] = {-1, 1, 0, 0}, dc[] = {0, 0, -1, 1}, minutes = 0;\n    while (!q.empty() && fresh) {\n        int sz = q.size();\n        while (sz--) {\n            auto [r, c] = q.front();\n            q.pop();\n            for (int k = 0; k < 4; k++) {\n                int nr = r + dr[k], nc = c + dc[k];\n                if (nr < 0 || nr >= row_count || nc < 0 || nc >= col_count || g[nr][nc] != 1) {\n                    continue;\n                }\n                g[nr][nc] = 2;\n                fresh--;\n                q.push({nr, nc});\n            }\n        }\n        minutes++;  // one layer = one minute\n    }\n    return fresh ? -1 : minutes;\n}\n```\n\n每處理完一整層 `minutes++`，這就是 BFS「按邊數分層」的特性；多源只是初始把所有起點放進同一層。"
       }
     ],
     "reference_links": [
@@ -10866,11 +10866,11 @@
     "deep_dive": [
       {
         "title": "0-1 Trie 求最大異或",
-        "body": "插入每個數的二進位（高位在上），查詢時貪心走相反位：\n\n```cpp\nstruct XorTrie {\n    static const int B = 30;\n    vector<array<int, 2>> ch{{{0, 0}}};  // node 0 is the root\n    // x: value or node being processed.\n    void insert(int x) {\n        int u = 0;\n        for (int b = B; b >= 0; b--) {\n            int d = x >> b & 1;\n            if (!ch[u][d]) {\n                ch.push_back({0, 0});\n                ch[u][d] = ch.size() - 1;\n            }\n            u = ch[u][d];\n        }\n    }\n    // x: value, node, or output coefficient used by the function.\n    int queryMax(int x) {  // max (x ^ y) over inserted y\n        int u = 0, res = 0;\n        for (int b = B; b >= 0; b--) {\n            int d = x >> b & 1;\n            if (ch[u][d ^ 1]) {\n                res |= 1 << b;\n                u = ch[u][d ^ 1];\n            }  // go opposite\n            else {\n                u = ch[u][d];\n            }\n        }\n        return res;\n    }\n};\n```\n\n每一位優先走「與 x 相反」的子（讓該位異或為 1），走不通才同向；高位優先保證結果最大。"
+        "body": "插入每個數的二進位（高位在上），查詢時貪心走相反位：\n\n```cpp\nstruct XorTrie {\n    static const int kBitLimit = 30;\n    vector<array<int, 2>> ch{{{0, 0}}};  // node 0 is the root\n    // x: value or node being processed.\n    void insert(int x) {\n        int u = 0;\n        for (int b = kBitLimit; b >= 0; b--) {\n            int d = x >> b & 1;\n            if (!ch[u][d]) {\n                ch.push_back({0, 0});\n                ch[u][d] = ch.size() - 1;\n            }\n            u = ch[u][d];\n        }\n    }\n    // x: value, node, or output coefficient used by the function.\n    int queryMax(int x) {  // max (x ^ y) over inserted y\n        int u = 0, res = 0;\n        for (int b = kBitLimit; b >= 0; b--) {\n            int d = x >> b & 1;\n            if (ch[u][d ^ 1]) {\n                res |= 1 << b;\n                u = ch[u][d ^ 1];\n            }  // go opposite\n            else {\n                u = ch[u][d];\n            }\n        }\n        return res;\n    }\n};\n```\n\n每一位優先走「與 x 相反」的子（讓該位異或為 1），走不通才同向；高位優先保證結果最大。"
       },
       {
         "title": "純試填：不建 Trie 的最大異或對",
-        "body": "若只需最大異或對，可用集合逐位試填，無需顯式 Trie：\n\n```cpp\n// a: input array or sequence.\nint findMaximumXOR(vector<int>& a) {\n    int ans = 0, mask = 0;\n    for (int b = 30; b >= 0; b--) {\n        mask |= 1 << b;  // consider prefixes up to bit b\n        unordered_set<int> pref;\n        for (int x : a) {\n            pref.insert(x & mask);\n        }\n        int want = ans | (1 << b);  // can we make this bit a 1?\n        for (int p : pref) {\n            if (pref.count(want ^ p)) {\n                ans = want;\n                break;\n            }  // two prefixes xor to 'want'\n        }\n    }\n    return ans;\n}\n```\n\n每位假設答案該位能是 1（`want`），若存在兩前綴異或得到 `want` 就鎖定；這是「試填 + 雜湊」的代表。"
+        "body": "若只需最大異或對，可用集合逐位試填，無需顯式 Trie：\n\n```cpp\n// a: input array or sequence.\nint findMaximumXor(vector<int>& a) {\n    int ans = 0, mask = 0;\n    for (int b = 30; b >= 0; b--) {\n        mask |= 1 << b;  // consider prefixes up to bit b\n        unordered_set<int> pref;\n        for (int x : a) {\n            pref.insert(x & mask);\n        }\n        int want = ans | (1 << b);  // can we make this bit a 1?\n        for (int p : pref) {\n            if (pref.count(want ^ p)) {\n                ans = want;\n                break;\n            }  // two prefixes xor to 'want'\n        }\n    }\n    return ans;\n}\n```\n\n每位假設答案該位能是 1（`want`），若存在兩前綴異或得到 `want` 就鎖定；這是「試填 + 雜湊」的代表。"
       }
     ],
     "reference_links": [
@@ -10996,7 +10996,7 @@
     "deep_dive": [
       {
         "title": "階乘逆元預處理與 O(1) 組合數",
-        "body": "用費馬小定理求逆元，遞推 `inv_fact` 避免每次快速冪：\n\n```cpp\nconst long long kMod = 1e9 + 7;\nconst int N = 1e6 + 5;\nlong long fact[N], inv_fact[N];\n// a: input array or sequence.\n// b: second numeric input value.\n// m: number of edges, columns, or elements depending on the problem.\nlong long power(long long a, long long b, long long m) {\n    long long r = 1;\n    a %= m;\n    for (; b; b >>= 1, a = a * a % m) {\n        if (b & 1) {\n            r = r * a % m;\n        }\n    }\n    return r;\n}\nvoid initComb() {\n    fact[0] = 1;\n    for (int i = 1; i < N; i++) {\n        fact[i] = fact[i - 1] * i % kMod;\n    }\n    inv_fact[N - 1] = power(fact[N - 1], kMod - 2, kMod);\n    for (int i = N - 1; i > 0; i--) {\n        inv_fact[i - 1] = inv_fact[i] * i % kMod;\n    }\n}\n// n: number of nodes or elements.\n// r: right boundary, row, or endpoint.\nlong long comb(int n, int r) {\n    if (r < 0 || r > n) {\n        return 0;\n    }\n    return fact[n] * inv_fact[r] % kMod * inv_fact[n - r] % kMod;\n}\n```\n\n`inv_fact` 從大到小遞推（`inv_fact[i-1] = inv_fact[i]·i`）只需一次快速冪，整體 O(n)。"
+        "body": "用費馬小定理求逆元，遞推 `inv_fact` 避免每次快速冪：\n\n```cpp\nconst long long kMod = 1e9 + 7;\nconst int kMaxN = 1e6 + 5;\nlong long fact[kMaxN], inv_fact[kMaxN];\n// a: input array or sequence.\n// b: second numeric input value.\n// m: number of edges, columns, or elements depending on the problem.\nlong long power(long long a, long long b, long long m) {\n    long long r = 1;\n    a %= m;\n    for (; b; b >>= 1, a = a * a % m) {\n        if (b & 1) {\n            r = r * a % m;\n        }\n    }\n    return r;\n}\nvoid initComb() {\n    fact[0] = 1;\n    for (int i = 1; i < kMaxN; i++) {\n        fact[i] = fact[i - 1] * i % kMod;\n    }\n    inv_fact[kMaxN - 1] = power(fact[kMaxN - 1], kMod - 2, kMod);\n    for (int i = kMaxN - 1; i > 0; i--) {\n        inv_fact[i - 1] = inv_fact[i] * i % kMod;\n    }\n}\n// n: number of nodes or elements.\n// r: right boundary, row, or endpoint.\nlong long comb(int n, int r) {\n    if (r < 0 || r > n) {\n        return 0;\n    }\n    return fact[n] * inv_fact[r] % kMod * inv_fact[n - r] % kMod;\n}\n```\n\n`inv_fact` 從大到小遞推（`inv_fact[i-1] = inv_fact[i]·i`）只需一次快速冪，整體 O(n)。"
       },
       {
         "title": "容斥：錯位排列與「至少」轉「恰好」",
@@ -11199,7 +11199,7 @@
     "deep_dive": [
       {
         "title": "模意義下的組合數",
-        "body": "預處理階乘與其逆元，O(1) 查任意 C(n,k) mod p。\n\n```cpp\nconst int MOD=1e9+7; vector<long long> fac, inv;\nlong long power(long long a,long long b){ long long r=1; for(;b;b>>=1,a=a*a%MOD) if(b&1) r=r*a%MOD; return r; }\nvoid init(int n){\n    fac.assign(n+1,1);\n    for(int i=1;i<=n;i++) fac[i]=fac[i-1]*i%MOD;\n    inv.assign(n+1,1); inv[n]=power(fac[n],MOD-2);\n    for(int i=n;i>0;i--) inv[i-1]=inv[i]*i%MOD;\n}\nlong long C(int n,int k){ if(k<0||k>n) return 0; return fac[n]*inv[k]%MOD*inv[n-k]%MOD; }\n```\n\n隔板法：把 n 個相同物分給 k 人（每人 ≥0）方案數 = C(n+k-1, k-1)；乘法原理把多步獨立選擇相乘即可。"
+        "body": "預處理階乘與其逆元，O(1) 查任意 C(n,k) mod p。\n\n```cpp\nconst int kMod = 1e9 + 7; vector<long long> fac, inv;\nlong long power(long long a,long long b){ long long r=1; for(;b;b>>=1,a=a*a%kMod) if(b&1) r=r*a%kMod; return r; }\nvoid init(int n){\n    fac.assign(n+1,1);\n    for(int i=1;i<=n;i++) fac[i]=fac[i-1]*i%kMod;\n    inv.assign(n+1,1); inv[n]=power(fac[n],kMod-2);\n    for(int i=n;i>0;i--) inv[i-1]=inv[i]*i%kMod;\n}\nlong long comb(int n,int k){ if(k<0||k>n) return 0; return fac[n]*inv[k]%kMod*inv[n-k]%kMod; }\n```\n\n隔板法：把 n 個相同物分給 k 人（每人 ≥0）方案數 = C(n+k-1, k-1)；乘法原理把多步獨立選擇相乘即可。"
       }
     ],
     "reference_links": [
@@ -11585,7 +11585,7 @@
     "deep_dive": [
       {
         "title": "建 Trie 與 BFS 失敗指針",
-        "body": "把轉移補全為自動機，使匹配時無需顯式跳 fail：\n\n```cpp\nstruct AhoCorasick {\n    static const int K = 26;\n    vector<array<int, K>> go{{}};  // node 0 = root, transitions\n    vector<int> fail{0}, cnt{0};   // fail link, #patterns ending here\n    // s: input string.\n    void insert(const string& s) {\n        int u = 0;\n        for (char c : s) {\n            int d = c - 'a';\n            if (!go[u][d]) {\n                go.push_back({});\n                fail.push_back(0);\n                cnt.push_back(0);\n                go[u][d] = go.size() - 1;\n            }\n            u = go[u][d];\n        }\n        cnt[u]++;\n    }\n    void build() {\n        queue<int> q;\n        for (int c = 0; c < K; c++) {\n            if (go[0][c]) {\n                q.push(go[0][c]);\n            }\n        }\n        while (!q.empty()) {\n            int u = q.front();\n            q.pop();\n            for (int c = 0; c < K; c++) {\n                int v = go[u][c];\n                if (v) {\n                    fail[v] = go[fail[u]][c];\n                    q.push(v);\n                } else {\n                    go[u][c] = go[fail[u]][c];  // path-compress transition\n                }\n            }\n        }\n    }\n};\n```\n\n`else go[u][c] = go[fail[u]][c]` 是關鍵：不存在的邊直接指向 fail 的轉移，匹配時每步 O(1)、無需迴圈跳 fail。"
+        "body": "把轉移補全為自動機，使匹配時無需顯式跳 fail：\n\n```cpp\nstruct AhoCorasick {\n    static const int kAlphabetSize = 26;\n    vector<array<int, kAlphabetSize>> go{{}};  // node 0 = root, transitions\n    vector<int> fail{0}, cnt{0};               // fail link, #patterns ending here\n    // s: input string.\n    void insert(const string& s) {\n        int u = 0;\n        for (char c : s) {\n            int d = c - 'a';\n            if (!go[u][d]) {\n                go.push_back({});\n                fail.push_back(0);\n                cnt.push_back(0);\n                go[u][d] = go.size() - 1;\n            }\n            u = go[u][d];\n        }\n        cnt[u]++;\n    }\n    void build() {\n        queue<int> q;\n        for (int c = 0; c < kAlphabetSize; c++) {\n            if (go[0][c]) {\n                q.push(go[0][c]);\n            }\n        }\n        while (!q.empty()) {\n            int u = q.front();\n            q.pop();\n            for (int c = 0; c < kAlphabetSize; c++) {\n                int v = go[u][c];\n                if (v) {\n                    fail[v] = go[fail[u]][c];\n                    q.push(v);\n                } else {\n                    go[u][c] = go[fail[u]][c];  // path-compress transition\n                }\n            }\n        }\n    }\n};\n```\n\n`else go[u][c] = go[fail[u]][c]` 是關鍵：不存在的邊直接指向 fail 的轉移，匹配時每步 O(1)、無需迴圈跳 fail。"
       },
       {
         "title": "掃描文本統計命中",
@@ -11831,7 +11831,7 @@
     "deep_dive": [
       {
         "title": "雙指標最小表示法",
-        "body": "比較兩候選起點 i、j，依差異整批跳過較大者。\n\n```cpp\nint minRotation(const string& s){\n    int n=s.size(), i=0, j=1, k=0;\n    while(i<n && j<n && k<n){\n        char a=s[(i+k)%n], b=s[(j+k)%n];\n        if(a==b){ k++; continue; }\n        if(a>b) i+=k+1; else j+=k+1;  // 較大起點整段作廢\n        if(i==j) j++;\n        k=0;\n    }\n    return min(i,j); // 最小表示法的起始下標\n}\n```\n\n兩字串循環同構 ⟺ 它們的最小表示相同（或等長且互為子串：`(s+s).find(t)!=npos`）。"
+        "body": "比較兩候選起點 i、j，依差異整批跳過較大者。\n\n```cpp\nint minRotation(const string& s){\n    int n=s.size(), i=0, j=1, k=0;\n    while(i<n && j<n && k<n){\n        char a=s[(i+k)%n], b=s[(j+k)%n];\n        if(a==b){ k++; continue; }\n        if(a>b) i+=k+1; else j+=k+1;\n        if(i==j) j++;\n        k=0;\n    }\n    return min(i,j);\n}\n```\n\n兩字串循環同構 ⟺ 它們的最小表示相同（或等長且互為子串：`(s+s).find(t)!=npos`）。"
       }
     ],
     "reference_links": [
@@ -12815,7 +12815,7 @@
     "deep_dive": [
       {
         "title": "排序 + 端點貪心骨架",
-        "body": "先排序，再從一端貪心地做不可逆決策。\n\n```cpp\nsort(a.begin(), a.end());\nint i = 0, j = (int)a.size() - 1, ans = 0;\nwhile (i <= j) {\n    if (canPair(a[i], a[j])) { ans++; i++; j--; }  // 最小配最大\n    else j--;                                      // 否則放棄當前最大\n}\n```\n\n「兩數和不超過上限的最多船/組數」「分發餅乾」都是此型：排序後雙端或同端推進，每步取當前最受限元素。"
+        "body": "先排序，再從一端貪心地做不可逆決策。\n\n```cpp\nsort(a.begin(), a.end());\nint i = 0, j = (int)a.size() - 1, ans = 0;\nwhile (i <= j) {\n    if (canPair(a[i], a[j])) { ans++; i++; j--; }\n    else j--;\n}\n```\n\n「兩數和不超過上限的最多船/組數」「分發餅乾」都是此型：排序後雙端或同端推進，每步取當前最受限元素。"
       }
     ],
     "reference_links": [
@@ -13411,7 +13411,7 @@
     "deep_dive": [
       {
         "title": "時光倒流：刪除轉加入",
-        "body": "「依序刪點/刪邊後查連通」正向難做，倒序變成加邊，用並查集即可。\n\n```cpp\n// 倒序處理刪除：先刪到底，再倒著一個個加回\nfor (int i = q - 1; i >= 0; i--) {\n    addBack(ops[i]);          // 把第 i 次刪除「加回」\n    ans[i] = dsu.componentInfo();\n}\n// 最終 ans 即每次刪除後的狀態（順序對應原查詢）\n```\n\n從右往左掃描則用於「每個元素右邊第一個更大值」「後綴最大/和」等，維護後綴結構一趟完成。"
+        "body": "「依序刪點/刪邊後查連通」正向難做，倒序變成加邊，用並查集即可。\n\n```cpp\n\nfor (int i = q - 1; i >= 0; i--) {\n    addBack(ops[i]);\n    ans[i] = dsu.componentInfo();\n}\n\n```\n\n從右往左掃描則用於「每個元素右邊第一個更大值」「後綴最大/和」等，維護後綴結構一趟完成。"
       }
     ],
     "reference_links": [
@@ -13486,7 +13486,7 @@
     "deep_dive": [
       {
         "title": "不重不漏的分類框架",
-        "body": "以「依長度奇偶 + 是否含特定元素」分類為例。\n\n```cpp\nint solve(const vector<int>& a){\n    int n = a.size();\n    if (n == 0) return 0;                       // 邊界類\n    if (special(a)) return caseA(a);            // 特徵類 A\n    return (n & 1) ? caseOdd(a) : caseEven(a);  // 奇偶兩類\n}\n```\n\n寫完務必回頭檢查：每個輸入恰好落入一類（互斥），且所有輸入都被覆蓋（窮盡）。遺漏邊界（空、單元素、全相同）是最常見錯誤。"
+        "body": "以「依長度奇偶 + 是否含特定元素」分類為例。\n\n```cpp\nint solve(const vector<int>& a){\n    int n = a.size();\n    if (n == 0) return 0;\n    if (special(a)) return caseA(a);\n    return (n & 1) ? caseOdd(a) : caseEven(a);\n}\n```\n\n寫完務必回頭檢查：每個輸入恰好落入一類（互斥），且所有輸入都被覆蓋（窮盡）。遺漏邊界（空、單元素、全相同）是最常見錯誤。"
       }
     ],
     "reference_links": [
@@ -13592,7 +13592,7 @@
     "deep_dive": [
       {
         "title": "尋找不變量與上下界",
-        "body": "範例思路：許多「能否經由若干操作達成」的題，答案由某個不變量決定。\n\n```cpp\n// 例：每次操作把相鄰兩數同時 +1，問能否全部相等\n// 觀察：操作改變總和，但奇偶位置的差有某種守恆 → 化為同餘判斷\nbool canEqualize(const vector<int>& a){\n    long long odd = 0, even = 0;\n    for (int i = 0; i < (int)a.size(); i++) (i & 1 ? odd : even) += a[i];\n    return odd == even; // 視題目守恆量而定\n}\n```\n\n核心不是程式，而是先證明「哪個量守恆」，程式只是把該量算出來比較。"
+        "body": "範例思路：許多「能否經由若干操作達成」的題，答案由某個不變量決定。\n\n```cpp\n\n\nbool canEqualize(const vector<int>& a){\n    long long odd = 0, even = 0;\n    for (int i = 0; i < (int)a.size(); i++) (i & 1 ? odd : even) += a[i];\n    return odd == even;\n}\n```\n\n核心不是程式，而是先證明「哪個量守恆」，程式只是把該量算出來比較。"
       }
     ],
     "reference_links": [
@@ -14651,11 +14651,11 @@
     "deep_dive": [
       {
         "title": "左閉右開模板：lower_bound / upper_bound",
-        "body": "固定使用左閉右開 `[lo, hi)`，迴圈條件 `lo < hi`，每次取 `mid = lo + (hi - lo) / 2`，依 `check` 收縮其中一側。\n\n```cpp\n// 第一個使 check 為 true 的位置（check 單調：false...false,true...true）\nint lower(int lo, int hi, auto check) {\n    while (lo < hi) {\n        int mid = lo + (hi - lo) / 2;\n        if (check(mid)) hi = mid;  // mid 可行，答案在左半（含 mid）\n        else lo = mid + 1;         // mid 不可行，答案在右半\n    }\n    return lo;                       // = hi，第一個可行位置\n}\n```\n\n要找「最後一個可行位置」時，最穩的做法是找「第一個不可行位置」再 `-1`，避免另寫一套 `mid` 偏移邏輯。`mid` 用 `lo + (hi - lo) / 2` 而非 `(lo + hi) / 2`，可避免大數相加溢位。"
+        "body": "固定使用左閉右開 `[lo, hi)`，迴圈條件 `lo < hi`，每次取 `mid = lo + (hi - lo) / 2`，依 `check` 收縮其中一側。\n\n```cpp\n\nint lower(int lo, int hi, auto check) {\n    while (lo < hi) {\n        int mid = lo + (hi - lo) / 2;\n        if (check(mid)) hi = mid;\n        else lo = mid + 1;\n    }\n    return lo;\n}\n```\n\n要找「最後一個可行位置」時，最穩的做法是找「第一個不可行位置」再 `-1`，避免另寫一套 `mid` 偏移邏輯。`mid` 用 `lo + (hi - lo) / 2` 而非 `(lo + hi) / 2`，可避免大數相加溢位。"
       },
       {
         "title": "在答案上二分（二分答案）",
-        "body": "當答案本身具單調性（例如「最少需要多少時間／容量」），把答案當搜尋變數，用一個 `feasible(x)` 判定「給定 x 能否完成」。\n\n```cpp\nlong long lo = 1, hi = MAXV;\nwhile (lo < hi) {\n    long long mid = lo + (hi - lo) / 2;\n    if (feasible(mid)) hi = mid;    // x 越大越容易可行 → 收左界\n    else lo = mid + 1;\n}\n// lo 即最小可行答案\n```\n\n關鍵是證明單調性：若 x 可行，則所有 ≥ x（或 ≤ x）也可行。確定方向後，`feasible` 通常是一次 O(n) 的貪心模擬。這把「最小化最大值／最大化最小值」這類最優化問題轉成判定問題。"
+        "body": "當答案本身具單調性（例如「最少需要多少時間／容量」），把答案當搜尋變數，用一個 `feasible(x)` 判定「給定 x 能否完成」。\n\n```cpp\nlong long lo = 1, hi = kMaxV;\nwhile (lo < hi) {\n    long long mid = lo + (hi - lo) / 2;\n    if (feasible(mid)) hi = mid;\n    else lo = mid + 1;\n}\n\n```\n\n關鍵是證明單調性：若 x 可行，則所有 ≥ x（或 ≤ x）也可行。確定方向後，`feasible` 通常是一次 O(n) 的貪心模擬。這把「最小化最大值／最大化最小值」這類最優化問題轉成判定問題。"
       }
     ],
     "reference_links": [
@@ -14757,7 +14757,7 @@
     "deep_dive": [
       {
         "title": "路徑型網格 DP 與滾動陣列",
-        "body": "以「最小路徑和」為例，`dp[j]` 表示走到當前行第 j 格的最小成本。\n\n```cpp\nvector<int> dp(m, INT_MAX);\nfor (int i = 0; i < n; i++)\n    for (int j = 0; j < m; j++) {\n        if (i == 0 && j == 0) dp[j] = grid[0][0];\n        else {\n            int best = INT_MAX;\n            if (i) best = min(best, dp[j]);    // 上方（上一行同列）\n            if (j) best = min(best, dp[j-1]);  // 左方（本行前一列）\n            dp[j] = best + grid[i][j];\n        }\n    }\n// dp[m-1] 即答案\n```\n\n用一維 `dp[j]`：更新時 `dp[j]`（更新前）就是上方值、`dp[j-1]`（已更新）就是左方值，天然完成滾動。路徑計數把 `min(+grid)` 換成「累加方案數」即可。"
+        "body": "以「最小路徑和」為例，`dp[j]` 表示走到當前行第 j 格的最小成本。\n\n```cpp\nvector<int> dp(m, INT_MAX);\nfor (int i = 0; i < n; i++)\n    for (int j = 0; j < m; j++) {\n        if (i == 0 && j == 0) dp[j] = grid[0][0];\n        else {\n            int best = INT_MAX;\n            if (i) best = min(best, dp[j]);\n            if (j) best = min(best, dp[j-1]);\n            dp[j] = best + grid[i][j];\n        }\n    }\n\n```\n\n用一維 `dp[j]`：更新時 `dp[j]`（更新前）就是上方值、`dp[j-1]`（已更新）就是左方值，天然完成滾動。路徑計數把 `min(+grid)` 換成「累加方案數」即可。"
       },
       {
         "title": "雙序列對齊：編輯距離",
@@ -14879,7 +14879,7 @@
     "deep_dive": [
       {
         "title": "逐格轉移骨架（鋪磚計數）",
-        "body": "以 1×2 骨牌鋪滿網格計數為例，逐格決定「當前格如何被覆蓋」，更新輪廓線狀態。\n\n```cpp\n// dp[mask] = 處理到 (i,j)、輪廓線狀態為 mask 的方案數\nvector<long long> dp(1<<m, 0), ndp;\ndp[0] = 1;\nfor (int i = 0; i < n; i++)\n    for (int j = 0; j < m; j++) {\n        ndp.assign(1<<m, 0);\n        for (int mask = 0; mask < (1<<m); mask++) if (dp[mask]) {\n            int bit = 1 << j;\n            if (mask & bit) ndp[mask ^ bit] += dp[mask];      // 此格已被上方覆蓋\n            else {\n                ndp[mask | bit] += dp[mask];    // 用豎磚（向下伸出插頭）\n                if (j+1<m && !(mask&(bit<<1)))  // 用橫磚\n                    ndp[mask | bit | (bit<<1)] += dp[mask];\n            }\n        }\n        swap(dp, ndp);\n    }\n```\n\n每處理完一格就把狀態推進到下一格；行末自然進位到下一行。輪廓線位元的「有/無覆蓋」對應骨牌往下或往右的選擇。"
+        "body": "以 1×2 骨牌鋪滿網格計數為例，逐格決定「當前格如何被覆蓋」，更新輪廓線狀態。\n\n```cpp\n\nvector<long long> dp(1<<m, 0), ndp;\ndp[0] = 1;\nfor (int i = 0; i < n; i++)\n    for (int j = 0; j < m; j++) {\n        ndp.assign(1<<m, 0);\n        for (int mask = 0; mask < (1<<m); mask++) if (dp[mask]) {\n            int bit = 1 << j;\n            if (mask & bit) ndp[mask ^ bit] += dp[mask];\n            else {\n                ndp[mask | bit] += dp[mask];\n                if (j+1<m && !(mask&(bit<<1)))\n                    ndp[mask | bit | (bit<<1)] += dp[mask];\n            }\n        }\n        swap(dp, ndp);\n    }\n```\n\n每處理完一格就把狀態推進到下一格；行末自然進位到下一行。輪廓線位元的「有/無覆蓋」對應骨牌往下或往右的選擇。"
       }
     ],
     "reference_links": [
@@ -14940,11 +14940,11 @@
     "deep_dive": [
       {
         "title": "前綴和優化區間轉移",
-        "body": "若 `dp[i] = sum(dp[j])`，其中 j 落在某段區間，維護 dp 的前綴和即可 O(1) 取區間和。\n\n```cpp\n// dp[i] = 從 i-k..i-1 任一步跳來的方案數\nvector<long long> dp(n+1), pre(n+2);\ndp[0] = 1; pre[1] = 1;\nfor (int i = 1; i <= n; i++) {\n    int lo = max(0, i - k);\n    dp[i] = (pre[i] - pre[lo] + MOD) % MOD; // 區間和 = 前綴差\n    pre[i+1] = (pre[i] + dp[i]) % MOD;\n}\n```\n\n關鍵是邊算 dp 邊維護其前綴和 `pre`，避免「先算完再求和」造成依賴循環。二維/帶權的情形同理擴展。"
+        "body": "若 `dp[i] = sum(dp[j])`，其中 j 落在某段區間，維護 dp 的前綴和即可 O(1) 取區間和。\n\n```cpp\n\nvector<long long> dp(n+1), pre(n+2);\ndp[0] = 1; pre[1] = 1;\nfor (int i = 1; i <= n; i++) {\n    int lo = max(0, i - k);\n    dp[i] = (pre[i] - pre[lo] + kMod) % kMod;\n    pre[i+1] = (pre[i] + dp[i]) % kMod;\n}\n```\n\n關鍵是邊算 dp 邊維護其前綴和 `pre`，避免「先算完再求和」造成依賴循環。二維/帶權的情形同理擴展。"
       },
       {
         "title": "矩陣快速冪加速線性遞推",
-        "body": "形如 `f[n] = a·f[n-1] + b·f[n-2]` 的遞推，可寫成狀態向量乘轉移矩陣，n 很大時用快速冪。\n\n```cpp\nusing Mat = array<array<long long,2>,2>;\nMat mul(const Mat&A,const Mat&B){\n    Mat C{};\n    for(int i=0;i<2;i++)for(int k=0;k<2;k++)if(A[i][k])\n        for(int j=0;j<2;j++) C[i][j]=(C[i][j]+A[i][k]*B[k][j])%MOD;\n    return C;\n}\nMat power(Mat a,long long n){ Mat r={{{1,0},{0,1}}}; for(;n;n>>=1,a=mul(a,a)) if(n&1) r=mul(r,a); return r; }\n```\n\n把遞推的係數填進 2×2（或 k×k）矩陣，`power(T, n)` 後乘上初始向量即得 `f[n]`，複雜度 O(k^3 log n)。"
+        "body": "形如 `f[n] = a·f[n-1] + b·f[n-2]` 的遞推，可寫成狀態向量乘轉移矩陣，n 很大時用快速冪。\n\n```cpp\nusing Mat = array<array<long long,2>,2>;\nMat mul(const Mat&matrix_a,const Mat&matrix_b){\n    Mat result{};\n    for(int i=0;i<2;i++)for(int k=0;k<2;k++)if(matrix_a[i][k])\n        for(int j=0;j<2;j++) result[i][j]=(result[i][j]+matrix_a[i][k]*matrix_b[k][j])%kMod;\n    return result;\n}\nMat power(Mat a,long long n){ Mat r={{{1,0},{0,1}}}; for(;n;n>>=1,a=mul(a,a)) if(n&1) r=mul(r,a); return r; }\n```\n\n把遞推的係數填進 2×2（或 k×k）矩陣，`power(T, n)` 後乘上初始向量即得 `f[n]`，複雜度 O(k^3 log n)。"
       }
     ],
     "reference_links": [
@@ -15050,11 +15050,11 @@
     "deep_dive": [
       {
         "title": "懲罰鬆弛與二分框架",
-        "body": "原問題：在「恰好選 k 個」下最大化 `f`。定義 `g(λ)` = 去掉個數限制、但每選一個扣 `λ` 後的最優值，並記錄此時的選擇個數 `cnt(λ)`。\n\n```cpp\n// 對 λ 二分，找出使 cnt(λ) == k 的 λ\nlong long lo = 0, hi = MAXLAMBDA, bestLambda = 0;\nwhile (lo <= hi) {\n    long long mid = (lo + hi) / 2;\n    auto [val, cnt] = solveWithPenalty(mid);           // 無約束 DP/貪心，回傳最優值與選擇數\n    if (cnt >= k) { bestLambda = mid; lo = mid + 1; }  // 選太多 → 加大懲罰\n    else hi = mid - 1;\n}\nauto [val, cnt] = solveWithPenalty(bestLambda);\nlong long answer = val + bestLambda * k; // 把扣掉的 k·λ 補回來\n```\n\n最後別忘了把懲罰加回：因為子問題每選一個扣了 λ，恰好 k 個就共扣了 `k·λ`，要 `+ k·λ` 還原成原目標。"
+        "body": "原問題：在「恰好選 k 個」下最大化 `f`。定義 `g(λ)` = 去掉個數限制、但每選一個扣 `λ` 後的最優值，並記錄此時的選擇個數 `cnt(λ)`。\n\n```cpp\n\nlong long lo = 0, hi = kMaxLambda, best_lambda = 0;\nwhile (lo <= hi) {\n    long long mid = (lo + hi) / 2;\n    auto [val, cnt] = solveWithPenalty(mid);\n    if (cnt >= k) { best_lambda = mid; lo = mid + 1; }\n    else hi = mid - 1;\n}\nauto [val, cnt] = solveWithPenalty(best_lambda);\nlong long answer = val + best_lambda * k;\n```\n\n最後別忘了把懲罰加回：因為子問題每選一個扣了 λ，恰好 k 個就共扣了 `k·λ`，要 `+ k·λ` 還原成原目標。"
       },
       {
         "title": "凸性與相等情形的處理",
-        "body": "WQS 二分成立的前提是 `opt(k)` 為凸（或凹）函式，這樣 λ（斜率）與最優個數才單調對應。可用「邊際效益遞減」直覺或打表驗證凸性。\n\n實作上常見坑是 `cnt(λ)` 在某些 λ 會「跳過」k（因為存在多個同值最優解）。處理法：二分時用 `cnt >= k` 取邊界，並在 `solveWithPenalty` 的比較中對「個數」做 tie-break（例如同分時偏好選更多個），確保能取到恰好 k 的解。\n\n```cpp\n// tie-break：值相同時，傾向選更多元素，讓 cnt 能覆蓋到 k\nif (cand.val > best.val ||\n   (cand.val == best.val && cand.cnt > best.cnt)) best = cand;\n```"
+        "body": "WQS 二分成立的前提是 `opt(k)` 為凸（或凹）函式，這樣 λ（斜率）與最優個數才單調對應。可用「邊際效益遞減」直覺或打表驗證凸性。\n\n實作上常見坑是 `cnt(λ)` 在某些 λ 會「跳過」k（因為存在多個同值最優解）。處理法：二分時用 `cnt >= k` 取邊界，並在 `solveWithPenalty` 的比較中對「個數」做 tie-break（例如同分時偏好選更多個），確保能取到恰好 k 的解。\n\n```cpp\n\nif (cand.val > best.val ||\n   (cand.val == best.val && cand.cnt > best.cnt)) best = cand;\n```"
       }
     ],
     "reference_links": [
@@ -15112,7 +15112,7 @@
     "deep_dive": [
       {
         "title": "三態樹形 DP",
-        "body": "`dp[u][0/1/2]` 對應上面三種狀態的最小選點數。\n\n```cpp\n// 0: u 被選; 1: u 未選但被子覆蓋; 2: u 未選且未被覆蓋(等父覆蓋)\nlong long dp[N][3];\nvoid dfs(int u,int p){\n    dp[u][0]=1; dp[u][1]=0; dp[u][2]=0;\n    bool hasChild=false; long long extra=LLONG_MAX; bool covered=false;\n    for(int v: g[u]) if(v!=p){\n        hasChild=true; dfs(v,u);\n        dp[u][0]+=min({dp[v][0],dp[v][1],dp[v][2]});  // u 選了，兒子隨意\n        dp[u][2]+=dp[v][1];                           // u 未被覆蓋 → 兒子須自覆蓋且不靠 u\n        // 狀態1：兒子們取 min(0,1)，且至少一個取狀態0來覆蓋 u\n        dp[u][1]+=min(dp[v][0],dp[v][1]);\n        if(dp[v][0]<=dp[v][1]) covered=true;\n        else extra=min(extra, dp[v][0]-dp[v][1]);\n    }\n    if(!covered) dp[u][1]+= (hasChild? extra : 0);  // 強制一個兒子被選來覆蓋 u\n    if(!hasChild) dp[u][1]=LLONG_MAX/2;             // 葉子無法靠兒子覆蓋\n}\n// 答案 = min(dp[root][0], dp[root][1])\n```\n\n狀態 1 的細節在於「必須至少有一個兒子被選（狀態 0）來覆蓋 u」，若所有兒子都取狀態 1，要補上最小的額外代價 `extra`。"
+        "body": "`dp[u][0/1/2]` 對應上面三種狀態的最小選點數。\n\n```cpp\n\nlong long dp[kMaxN][3];\nvoid dfs(int u,int p){\n    dp[u][0]=1; dp[u][1]=0; dp[u][2]=0;\n    bool has_child=false; long long extra=LLONG_MAX; bool covered=false;\n    for(int v: g[u]) if(v!=p){\n        has_child=true; dfs(v,u);\n        dp[u][0]+=min({dp[v][0],dp[v][1],dp[v][2]});\n        dp[u][2]+=dp[v][1];\n\n        dp[u][1]+=min(dp[v][0],dp[v][1]);\n        if(dp[v][0]<=dp[v][1]) covered=true;\n        else extra=min(extra, dp[v][0]-dp[v][1]);\n    }\n    if(!covered) dp[u][1]+= (has_child? extra : 0);\n    if(!has_child) dp[u][1]=LLONG_MAX/2;\n}\n\n```\n\n狀態 1 的細節在於「必須至少有一個兒子被選（狀態 0）來覆蓋 u」，若所有兒子都取狀態 1，要補上最小的額外代價 `extra`。"
       }
     ],
     "reference_links": [
@@ -15361,7 +15361,7 @@
     "deep_dive": [
       {
         "title": "截止期限排程（IOI Sequence 經典）",
-        "body": "任務有截止時間 `d` 與耗時 `t`，按 `d` 排序後逐一加入；若當前總耗時超過 `d`，就反悔掉「耗時最大」的已選任務。\n\n```cpp\nsort(jobs.begin(), jobs.end());  // 按 deadline 升序\npriority_queue<int> pq;          // max-heap，存已選任務耗時\nlong long cur = 0;\nfor (auto [d, t] : jobs) {\n    cur += t; pq.push(t);\n    if (cur > d) {               // 來不及 → 反悔最耗時的一個\n        cur -= pq.top(); pq.pop();\n    }\n}\n// pq.size() 即最多可完成任務數\n```\n\n關鍵：按截止時間排序保證「考慮到某任務時，之前的都可用」，而反悔最大耗時者一定不會讓可行解變差。"
+        "body": "任務有截止時間 `d` 與耗時 `t`，按 `d` 排序後逐一加入；若當前總耗時超過 `d`，就反悔掉「耗時最大」的已選任務。\n\n```cpp\nsort(jobs.begin(), jobs.end());\npriority_queue<int> pq;\nlong long cur = 0;\nfor (auto [d, t] : jobs) {\n    cur += t; pq.push(t);\n    if (cur > d) {\n        cur -= pq.top(); pq.pop();\n    }\n}\n\n```\n\n關鍵：按截止時間排序保證「考慮到某任務時，之前的都可用」，而反悔最大耗時者一定不會讓可行解變差。"
       },
       {
         "title": "收益替換型反悔",
@@ -15427,7 +15427,7 @@
     "deep_dive": [
       {
         "title": "最大異或查詢",
-        "body": "插入時逐位建點；查詢時每位貪心走相反方向。\n\n```cpp\nint ch[N*31][2], idx=0;\nvoid insert(int x){\n    int p=0;\n    for(int i=30;i>=0;i--){ int b=x>>i&1; if(!ch[p][b]) ch[p][b]=++idx; p=ch[p][b]; }\n}\nint queryMax(int x){\n    int p=0, res=0;\n    for(int i=30;i>=0;i--){ int b=x>>i&1;\n        if(ch[p][b^1]){ res|=1<<i; p=ch[p][b^1]; } // 走相反位 → 該位異或為 1\n        else p=ch[p][b];\n    }\n    return res;\n}\n```\n\n要支援刪除或「下標 ≤ r」的限制，給節點加 `cnt`：插入 +1、刪除 -1，走的時候只走 `cnt>0` 的分支。"
+        "body": "插入時逐位建點；查詢時每位貪心走相反方向。\n\n```cpp\nint ch[kMaxN*31][2], idx=0;\nvoid insert(int x){\n    int p=0;\n    for(int i=30;i>=0;i--){ int b=x>>i&1; if(!ch[p][b]) ch[p][b]=++idx; p=ch[p][b]; }\n}\nint queryMax(int x){\n    int p=0, res=0;\n    for(int i=30;i>=0;i--){ int b=x>>i&1;\n        if(ch[p][b^1]){ res|=1<<i; p=ch[p][b^1]; }\n        else p=ch[p][b];\n    }\n    return res;\n}\n```\n\n要支援刪除或「下標 ≤ r」的限制，給節點加 `cnt`：插入 +1、刪除 -1，走的時候只走 `cnt>0` 的分支。"
       }
     ],
     "reference_links": [
@@ -15491,7 +15491,7 @@
       },
       {
         "title": "ST 表：O(1) 靜態區間最值",
-        "body": "`f[i][j]` 表示從 i 起、長度 2^j 的區間最值；查詢時用兩個可重疊的 2^k 區間覆蓋。\n\n```cpp\nint f[N][LOG];\nvoid build(vector<int>& a){\n    int n=a.size();\n    for(int i=0;i<n;i++) f[i][0]=a[i];\n    for(int j=1;(1<<j)<=n;j++)\n        for(int i=0;i+(1<<j)<=n;i++)\n            f[i][j]=max(f[i][j-1], f[i+(1<<(j-1))][j-1]);\n}\nint query(int l,int r){ int k=__lg(r-l+1); return max(f[l][k], f[r-(1<<k)+1][k]); }\n```\n\n因為 max/min/gcd 是冪等的（重疊不影響結果），兩個 2^k 區間可以重疊覆蓋 `[l,r]`，所以查詢 O(1)。和需要區間更新的問題無緣——它只服務靜態查詢。"
+        "body": "`f[i][j]` 表示從 i 起、長度 2^j 的區間最值；查詢時用兩個可重疊的 2^k 區間覆蓋。\n\n```cpp\nint f[kMaxN][kLog];\nvoid build(vector<int>& a){\n    int n=a.size();\n    for(int i=0;i<n;i++) f[i][0]=a[i];\n    for(int j=1;(1<<j)<=n;j++)\n        for(int i=0;i+(1<<j)<=n;i++)\n            f[i][j]=max(f[i][j-1], f[i+(1<<(j-1))][j-1]);\n}\nint query(int l,int r){ int k=__lg(r-l+1); return max(f[l][k], f[r-(1<<k)+1][k]); }\n```\n\n因為 max/min/gcd 是冪等的（重疊不影響結果），兩個 2^k 區間可以重疊覆蓋 `[l,r]`，所以查詢 O(1)。和需要區間更新的問題無緣——它只服務靜態查詢。"
       }
     ],
     "reference_links": [
@@ -15555,11 +15555,11 @@
     "deep_dive": [
       {
         "title": "莫隊演算法骨架",
-        "body": "把查詢按「左端點所在塊」為第一關鍵字、右端點為第二關鍵字排序，使指標移動總量最小。\n\n```cpp\nint B; // 塊大小 ≈ sqrt(n)\nstruct Q { int l, r, id; };\nsort(qs.begin(), qs.end(), [&](const Q&a, const Q&b){\n    if (a.l/B != b.l/B) return a.l/B < b.l/B;\n    return (a.l/B & 1) ? a.r > b.r : a.r < b.r; // 奇偶排序優化\n});\nint l=0, r=-1;\nfor (auto& q : qs) {\n    while (r < q.r) add(++r);\n    while (l > q.l) add(--l);\n    while (r > q.r) del(r--);\n    while (l < q.l) del(l++);\n    ans[q.id] = curAns;\n}\n```\n\n`add/del` 必須能 O(1) 或 O(log) 增量維護答案（例如用計數陣列維護「不同數個數」）。奇偶排序讓右指標來回掃描更省。"
+        "body": "把查詢按「左端點所在塊」為第一關鍵字、右端點為第二關鍵字排序，使指標移動總量最小。\n\n```cpp\nint block_size;\nstruct Query { int l, r, id; };\nsort(qs.begin(), qs.end(), [&](const Query&a, const Query&b){\n    if (a.l/block_size != b.l/block_size) return a.l/block_size < b.l/block_size;\n    return (a.l/block_size & 1) ? a.r > b.r : a.r < b.r;\n});\nint l=0, r=-1;\nfor (auto& q : qs) {\n    while (r < q.r) add(++r);\n    while (l > q.l) add(--l);\n    while (r > q.r) del(r--);\n    while (l < q.l) del(l++);\n    ans[q.id] = cur_ans;\n}\n```\n\n`add/del` 必須能 O(1) 或 O(log) 增量維護答案（例如用計數陣列維護「不同數個數」）。奇偶排序讓右指標來回掃描更省。"
       },
       {
         "title": "根號分解：區間操作的折衷",
-        "body": "把陣列分塊，維護每塊的聚合值（和、最值、懶標記）。查詢/修改時，整塊走預處理、邊角塊暴力。\n\n```cpp\n// 區間加、區間求和的分塊：blockAdd 為整塊懶加\nvoid rangeAdd(int L, int R, long long v) {\n    for (int i = L; i <= R; ) {\n        if (i % B == 0 && i + B - 1 <= R) {      // 整塊\n            blockAdd[i/B] += v; i += B;\n        } else { a[i] += v; sum[i/B] += v; i++; } // 邊角暴力\n    }\n}\n```\n\n分塊的好處是通用、好寫、易擴展到線段樹難處理的查詢；代價是 O(√n) 比 O(log n) 慢，適合 n、q 不過大或查詢特殊時。平衡樹（如 Treap）則用於需要動態維護有序序列且支援分裂合併的場景。"
+        "body": "把陣列分塊，維護每塊的聚合值（和、最值、懶標記）。查詢/修改時，整塊走預處理、邊角塊暴力。\n\n```cpp\n\nvoid rangeAdd(int L, int R, long long v) {\n    for (int i = L; i <= R; ) {\n        if (i % B == 0 && i + B - 1 <= R) {\n            block_add[i/B] += v; i += B;\n        } else { a[i] += v; sum[i/B] += v; i++; }\n    }\n}\n```\n\n分塊的好處是通用、好寫、易擴展到線段樹難處理的查詢；代價是 O(√n) 比 O(log n) 慢，適合 n、q 不過大或查詢特殊時。平衡樹（如 Treap）則用於需要動態維護有序序列且支援分裂合併的場景。"
       }
     ],
     "reference_links": [
@@ -15656,7 +15656,7 @@
     "deep_dive": [
       {
         "title": "Hierholzer 構造尤拉路徑",
-        "body": "用 stack 模擬：能走就往前走並刪邊，走不動就把節點加入答案，最後反轉。\n\n```cpp\nvector<int> g[N]; int idx[N];   // idx：每點下一條未用邊的指標\nvector<int> path;\nvoid hierholzer(int s){\n    stack<int> st; st.push(s);\n    while(!st.empty()){\n        int u=st.top();\n        if(idx[u]<(int)g[u].size()){\n            int v=g[u][idx[u]++];   // 取下一條未用邊\n            st.push(v);\n        } else { path.push_back(u); st.pop(); }\n    }\n    reverse(path.begin(), path.end());\n}\n```\n\n用 `idx` 指標而非每次刪除邊，確保每條邊只處理一次，達到線性。有向圖直接用此版；無向圖需標記邊是否用過（成對的反向邊）。"
+        "body": "用 stack 模擬：能走就往前走並刪邊，走不動就把節點加入答案，最後反轉。\n\n```cpp\nvector<int> g[kMaxN]; int idx[kMaxN];\nvector<int> path;\nvoid hierholzer(int s){\n    stack<int> st; st.push(s);\n    while(!st.empty()){\n        int u=st.top();\n        if(idx[u]<(int)g[u].size()){\n            int v=g[u][idx[u]++];\n            st.push(v);\n        } else { path.push_back(u); st.pop(); }\n    }\n    reverse(path.begin(), path.end());\n}\n```\n\n用 `idx` 指標而非每次刪除邊，確保每條邊只處理一次，達到線性。有向圖直接用此版；無向圖需標記邊是否用過（成對的反向邊）。"
       }
     ],
     "reference_links": [
@@ -15711,7 +15711,7 @@
     "deep_dive": [
       {
         "title": "Tarjan 求 SCC",
-        "body": "單次 DFS 維護 dfn/low 與 stack，根節點 `dfn==low` 時收一個分量。\n\n```cpp\nint dfn[N], low[N], timer=0, scc[N], sccCnt=0;\nbool inStk[N]; stack<int> st;\nvoid tarjan(int u){\n    dfn[u]=low[u]=++timer; st.push(u); inStk[u]=true;\n    for(int v: g[u]){\n        if(!dfn[v]){ tarjan(v); low[u]=min(low[u],low[v]); }\n        else if(inStk[v]) low[u]=min(low[u],dfn[v]);\n    }\n    if(dfn[u]==low[u]){\n        sccCnt++;\n        while(true){ int x=st.top(); st.pop(); inStk[x]=false; scc[x]=sccCnt; if(x==u) break; }\n    }\n}\n```\n\n縮點後，把跨 SCC 的邊建成新圖（去重），即得 DAG，可在其上做拓撲 DP（如最長路、計數）。"
+        "body": "單次 DFS 維護 dfn/low 與 stack，根節點 `dfn==low` 時收一個分量。\n\n```cpp\nint dfn[kMaxN], low[kMaxN], timer=0, scc[kMaxN], scc_count=0;\nbool in_stk[kMaxN]; stack<int> st;\nvoid tarjan(int u){\n    dfn[u]=low[u]=++timer; st.push(u); in_stk[u]=true;\n    for(int v: g[u]){\n        if(!dfn[v]){ tarjan(v); low[u]=min(low[u],low[v]); }\n        else if(in_stk[v]) low[u]=min(low[u],dfn[v]);\n    }\n    if(dfn[u]==low[u]){\n        scc_count++;\n        while(true){ int x=st.top(); st.pop(); in_stk[x]=false; scc[x]=scc_count; if(x==u) break; }\n    }\n}\n```\n\n縮點後，把跨 SCC 的邊建成新圖（去重），即得 DAG，可在其上做拓撲 DP（如最長路、計數）。"
       }
     ],
     "reference_links": [
@@ -15767,11 +15767,11 @@
     "deep_dive": [
       {
         "title": "試除分解與因子枚舉",
-        "body": "試除到 √n，剩餘 >1 的部分本身是質因數。\n\n```cpp\nvector<pair<long long,int>> factorize(long long n){\n    vector<pair<long long,int>> f;\n    for(long long p=2; p*p<=n; p++) if(n%p==0){\n        int c=0; while(n%p==0){ n/=p; c++; }\n        f.push_back({p,c});\n    }\n    if(n>1) f.push_back({n,1});\n    return f;\n}\n// 約數個數 = ∏(c_i+1)；約數和 = ∏(1+p+...+p^c_i)\n```\n\n枚舉所有因子時，迴圈到 √n，對每個整除的 i 同時收集 `i` 與 `n/i`（注意完全平方時去重）。"
+        "body": "試除到 √n，剩餘 >1 的部分本身是質因數。\n\n```cpp\nvector<pair<long long,int>> factorize(long long n){\n    vector<pair<long long,int>> f;\n    for(long long p=2; p*p<=n; p++) if(n%p==0){\n        int c=0; while(n%p==0){ n/=p; c++; }\n        f.push_back({p,c});\n    }\n    if(n>1) f.push_back({n,1});\n    return f;\n}\n\n```\n\n枚舉所有因子時，迴圈到 √n，對每個整除的 i 同時收集 `i` 與 `n/i`（注意完全平方時去重）。"
       },
       {
         "title": "線性篩最小質因子批量分解",
-        "body": "預處理 `spf[x]` = x 的最小質因子，之後反覆除以 spf 即可快速分解。\n\n```cpp\nint spf[N];\nvoid sieve(){\n    for(int i=2;i<N;i++) if(!spf[i])\n        for(int j=i;j<N;j+=i) if(!spf[j]) spf[j]=i;\n}\nvector<int> fast(int x){ vector<int> r; while(x>1){ r.push_back(spf[x]); x/=spf[x]; } return r; }\n```\n\n當題目要對「大量數」分解時，這個 O(N) 預處理 + O(log n) 查詢遠勝逐個試除。"
+        "body": "預處理 `spf[x]` = x 的最小質因子，之後反覆除以 spf 即可快速分解。\n\n```cpp\nint spf[kMaxN];\nvoid sieve(){\n    for(int i=2;i<kMaxN;i++) if(!spf[i])\n        for(int j=i;j<kMaxN;j+=i) if(!spf[j]) spf[j]=i;\n}\nvector<int> fast(int x){ vector<int> r; while(x>1){ r.push_back(spf[x]); x/=spf[x]; } return r; }\n```\n\n當題目要對「大量數」分解時，這個 O(N) 預處理 + O(log n) 查詢遠勝逐個試除。"
       }
     ],
     "reference_links": [
@@ -15855,7 +15855,7 @@
     "deep_dive": [
       {
         "title": "FWT 異或卷積",
-        "body": "FWT 對陣列做「類傅立葉」變換，點乘後逆變換得到位運算卷積。\n\n```cpp\nvoid fwtXor(vector<long long>& a, bool inv){\n    int n=a.size();\n    for(int len=1; len<n; len<<=1)\n        for(int i=0;i<n;i+=len<<1)\n            for(int j=i;j<i+len;j++){\n                long long x=a[j], y=a[j+len];\n                a[j]=x+y; a[j+len]=x-y;          // 蝴蝶變換\n            }\n    if(inv) for(auto& v:a) v/=n;                  // 逆變換除以 n\n}\n// 異或卷積：fwtXor(A); fwtXor(B); 點乘; fwtXor(C, true)\n```\n\nAND/OR 卷積只是把蝴蝶變換換成對應的加減形式。這類技巧常用於「異或/子集和的方案計數」。"
+        "body": "FWT 對陣列做「類傅立葉」變換，點乘後逆變換得到位運算卷積。\n\n```cpp\nvoid fwtXor(vector<long long>& a, bool inv){\n    int n=a.size();\n    for(int len=1; len<n; len<<=1)\n        for(int i=0;i<n;i+=len<<1)\n            for(int j=i;j<i+len;j++){\n                long long x=a[j], y=a[j+len];\n                a[j]=x+y; a[j+len]=x-y;\n            }\n    if(inv) for(auto& v:a) v/=n;\n}\n\n```\n\nAND/OR 卷積只是把蝴蝶變換換成對應的加減形式。這類技巧常用於「異或/子集和的方案計數」。"
       }
     ],
     "reference_links": [
@@ -15999,7 +15999,7 @@
     "deep_dive": [
       {
         "title": "啞節點 + 前驅刪除",
-        "body": "以刪除所有值為 val 的節點為例。\n\n```cpp\nListNode* removeElements(ListNode* head, int val){\n    ListNode dummy(0, head), *prev=&dummy;\n    while(prev->next){\n        if(prev->next->val==val) prev->next=prev->next->next;  // 繞過\n        else prev=prev->next;                                  // 否則前進\n    }\n    return dummy.next;\n}\n```\n\n刪除時不要移動 `prev`，這樣才能處理連續多個待刪節點。刪重複節點（保留/不保留）只是換掉判斷條件。"
+        "body": "以刪除所有值為 val 的節點為例。\n\n```cpp\nListNode* removeElements(ListNode* head, int val){\n    ListNode dummy(0, head), *prev=&dummy;\n    while(prev->next){\n        if(prev->next->val==val) prev->next=prev->next->next;\n        else prev=prev->next;\n    }\n    return dummy.next;\n}\n```\n\n刪除時不要移動 `prev`，這樣才能處理連續多個待刪節點。刪重複節點（保留/不保留）只是換掉判斷條件。"
       }
     ],
     "reference_links": [
@@ -16059,7 +16059,7 @@
     "deep_dive": [
       {
         "title": "有序插入",
-        "body": "找到第一個大於等於新值的位置之前驅，插入。\n\n```cpp\nListNode* insertSorted(ListNode* head, int val){\n    ListNode dummy(0, head), *prev=&dummy;\n    while(prev->next && prev->next->val < val) prev=prev->next;\n    ListNode* node=new ListNode(val);\n    node->next=prev->next;  // 先接後繼\n    prev->next=node;        // 再接前驅\n    return dummy.next;\n}\n```\n\n顛倒這兩行會先讓 `prev->next` 指向新節點，導致原本的後繼遺失。"
+        "body": "找到第一個大於等於新值的位置之前驅，插入。\n\n```cpp\nListNode* insertSorted(ListNode* head, int val){\n    ListNode dummy(0, head), *prev=&dummy;\n    while(prev->next && prev->next->val < val) prev=prev->next;\n    ListNode* node=new ListNode(val);\n    node->next=prev->next;\n    prev->next=node;\n    return dummy.next;\n}\n```\n\n顛倒這兩行會先讓 `prev->next` 指向新節點，導致原本的後繼遺失。"
       }
     ],
     "reference_links": [
@@ -16173,7 +16173,7 @@
     "deep_dive": [
       {
         "title": "刪除倒數第 k 個",
-        "body": "fast 先行 k 步，配合 dummy 讓 slow 停在待刪節點的前驅。\n\n```cpp\nListNode* removeNthFromEnd(ListNode* head, int k){\n    ListNode dummy(0, head), *fast=&dummy, *slow=&dummy;\n    while(k--) fast=fast->next;        // fast 先走 k 步\n    while(fast->next){ fast=fast->next; slow=slow->next; }\n    slow->next=slow->next->next;       // slow 在待刪前驅\n    return dummy.next;\n}\n```\n\n用 dummy 當起點可確保「刪除頭節點」也落在統一邏輯內。"
+        "body": "fast 先行 k 步，配合 dummy 讓 slow 停在待刪節點的前驅。\n\n```cpp\nListNode* removeNthFromEnd(ListNode* head, int k){\n    ListNode dummy(0, head), *fast=&dummy, *slow=&dummy;\n    while(k--) fast=fast->next;\n    while(fast->next){ fast=fast->next; slow=slow->next; }\n    slow->next=slow->next->next;\n    return dummy.next;\n}\n```\n\n用 dummy 當起點可確保「刪除頭節點」也落在統一邏輯內。"
       }
     ],
     "reference_links": [
@@ -16293,7 +16293,7 @@
     "deep_dive": [
       {
         "title": "合併兩有序鏈",
-        "body": "啞節點接尾，較小者接入後該鏈前進。\n\n```cpp\nListNode* merge(ListNode* a, ListNode* b){\n    ListNode dummy(0), *tail=&dummy;\n    while(a && b){\n        if(a->val<=b->val){ tail->next=a; a=a->next; }\n        else { tail->next=b; b=b->next; }\n        tail=tail->next;\n    }\n    tail->next = a ? a : b;   // 接上剩餘\n    return dummy.next;\n}\n```\n\nk 個合併用 priority queue 存各鏈當前頭，每次彈最小、推進該鏈；或分治兩兩合併達 O(N log k)。"
+        "body": "啞節點接尾，較小者接入後該鏈前進。\n\n```cpp\nListNode* merge(ListNode* a, ListNode* b){\n    ListNode dummy(0), *tail=&dummy;\n    while(a && b){\n        if(a->val<=b->val){ tail->next=a; a=a->next; }\n        else { tail->next=b; b=b->next; }\n        tail=tail->next;\n    }\n    tail->next = a ? a : b;\n    return dummy.next;\n}\n```\n\nk 個合併用 priority queue 存各鏈當前頭，每次彈最小、推進該鏈；或分治兩兩合併達 O(N log k)。"
       }
     ],
     "reference_links": [
@@ -16351,7 +16351,7 @@
     "deep_dive": [
       {
         "title": "鏈結串列歸併排序",
-        "body": "快慢指標找中點並斷開，遞迴排序兩半後合併。\n\n```cpp\nListNode* sortList(ListNode* head){\n    if(!head || !head->next) return head;\n    ListNode *slow=head, *fast=head->next;\n    while(fast && fast->next){ slow=slow->next; fast=fast->next->next; }\n    ListNode* mid=slow->next; slow->next=nullptr;  // 斷成兩半\n    return merge(sortList(head), sortList(mid));   // merge 見「合併」一節\n}\n```\n\n`fast=head->next` 的起點讓中點切分對偶數長度更均衡，避免無窮遞迴。"
+        "body": "快慢指標找中點並斷開，遞迴排序兩半後合併。\n\n```cpp\nListNode* sortList(ListNode* head){\n    if(!head || !head->next) return head;\n    ListNode *slow=head, *fast=head->next;\n    while(fast && fast->next){ slow=slow->next; fast=fast->next->next; }\n    ListNode* mid=slow->next; slow->next=nullptr;\n    return merge(sortList(head), sortList(mid));\n}\n```\n\n`fast=head->next` 的起點讓中點切分對偶數長度更均衡，避免無窮遞迴。"
       }
     ],
     "reference_links": [
@@ -16405,7 +16405,7 @@
     "deep_dive": [
       {
         "title": "重排串列（L0→Ln→L1→Ln-1…）",
-        "body": "三步組合：找中點、反轉後半、交錯合併。\n\n```cpp\nvoid reorderList(ListNode* head){\n    if(!head || !head->next) return;\n    ListNode *slow=head, *fast=head;\n    while(fast->next && fast->next->next){ slow=slow->next; fast=fast->next->next; }\n    ListNode* second=reverse(slow->next); slow->next=nullptr; // 反轉後半\n    ListNode* first=head;\n    while(second){ // 交錯合併\n        ListNode* f=first->next; ListNode* s=second->next;\n        first->next=second; second->next=f;\n        first=f; second=s;\n    }\n}\n```\n\n兩數相加則邊走兩鏈邊處理進位；複製帶隨機指標可用「節點後插複製節點」或雜湊表映射。"
+        "body": "三步組合：找中點、反轉後半、交錯合併。\n\n```cpp\nvoid reorderList(ListNode* head){\n    if(!head || !head->next) return;\n    ListNode *slow=head, *fast=head;\n    while(fast->next && fast->next->next){ slow=slow->next; fast=fast->next->next; }\n    ListNode* second=reverse(slow->next); slow->next=nullptr;\n    ListNode* first=head;\n    while(second){\n        ListNode* f=first->next; ListNode* s=second->next;\n        first->next=second; second->next=f;\n        first=f; second=s;\n    }\n}\n```\n\n兩數相加則邊走兩鏈邊處理進位；複製帶隨機指標可用「節點後插複製節點」或雜湊表映射。"
       }
     ],
     "reference_links": [
@@ -16468,7 +16468,7 @@
     "deep_dive": [
       {
         "title": "遞迴框架與迭代中序",
-        "body": "三序只是 visit 位置不同；迭代中序用 stack。\n\n```cpp\nvector<int> inorder(TreeNode* root){\n    vector<int> res; stack<TreeNode*> st; TreeNode* cur=root;\n    while(cur || !st.empty()){\n        while(cur){ st.push(cur); cur=cur->left; }   // 一路向左\n        cur=st.top(); st.pop();\n        res.push_back(cur->val);                      // 中序 visit\n        cur=cur->right;\n    }\n    return res;\n}\n```\n\n前序在 push 時 visit、後序可用「反轉的前序（根右左）」再反轉得到。"
+        "body": "三序只是 visit 位置不同；迭代中序用 stack。\n\n```cpp\nvector<int> inorder(TreeNode* root){\n    vector<int> res; stack<TreeNode*> st; TreeNode* cur=root;\n    while(cur || !st.empty()){\n        while(cur){ st.push(cur); cur=cur->left; }\n        cur=st.top(); st.pop();\n        res.push_back(cur->val);\n        cur=cur->right;\n    }\n    return res;\n}\n```\n\n前序在 push 時 visit、後序可用「反轉的前序（根右左）」再反轉得到。"
       }
     ],
     "reference_links": [
@@ -16533,7 +16533,7 @@
     "deep_dive": [
       {
         "title": "路徑資訊向下傳",
-        "body": "以「路徑總和是否等於 target」為例，把剩餘目標往下帶。\n\n```cpp\nbool hasPathSum(TreeNode* node, int target){\n    if(!node) return false;\n    target -= node->val;\n    if(!node->left && !node->right) return target==0; // 葉子判斷\n    return hasPathSum(node->left, target) || hasPathSum(node->right, target);\n}\n```\n\n求「好節點數」「路徑上最大值」等，都是把祖先資訊（最大值、計數）當參數向下傳，在葉子或每個節點更新答案。"
+        "body": "以「路徑總和是否等於 target」為例，把剩餘目標往下帶。\n\n```cpp\nbool hasPathSum(TreeNode* node, int target){\n    if(!node) return false;\n    target -= node->val;\n    if(!node->left && !node->right) return target==0;\n    return hasPathSum(node->left, target) || hasPathSum(node->right, target);\n}\n```\n\n求「好節點數」「路徑上最大值」等，都是把祖先資訊（最大值、計數）當參數向下傳，在葉子或每個節點更新答案。"
       }
     ],
     "reference_links": [
@@ -16614,7 +16614,7 @@
     "deep_dive": [
       {
         "title": "回傳單邊 + 全域合併（直徑）",
-        "body": "回傳以節點為端點的最大下伸量，全域更新跨節點路徑。\n\n```cpp\nint best=0;\nint depth(TreeNode* node){\n    if(!node) return 0;\n    int l=depth(node->left), r=depth(node->right);\n    best=max(best, l+r);   // 跨過 node 的路徑（邊數）\n    return max(l, r) + 1;  // 只能單邊往上接\n}\n// 直徑 = best（呼叫 depth(root) 後）\n```\n\n最大路徑和把高度換成「最大鏈和、負則取 0」，平衡判定則回傳高度同時用一個標記或 -1 表示已失衡。"
+        "body": "回傳以節點為端點的最大下伸量，全域更新跨節點路徑。\n\n```cpp\nint best=0;\nint depth(TreeNode* node){\n    if(!node) return 0;\n    int l=depth(node->left), r=depth(node->right);\n    best=max(best, l+r);\n    return max(l, r) + 1;\n}\n\n```\n\n最大路徑和把高度換成「最大鏈和、負則取 0」，平衡判定則回傳高度同時用一個標記或 -1 表示已失衡。"
       }
     ],
     "reference_links": [
@@ -16796,7 +16796,7 @@
     "deep_dive": [
       {
         "title": "前序 + 中序重建",
-        "body": "前序首元素是根，在中序中找到它切出左右子樹大小。\n\n```cpp\nunordered_map<int,int> pos; // 中序值→下標\nint pre=0;\nTreeNode* build(vector<int>& preorder, int inL, int inR){\n    if(inL>inR) return nullptr;\n    int rootVal=preorder[pre++];\n    TreeNode* root=new TreeNode(rootVal);\n    int k=pos[rootVal];\n    root->left = build(preorder, inL, k-1);   // 先建左，與前序順序一致\n    root->right= build(preorder, k+1, inR);\n    return root;\n}\n```\n\n必須「先建左子樹」才能與前序的消費順序一致。由排序陣列建平衡 BST 則每次取中點當根，遞迴左右半。"
+        "body": "前序首元素是根，在中序中找到它切出左右子樹大小。\n\n```cpp\nunordered_map<int,int> pos;\nint pre=0;\nTreeNode* build(vector<int>& preorder, int in_left, int in_right){\n    if(in_left>in_right) return nullptr;\n    int root_val=preorder[pre++];\n    TreeNode* root=new TreeNode(root_val);\n    int k=pos[root_val];\n    root->left = build(preorder, in_left, k-1);\n    root->right= build(preorder, k+1, in_right);\n    return root;\n}\n```\n\n必須「先建左子樹」才能與前序的消費順序一致。由排序陣列建平衡 BST 則每次取中點當根，遞迴左右半。"
       }
     ],
     "reference_links": [
@@ -17001,7 +17001,7 @@
     "deep_dive": [
       {
         "title": "最近公共祖先（LCA）",
-        "body": "後序遞迴：若左右子樹各找到一個目標，當前節點即 LCA。\n\n```cpp\nTreeNode* lca(TreeNode* root, TreeNode* p, TreeNode* q){\n    if(!root || root==p || root==q) return root;\n    TreeNode* l=lca(root->left, p, q);\n    TreeNode* r=lca(root->right, p, q);\n    if(l && r) return root;  // 兩側各一 → 當前是 LCA\n    return l ? l : r;        // 否則回傳找到的那側\n}\n```\n\n序列化用前序帶 null 標記，反序列化按同序消費；判斷相同樹/對稱樹則同步遞迴比較兩棵（子）樹。"
+        "body": "後序遞迴：若左右子樹各找到一個目標，當前節點即 LCA。\n\n```cpp\nTreeNode* lca(TreeNode* root, TreeNode* p, TreeNode* q){\n    if(!root || root==p || root==q) return root;\n    TreeNode* l=lca(root->left, p, q);\n    TreeNode* r=lca(root->right, p, q);\n    if(l && r) return root;\n    return l ? l : r;\n}\n```\n\n序列化用前序帶 null 標記，反序列化按同序消費；判斷相同樹/對稱樹則同步遞迴比較兩棵（子）樹。"
       }
     ],
     "reference_links": [
@@ -17096,11 +17096,11 @@
     "deep_dive": [
       {
         "title": "DFS 時間戳：子樹轉區間",
-        "body": "一次 DFS 給每個節點進入/離開時間，子樹恰為 `[in[u], out[u]]`。\n\n```cpp\nint in[N], out[N], timer=0;\nvoid dfs(int u,int p){\n    in[u]=++timer;\n    for(int v: g[u]) if(v!=p) dfs(v,u);\n    out[u]=timer;\n}\n// 「u 子樹加值」「查 u 子樹和」→ 對區間 [in[u], out[u]] 用 BIT/線段樹\n```\n\n這把樹上子樹操作完全轉成序列上的區間操作，是處理「子樹修改/查詢」的標準前置步驟。"
+        "body": "一次 DFS 給每個節點進入/離開時間，子樹恰為 `[in[u], out[u]]`。\n\n```cpp\nint in[kMaxN], out[kMaxN], timer=0;\nvoid dfs(int u,int p){\n    in[u]=++timer;\n    for(int v: g[u]) if(v!=p) dfs(v,u);\n    out[u]=timer;\n}\n\n```\n\n這把樹上子樹操作完全轉成序列上的區間操作，是處理「子樹修改/查詢」的標準前置步驟。"
       },
       {
         "title": "點分治處理路徑問題",
-        "body": "每層找重心，統計「經過重心」的路徑，扣除同子樹內的重複，再對各子樹遞迴。\n\n```cpp\n// 骨架：findCentroid → calc(經過 root 的路徑) → 對每個子樹 calc 去重 → 遞迴\nvoid solve(int u){\n    int c = centroid(u);\n    countPathsThrough(c);            // 統計過 c 的合法路徑\n    used[c] = true;\n    for(int v: g[c]) if(!used[v]) solve(v);\n}\n```\n\n選重心保證每次子問題規模減半，故遞迴深度 O(log n)，每層 O(n)，總 O(n log n)。常用於「距離為 k 的點對數」「路徑和滿足條件」等。"
+        "body": "每層找重心，統計「經過重心」的路徑，扣除同子樹內的重複，再對各子樹遞迴。\n\n```cpp\n\nvoid solve(int u){\n    int c = centroid(u);\n    countPathsThrough(c);\n    used[c] = true;\n    for(int v: g[c]) if(!used[v]) solve(v);\n}\n```\n\n選重心保證每次子問題規模減半，故遞迴深度 O(log n)，每層 O(n)，總 O(n log n)。常用於「距離為 k 的點對數」「路徑和滿足條件」等。"
       }
     ],
     "reference_links": [
@@ -17162,7 +17162,7 @@
     "deep_dive": [
       {
         "title": "分割回文串骨架",
-        "body": "列舉當前段的結尾，合法（回文）才往下分。\n\n```cpp\nvector<vector<string>> res; vector<string> path;\nvoid dfs(const string& s, int start){\n    if(start==(int)s.size()){ res.push_back(path); return; }\n    for(int end=start; end<(int)s.size(); end++){\n        if(isPalin(s,start,end)){           // 段合法才遞迴\n            path.push_back(s.substr(start,end-start+1));\n            dfs(s, end+1);\n            path.pop_back();                 // 回溯\n        }\n    }\n}\n```\n\n可先用 `pal[i][j]` 預處理回文判斷把段檢查降到 O(1)。復原 IP、分割成 k 段等變體只是換掉合法性條件與終止判斷。"
+        "body": "列舉當前段的結尾，合法（回文）才往下分。\n\n```cpp\nvector<vector<string>> res; vector<string> path;\nvoid dfs(const string& s, int start){\n    if(start==(int)s.size()){ res.push_back(path); return; }\n    for(int end=start; end<(int)s.size(); end++){\n        if(isPalin(s,start,end)){\n            path.push_back(s.substr(start,end-start+1));\n            dfs(s, end+1);\n            path.pop_back();\n        }\n    }\n}\n```\n\n可先用 `pal[i][j]` 預處理回文判斷把段檢查降到 O(1)。復原 IP、分割成 k 段等變體只是換掉合法性條件與終止判斷。"
       }
     ],
     "reference_links": [
@@ -17222,7 +17222,7 @@
     "deep_dive": [
       {
         "title": "子集和最接近目標",
-        "body": "左右各枚舉一半的子集和，右半排序後二分互補值。\n\n```cpp\nvector<long long> gen(const vector<int>& v){      // 枚舉所有子集和\n    vector<long long> s;\n    int n=v.size();\n    for(int m=0;m<(1<<n);m++){\n        long long sum=0;\n        for(int i=0;i<n;i++) if(m>>i&1) sum+=v[i];\n        s.push_back(sum);\n    }\n    return s;\n}\nlong long closest(vector<int>& a, long long target){\n    int h=a.size()/2;\n    auto L=gen({a.begin(),a.begin()+h});\n    auto R=gen({a.begin()+h,a.end()});\n    sort(R.begin(),R.end());\n    long long best=LLONG_MAX;\n    for(long long x:L){\n        long long need=target-x;\n        auto it=lower_bound(R.begin(),R.end(),need);\n        if(it!=R.end()) best=min(best, llabs(x+*it-target));\n        if(it!=R.begin()) best=min(best, llabs(x+*prev(it)-target));\n    }\n    return best;\n}\n```\n\n計數型把「二分找一個」換成「二分找區間長度」；恰好等於目標則用雜湊表計次。"
+        "body": "左右各枚舉一半的子集和，右半排序後二分互補值。\n\n```cpp\nvector<long long> gen(const vector<int>& v){\n    vector<long long> s;\n    int n=v.size();\n    for(int m=0;m<(1<<n);m++){\n        long long sum=0;\n        for(int i=0;i<n;i++) if(m>>i&1) sum+=v[i];\n        s.push_back(sum);\n    }\n    return s;\n}\nlong long closest(vector<int>& a, long long target){\n    int h=a.size()/2;\n    auto L=gen({a.begin(),a.begin()+h});\n    auto R=gen({a.begin()+h,a.end()});\n    sort(R.begin(),R.end());\n    long long best=LLONG_MAX;\n    for(long long x:L){\n        long long need=target-x;\n        auto it=lower_bound(R.begin(),R.end(),need);\n        if(it!=R.end()) best=min(best, llabs(x+*it-target));\n        if(it!=R.begin()) best=min(best, llabs(x+*prev(it)-target));\n    }\n    return best;\n}\n```\n\n計數型把「二分找一個」換成「二分找區間長度」；恰好等於目標則用雜湊表計次。"
       }
     ],
     "reference_links": [
@@ -17284,7 +17284,7 @@
     "deep_dive": [
       {
         "title": "插入與最大異或",
-        "body": "插入時從高位往低位嘗試消去；查詢最大值時貪心地讓答案盡量大。\n\n```cpp\nlong long basis[63];\nbool insert(long long x){\n    for(int i=62;i>=0;i--) if(x>>i&1){\n        if(!basis[i]){ basis[i]=x; return true; }  // 找到空位，成為新基底\n        x^=basis[i];                               // 否則消去這一位\n    }\n    return false; // x 已能被現有基底表示\n}\nlong long maxXor(){\n    long long res=0;\n    for(int i=62;i>=0;i--) res=max(res,res^basis[i]);\n    return res;\n}\n```\n\n插入回傳 false 代表 x 落在已張成空間內（線性相關），這同時用於「判斷能否異或出 x」。"
+        "body": "插入時從高位往低位嘗試消去；查詢最大值時貪心地讓答案盡量大。\n\n```cpp\nlong long basis[63];\nbool insert(long long x){\n    for(int i=62;i>=0;i--) if(x>>i&1){\n        if(!basis[i]){ basis[i]=x; return true; }\n        x^=basis[i];\n    }\n    return false;\n}\nlong long maxXor(){\n    long long res=0;\n    for(int i=62;i>=0;i--) res=max(res,res^basis[i]);\n    return res;\n}\n```\n\n插入回傳 false 代表 x 落在已張成空間內（線性相關），這同時用於「判斷能否異或出 x」。"
       }
     ],
     "reference_links": [
@@ -17338,11 +17338,11 @@
     "deep_dive": [
       {
         "title": "計數排序（穩定版）",
-        "body": "統計次數 → 前綴和得到每個值的結束位置 → 從後往前填，保證穩定。\n\n```cpp\nvector<int> countingSort(const vector<int>& a, int k) { // 值域 [0, k]\n    vector<int> cnt(k + 1, 0), out(a.size());\n    for (int x : a) cnt[x]++;\n    for (int v = 1; v <= k; v++) cnt[v] += cnt[v - 1];  // 前綴和\n    for (int i = (int)a.size() - 1; i >= 0; i--)        // 從後往前 → 穩定\n        out[--cnt[a[i]]] = a[i];\n    return out;\n}\n```\n\n從後往前填入是穩定性的關鍵：相同值的元素保持原相對順序，這在基數排序中是必要條件。"
+        "body": "統計次數 → 前綴和得到每個值的結束位置 → 從後往前填，保證穩定。\n\n```cpp\nvector<int> countingSort(const vector<int>& a, int k) {\n    vector<int> cnt(k + 1, 0), out(a.size());\n    for (int x : a) cnt[x]++;\n    for (int v = 1; v <= k; v++) cnt[v] += cnt[v - 1];\n    for (int i = (int)a.size() - 1; i >= 0; i--)\n        out[--cnt[a[i]]] = a[i];\n    return out;\n}\n```\n\n從後往前填入是穩定性的關鍵：相同值的元素保持原相對順序，這在基數排序中是必要條件。"
       },
       {
         "title": "基數排序（LSD，按位計數）",
-        "body": "把每個數視為 base 進位制，從最低位開始，對每一位做一次穩定計數排序。\n\n```cpp\nvoid radixSort(vector<unsigned>& a) {\n    const int BASE = 256;\n    vector<unsigned> buf(a.size());\n    for (int shift = 0; shift < 32; shift += 8) {\n        int cnt[BASE + 1] = {0};\n        for (unsigned x : a) cnt[(x >> shift) & 0xFF]++;\n        for (int i = 1; i <= BASE; i++) cnt[i] += cnt[i - 1];\n        for (int i = (int)a.size() - 1; i >= 0; i--)\n            buf[--cnt[(a[i] >> shift) & 0xFF]] = a[i];\n        swap(a, buf);\n    }\n}\n```\n\n每一輪必須用「穩定」的計數排序，否則高位排好的順序會被低位打亂。位數 d 與基數 b 的選擇影響 `O(d·(n + b))` 的常數。"
+        "body": "把每個數視為 base 進位制，從最低位開始，對每一位做一次穩定計數排序。\n\n```cpp\nvoid radixSort(vector<unsigned>& a) {\n    const int kBase = 256;\n    vector<unsigned> buf(a.size());\n    for (int shift = 0; shift < 32; shift += 8) {\n        int cnt[kBase + 1] = {0};\n        for (unsigned x : a) cnt[(x >> shift) & 0xFF]++;\n        for (int i = 1; i <= kBase; i++) cnt[i] += cnt[i - 1];\n        for (int i = (int)a.size() - 1; i >= 0; i--)\n            buf[--cnt[(a[i] >> shift) & 0xFF]] = a[i];\n        swap(a, buf);\n    }\n}\n```\n\n每一輪必須用「穩定」的計數排序，否則高位排好的順序會被低位打亂。位數 d 與基數 b 的選擇影響 `O(d·(n + b))` 的常數。"
       }
     ],
     "reference_links": [

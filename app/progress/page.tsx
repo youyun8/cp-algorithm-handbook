@@ -1,7 +1,7 @@
 import { PageTransition } from '@/components/PageTransition';
 import { ProgressOverview } from '@/components/ProgressOverview';
 import { CloudSync } from '@/components/CloudSync';
-import { problems, subtopics, topics } from '@/lib/data';
+import { kProblems, kSubtopics, kTopics } from '@/lib/data';
 
 export default function ProgressPage() {
   return (
@@ -15,7 +15,7 @@ export default function ProgressPage() {
           </p>
         </div>
         <CloudSync />
-        <ProgressOverview problems={problems} topics={topics} subtopics={subtopics} />
+        <ProgressOverview problems={kProblems} topics={kTopics} subtopics={kSubtopics} />
       </div>
     </PageTransition>
   );

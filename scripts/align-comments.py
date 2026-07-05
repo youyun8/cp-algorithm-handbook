@@ -9,14 +9,14 @@ import json
 import re
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-DATA_FILES = [ROOT / "data" / "topics.json", ROOT / "data" / "subtopics.json"]
+kRoot = Path(__file__).resolve().parent.parent
+kDataFiles = [kRoot / "data" / "topics.json", kRoot / "data" / "subtopics.json"]
 
-CPP_BLOCK_RE = re.compile(r"```cpp\n(.*?)```", re.DOTALL)
-MIN_GAP = 2
+kCppBlockRe = re.compile(r"```cpp\n(.*?)```", re.DOTALL)
+kMinGap = 2
 
 
-def split_trailing_comment(line: str) -> tuple[str, str] | None:
+def splitTrailingComment(line: str) -> tuple[str, str] | None:
     idx = line.find("//")
     if idx == -1:
         return None
@@ -26,7 +26,7 @@ def split_trailing_comment(line: str) -> tuple[str, str] | None:
     return code, line[idx + 2 :]
 
 
-def align_codeblock(code: str) -> str:
+def alignCodeblock(code: str) -> str:
     lines = code.split("\n")
     result = list(lines)
     i = 0
@@ -37,17 +37,17 @@ def align_codeblock(code: str) -> str:
             line = lines[j]
             if not line.strip():
                 break
-            if split_trailing_comment(line) is None:
+            if splitTrailingComment(line) is None:
                 break
             group.append(j)
             j += 1
 
         if len(group) >= 2:
-            parsed = [split_trailing_comment(lines[k]) for k in group]
+            parsed = [splitTrailingComment(lines[k]) for k in group]
             assert all(p is not None for p in parsed)
             max_code_len = max(len(code) for code, _ in parsed)
             for k, (code_part, comment) in zip(group, parsed):
-                gap = max(MIN_GAP, max_code_len - len(code_part) + MIN_GAP)
+                gap = max(kMinGap, max_code_len - len(code_part) + kMinGap)
                 result[k] = f"{code_part}{' ' * gap}//{comment}"
 
         i = j if j > i else i + 1
@@ -55,21 +55,21 @@ def align_codeblock(code: str) -> str:
     return "\n".join(result)
 
 
-def align_markdown(text: str) -> tuple[str, int]:
+def alignMarkdown(text: str) -> tuple[str, int]:
     changes = 0
 
     def repl(match: re.Match[str]) -> str:
         nonlocal changes
         original = match.group(1)
-        aligned = align_codeblock(original)
+        aligned = alignCodeblock(original)
         if aligned != original:
             changes += 1
         return f"```cpp\n{aligned}```"
 
-    return CPP_BLOCK_RE.sub(repl, text), changes
+    return kCppBlockRe.sub(repl, text), changes
 
 
-def process_json_file(path: Path) -> int:
+def processJsonFile(path: Path) -> int:
     data = json.loads(path.read_text(encoding="utf-8"))
     total = 0
 
@@ -78,7 +78,7 @@ def process_json_file(path: Path) -> int:
         if isinstance(node, dict):
             for key, value in node.items():
                 if isinstance(value, str) and "```cpp" in value:
-                    new_value, changes = align_markdown(value)
+                    new_value, changes = alignMarkdown(value)
                     if changes:
                         node[key] = new_value
                         total += changes
@@ -96,8 +96,8 @@ def process_json_file(path: Path) -> int:
 
 def main() -> None:
     grand_total = 0
-    for path in DATA_FILES:
-        count = process_json_file(path)
+    for path in kDataFiles:
+        count = processJsonFile(path)
         print(f"{path.name}: aligned {count} code block(s)")
         grand_total += count
     print(f"done: {grand_total} code block(s) updated")

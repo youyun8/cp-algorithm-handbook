@@ -42,9 +42,12 @@ export function problemDisplayTitle(problem: Pick<Problem, 'source' | 'title'> &
   return problem.title;
 }
 
-export function sourceUrl(problem: Pick<Problem, 'source' | 'source_id'>, leetCodeSite: LeetCodeSite = 'cn') {
+export function sourceUrl(
+  problem: Pick<Problem, 'source' | 'source_id'>,
+  leet_code_site: LeetCodeSite = 'cn'
+) {
   if (problem.source === 'leetcode') {
-    const host = leetCodeSite === 'en' ? 'leetcode.com' : 'leetcode.cn';
+    const host = leet_code_site === 'en' ? 'leetcode.com' : 'leetcode.cn';
     return `https://${host}/problems/${problem.source_id}/`;
   }
 
@@ -76,7 +79,7 @@ export function difficultyLabel(rating: number) {
 // Shared difficulty/intensity colour scale. `soft` is used for badges and tags;
 // `selected` is the active state for segmented controls so they read on the same
 // scale (calm green -> intense rose, with blue reserved for the focus tone).
-const toneSoft: Record<Tone, string> = {
+const kToneSoft: Record<Tone, string> = {
   green: 'border-emerald-400/40 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
   amber: 'border-amber-400/40 bg-amber-500/15 text-amber-700 dark:text-amber-300',
   orange: 'border-orange-400/40 bg-orange-500/15 text-orange-700 dark:text-orange-300',
@@ -84,7 +87,7 @@ const toneSoft: Record<Tone, string> = {
   blue: 'border-blue-400/40 bg-blue-500/15 text-blue-700 dark:text-blue-300'
 };
 
-const toneSelected: Record<Tone, string> = {
+const kToneSelected: Record<Tone, string> = {
   green:
     'border-emerald-500/60 bg-emerald-500/20 text-emerald-700 ring-1 ring-emerald-500/30 dark:text-emerald-200',
   amber: 'border-amber-500/60 bg-amber-500/20 text-amber-700 ring-1 ring-amber-500/30 dark:text-amber-200',
@@ -95,11 +98,11 @@ const toneSelected: Record<Tone, string> = {
 };
 
 export function toneSoftClass(tone: Tone) {
-  return toneSoft[tone];
+  return kToneSoft[tone];
 }
 
 export function toneSelectedClass(tone: Tone) {
-  return toneSelected[tone];
+  return kToneSelected[tone];
 }
 
 export function difficultyTone(rating: number): Tone {
@@ -110,25 +113,25 @@ export function difficultyTone(rating: number): Tone {
 }
 
 export function difficultyClass(rating: number) {
-  return toneSoft[difficultyTone(rating)];
+  return kToneSoft[difficultyTone(rating)];
 }
 
-export function problemTypeLabel(problemType: ProblemType) {
+export function problemTypeLabel(problem_type: ProblemType) {
   const labels: Record<ProblemType, string> = {
     template: '模板',
     classic: '經典',
     insight_transfer: '思維'
   };
-  return labels[problemType];
+  return labels[problem_type];
 }
 
-export function problemTypeClass(problemType: ProblemType) {
+export function problemTypeClass(problem_type: ProblemType) {
   const classes: Record<ProblemType, string> = {
     template: 'border-slate-400/40 bg-slate-500/15 text-slate-700 dark:text-slate-200',
     classic: 'border-blue-400/40 bg-blue-500/15 text-blue-800 dark:text-blue-200',
     insight_transfer: 'border-purple-400/40 bg-purple-500/15 text-purple-800 dark:text-purple-200'
   };
-  return classes[problemType];
+  return classes[problem_type];
 }
 
 export function tierLabel(tier: Tier) {
@@ -151,7 +154,7 @@ export function submissionStatusLabel(status: SubmissionStatus) {
   return labels[status];
 }
 
-export function topicIcon(topicId: string) {
+export function topicIcon(topic_id: string) {
   const icons: Record<string, string> = {
     'binary-search': '🔍',
     'graph-traversal': '🕸️',
@@ -174,7 +177,7 @@ export function topicIcon(topicId: string) {
     backtracking: '🔙',
     'network-flow': '🌊'
   };
-  return icons[topicId] ?? '📚';
+  return icons[topic_id] ?? '📚';
 }
 
 export function sourceClass(source: Source) {
@@ -188,21 +191,21 @@ export function sourceClass(source: Source) {
   return classes[source];
 }
 
-export function ratingBands(currentRating: number): RatingBand[] {
+export function ratingBands(current_rating: number): RatingBand[] {
   return [
     {
       id: 'consolidate',
       label: '鞏固',
-      min: Math.max(0, currentRating - 200),
-      max: currentRating,
+      min: Math.max(0, current_rating - 200),
+      max: current_rating,
       description: '補強目前分段的穩定度',
       tone: 'green'
     },
     {
       id: 'target',
       label: '目標',
-      min: currentRating,
-      max: currentRating + 200,
+      min: current_rating,
+      max: current_rating + 200,
       description: '依照當前目標分數練習',
       tone: 'blue'
     },

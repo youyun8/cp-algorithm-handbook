@@ -18,12 +18,12 @@ export default async function SubtopicPage({
 }: {
   params: Promise<{ slug: string; subtopic: string }>;
 }) {
-  const { slug, subtopic: subtopicSlug } = await params;
+  const { slug, subtopic: subtopic_slug } = await params;
   const topics = getTopics();
   const subtopics = getSubtopics();
   const topic = topics.find((t) => t.slug === slug);
-  const subtopic = subtopics.find((s) => s.parent_id === topic?.id && s.slug === subtopicSlug);
-  const canonicalProblems = subtopic ? getProblemsBySubtopic(subtopic.id) : [];
+  const subtopic = subtopics.find((s) => s.parent_id === topic?.id && s.slug === subtopic_slug);
+  const canonical_problems = subtopic ? getProblemsBySubtopic(subtopic.id) : [];
 
   if (!topic || !subtopic) {
     notFound();
@@ -36,7 +36,7 @@ export default async function SubtopicPage({
           topics={topics}
           subtopics={subtopics}
           activeTopicSlug={slug}
-          activeSubtopicSlug={subtopicSlug}
+          activeSubtopicSlug={subtopic_slug}
           anchors={[
             { id: 'core', label: '核心想法' },
             ...(subtopic.deep_dive?.map((d) => ({
@@ -47,14 +47,14 @@ export default async function SubtopicPage({
             ...(subtopic.pitfalls && subtopic.pitfalls.length > 0
               ? [{ id: 'pitfalls', label: '容易踩雷的地方' }]
               : []),
-            ...(canonicalProblems.length > 0 ||
+            ...(canonical_problems.length > 0 ||
             (subtopic.practice_problems && subtopic.practice_problems.length > 0)
               ? [{ id: 'practice', label: '子主題練習題' }]
               : [])
           ]}
         />
         <div className="min-w-0 flex-1">
-          <SubtopicHandbook subtopic={subtopic} parentTopic={topic} problems={canonicalProblems} />
+          <SubtopicHandbook subtopic={subtopic} parentTopic={topic} problems={canonical_problems} />
         </div>
       </div>
     </PageTransition>

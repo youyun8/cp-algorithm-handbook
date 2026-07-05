@@ -17,7 +17,7 @@ import sys
 #   2. WHY it works (key insight / invariant)
 #   3. HOW to avoid common pitfalls
 
-HINTS: dict[tuple, list[str]] = {
+kHints: dict[tuple, list[str]] = {
 
     # ── binary-search ────────────────────────────────────────────────────────
     ("binary-search", "基礎"): [
@@ -761,7 +761,7 @@ HINTS: dict[tuple, list[str]] = {
 }
 
 # Template hint patterns to replace
-TEMPLATE_PATTERNS = [
+kTemplatePatterns = [
     "lc-rating「",
     "lc-rating 競賽題庫題目",
     "先辨認本節模型再動手寫模板",
@@ -770,26 +770,26 @@ TEMPLATE_PATTERNS = [
 ]
 
 
-def is_template_hint(hints: list[str]) -> bool:
+def isTemplateHint(hints: list[str]) -> bool:
     for h in hints:
-        if any(p in h for p in TEMPLATE_PATTERNS):
+        if any(p in h for p in kTemplatePatterns):
             return True
     return False
 
 
-def find_hints(topic_id: str, section: str | None) -> list[str] | None:
+def findHints(topic_id: str, section: str | None) -> list[str] | None:
     """Look up hints from the mapping, trying specific then general keys."""
     if section:
         # Try exact match first
-        if (topic_id, section) in HINTS:
-            return HINTS[(topic_id, section)]
+        if (topic_id, section) in kHints:
+            return kHints[(topic_id, section)]
         # Try substring match
-        for key_section in [k[1] for k in HINTS if len(k) == 2 and k[0] == topic_id]:
+        for key_section in [k[1] for k in kHints if len(k) == 2 and k[0] == topic_id]:
             if key_section and key_section in section:
-                return HINTS[(topic_id, key_section)]
+                return kHints[(topic_id, key_section)]
     # Fallback to topic-only
-    if (topic_id,) in HINTS:
-        return HINTS[(topic_id,)]
+    if (topic_id,) in kHints:
+        return kHints[(topic_id,)]
     return None
 
 
@@ -802,7 +802,7 @@ def main():
 
     for problem in problems:
         hints = problem.get("strategy_hints", [])
-        if not is_template_hint(hints):
+        if not isTemplateHint(hints):
             continue  # Keep good hints as-is
 
         topic_id = problem.get("topic_id", "")
@@ -812,9 +812,9 @@ def main():
         # Clean section: strip leading ". " markers used in section names
         section_clean = section.lstrip(". ").strip() if section else ""
 
-        new_hints = find_hints(topic_id, section_clean)
+        new_hints = findHints(topic_id, section_clean)
         if new_hints is None:
-            new_hints = find_hints(topic_id, None)
+            new_hints = findHints(topic_id, None)
 
         if new_hints:
             problem["strategy_hints"] = new_hints

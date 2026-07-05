@@ -14,7 +14,7 @@ import { useProgressStore } from '@/store/useProgressStore';
 
 type StrategyTab = 'approach' | 'pattern' | 'mistakes' | 'insight' | 'similar';
 
-const tabs: { id: StrategyTab; label: string }[] = [
+const kTabs: { id: StrategyTab; label: string }[] = [
   { id: 'approach', label: '解題思路' },
   { id: 'pattern', label: '模式辨識' },
   { id: 'mistakes', label: '常見錯誤' },
@@ -25,18 +25,18 @@ const tabs: { id: StrategyTab; label: string }[] = [
 export function ProblemStrategy({
   problem,
   topic,
-  similarProblems
+  similarProblems: similar_problems
 }: {
   problem: Problem;
   topic: Topic;
   similarProblems: Problem[];
 }) {
-  const [active, setActive] = useState<StrategyTab>('approach');
-  const [showNotes, setShowNotes] = useState(false);
-  const markReviewed = useProgressStore((state) => state.markReviewed);
-  const reviewedProblemIds = useProgressStore((state) => state.reviewedProblemIds);
-  const problemNote = useProgressStore((state) => state.problemNotes[problem.id]);
-  const reviewed = reviewedProblemIds.includes(problem.id);
+  const [active, set_active] = useState<StrategyTab>('approach');
+  const [show_notes, set_show_notes] = useState(false);
+  const mark_reviewed = useProgressStore((state) => state.markReviewed);
+  const reviewed_problem_ids = useProgressStore((state) => state.reviewedProblemIds);
+  const problem_note = useProgressStore((state) => state.problemNotes[problem.id]);
+  const reviewed = reviewed_problem_ids.includes(problem.id);
 
   const mistakes = useMemo(
     () => [
@@ -82,11 +82,11 @@ export function ProblemStrategy({
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button type="button" onClick={() => markReviewed(problem.id, problem.topic_id)}>
+            <Button type="button" onClick={() => mark_reviewed(problem.id, problem.topic_id)}>
               {reviewed ? '已標記複習' : '標記為已複習'}
             </Button>
-            <Button type="button" variant="outline" onClick={() => setShowNotes(true)}>
-              {problemNote ? '查看解答與思路' : '記錄解答與思路'}
+            <Button type="button" variant="outline" onClick={() => set_show_notes(true)}>
+              {problem_note ? '查看解答與思路' : '記錄解答與思路'}
             </Button>
           </div>
         </CardContent>
@@ -95,11 +95,11 @@ export function ProblemStrategy({
       <Card>
         <CardContent className="pt-5">
           <div className="mb-5 flex flex-wrap gap-2">
-            {tabs.map((tab) => (
+            {kTabs.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => setActive(tab.id)}
+                onClick={() => set_active(tab.id)}
                 className={
                   active === tab.id
                     ? 'rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground'
@@ -153,7 +153,7 @@ export function ProblemStrategy({
 
           {active === 'similar' ? (
             <div className="grid gap-3 md:grid-cols-2">
-              {similarProblems.map((item) => (
+              {similar_problems.map((item) => (
                 <Link
                   key={item.id}
                   href={`/problems/${item.id}`}
@@ -170,8 +170,8 @@ export function ProblemStrategy({
       <ProblemNotesModal
         problemId={problem.id}
         title={problemDisplayTitle(problem)}
-        open={showNotes}
-        onClose={() => setShowNotes(false)}
+        open={show_notes}
+        onClose={() => set_show_notes(false)}
       />
     </div>
   );

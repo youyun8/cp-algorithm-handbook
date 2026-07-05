@@ -3,9 +3,9 @@ import { ArrowRight, BarChart3, BookOpen, Dumbbell, type LucideIcon } from 'luci
 import { FeaturedTopics } from '@/components/FeaturedTopics';
 import { PageTransition } from '@/components/PageTransition';
 import { ProgressSummary } from '@/components/ProgressSummary';
-import { problems, topics } from '@/lib/data';
+import { kProblems, kTopics } from '@/lib/data';
 
-const guideSteps: { icon: LucideIcon; title: string; description: string; href: string; cta: string }[] = [
+const kGuideSteps: { icon: LucideIcon; title: string; description: string; href: string; cta: string }[] = [
   {
     icon: BookOpen,
     title: '閱讀手冊',
@@ -30,7 +30,7 @@ const guideSteps: { icon: LucideIcon; title: string; description: string; href: 
 ];
 
 export default function HomePage() {
-  const featuredTopics = [topics[0], topics[1], topics[4]];
+  const featured_topics = [kTopics[0], kTopics[1], kTopics[4]];
 
   return (
     <PageTransition>
@@ -75,7 +75,7 @@ export default function HomePage() {
             <h2 className="mt-2 text-2xl font-semibold">如何使用本網站</h2>
           </div>
           <div className="grid gap-4 md:grid-cols-3">
-            {guideSteps.map((step, index) => (
+            {kGuideSteps.map((step, index) => (
               <div
                 key={step.title}
                 className="group relative flex h-full flex-col rounded-2xl border border-border bg-card/80 p-5 shadow-card transition duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-card-hover"
@@ -106,10 +106,10 @@ export default function HomePage() {
             <p className="text-sm font-semibold text-primary">推薦起點</p>
             <h2 className="mt-2 text-2xl font-semibold">精選主題</h2>
           </div>
-          <FeaturedTopics topics={featuredTopics} />
+          <FeaturedTopics topics={featured_topics} />
         </section>
 
-        <ProgressSummary problems={problems} topics={topics} />
+        <ProgressSummary problems={kProblems} topics={kTopics} />
       </div>
     </PageTransition>
   );

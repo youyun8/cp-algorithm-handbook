@@ -1,16 +1,16 @@
 import NextAuth from 'next-auth';
 import GitHub from 'next-auth/providers/github';
 
-async function revokeGitHubOAuthGrant(accessToken: string) {
-  const clientId = process.env.GITHUB_CLIENT_ID;
-  const clientSecret = process.env.GITHUB_CLIENT_SECRET;
+async function revokeGitHubOAuthGrant(access_token: string) {
+  const client_id = process.env.GITHUB_CLIENT_ID;
+  const client_secret = process.env.GITHUB_CLIENT_SECRET;
 
-  if (!clientId || !clientSecret) {
+  if (!client_id || !client_secret) {
     return;
   }
 
-  const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
-  const res = await fetch(`https://api.github.com/applications/${clientId}/grant`, {
+  const credentials = Buffer.from(`${client_id}:${client_secret}`).toString('base64');
+  const res = await fetch(`https://api.github.com/applications/${client_id}/grant`, {
     method: 'DELETE',
     headers: {
       Accept: 'application/vnd.github+json',
@@ -18,7 +18,7 @@ async function revokeGitHubOAuthGrant(accessToken: string) {
       'Content-Type': 'application/json',
       'X-GitHub-Api-Version': '2022-11-28'
     },
-    body: JSON.stringify({ access_token: accessToken })
+    body: JSON.stringify({ access_token: access_token })
   });
 
   if (!res.ok && res.status !== 404) {

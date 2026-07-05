@@ -1,14 +1,14 @@
 import { PageTransition } from '@/components/PageTransition';
 import { TopicHandbook } from '@/components/TopicHandbook';
-import { getProblemsByTopic, subtopics, topics } from '@/lib/data';
+import { getProblemsByTopic, kSubtopics, kTopics } from '@/lib/data';
 
 export default function HandbookPage() {
-  const topic = topics[0];
-  const topicProblems = getProblemsByTopic(topic.id);
+  const topic = kTopics[0];
+  const topic_problems = getProblemsByTopic(topic.id);
 
   return (
     <PageTransition>
-      <TopicHandbook topic={topic} topics={topics} subtopics={subtopics} problems={topicProblems} />
+      <TopicHandbook topic={topic} topics={kTopics} subtopics={kSubtopics} problems={topic_problems} />
     </PageTransition>
   );
 }

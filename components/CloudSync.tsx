@@ -4,14 +4,14 @@ import { useState } from 'react';
 import { Cloud, HardDrive } from 'lucide-react';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import { useProgressStore } from '@/store/useProgressStore';
-import { isStaticExport } from '@/lib/runtime';
+import { kIsStaticExport } from '@/lib/runtime';
 
 type SyncState = { kind: 'idle' | 'ok' | 'error'; message?: string };
 
 export function CloudSync() {
   // Static export (e.g. GitHub Pages) has no OAuth backend and no SessionProvider,
   // so we must not call useSession here. Render a localStorage notice instead.
-  if (isStaticExport) {
+  if (kIsStaticExport) {
     return (
       <section className="rounded-3xl border border-border bg-card/75 p-5 shadow-card">
         <div className="flex items-center gap-2">
@@ -31,17 +31,17 @@ export function CloudSync() {
 
 function CloudSyncAuthed() {
   const { data: session, status } = useSession();
-  const syncToCloud = useProgressStore((s) => s.syncToCloud);
-  const loadFromCloud = useProgressStore((s) => s.loadFromCloud);
-  const [busy, setBusy] = useState<null | 'save' | 'load'>(null);
-  const [result, setResult] = useState<SyncState>({ kind: 'idle' });
+  const sync_to_cloud = useProgressStore((s) => s.syncToCloud);
+  const load_from_cloud = useProgressStore((s) => s.loadFromCloud);
+  const [busy, set_busy] = useState<null | 'save' | 'load'>(null);
+  const [result, set_result] = useState<SyncState>({ kind: 'idle' });
 
   async function handleSave() {
-    setBusy('save');
-    setResult({ kind: 'idle' });
-    const res = await syncToCloud();
-    setBusy(null);
-    setResult(
+    set_busy('save');
+    set_result({ kind: 'idle' });
+    const res = await sync_to_cloud();
+    set_busy(null);
+    set_result(
       res.ok
         ? { kind: 'ok', message: '已同步至雲端 Gist。' }
         : { kind: 'error', message: res.error ?? '同步失敗。' }
@@ -49,11 +49,11 @@ function CloudSyncAuthed() {
   }
 
   async function handleLoad() {
-    setBusy('load');
-    setResult({ kind: 'idle' });
-    const res = await loadFromCloud();
-    setBusy(null);
-    setResult(
+    set_busy('load');
+    set_result({ kind: 'idle' });
+    const res = await load_from_cloud();
+    set_busy(null);
+    set_result(
       res.ok
         ? { kind: 'ok', message: '已從雲端載入進度。' }
         : { kind: 'error', message: res.error ?? '載入失敗。' }

@@ -1,10 +1,10 @@
 import { notFound } from 'next/navigation';
 import { PageTransition } from '@/components/PageTransition';
 import { TopicHandbook } from '@/components/TopicHandbook';
-import { getProblemsByTopic, getTopicBySlug, subtopics, topics } from '@/lib/data';
+import { getProblemsByTopic, getTopicBySlug, kSubtopics, kTopics } from '@/lib/data';
 
 export function generateStaticParams() {
-  return topics.map((topic) => ({ slug: topic.slug }));
+  return kTopics.map((topic) => ({ slug: topic.slug }));
 }
 
 export default async function TopicPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -19,8 +19,8 @@ export default async function TopicPage({ params }: { params: Promise<{ slug: st
     <PageTransition>
       <TopicHandbook
         topic={topic}
-        topics={topics}
-        subtopics={subtopics}
+        topics={kTopics}
+        subtopics={kSubtopics}
         problems={getProblemsByTopic(topic.id)}
       />
     </PageTransition>

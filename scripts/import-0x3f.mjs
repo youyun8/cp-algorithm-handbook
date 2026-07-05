@@ -1,19 +1,19 @@
-// Import 灵茶山艾府 (0x3F) curated problem lists into the practice database.
+// Import 0x3F curated problem lists into the practice database.
 //
 //   node scripts/import-0x3f.mjs          # dry run, prints what would change
 //   node scripts/import-0x3f.mjs --write  # merge new problems into problems.json
 //
 // Sources of truth (both machine-readable and reproducible):
 //   list     -> EndlessCheng/codeforces-go leetcode/SOLUTIONS.md
-//               a 知识点 (knowledge point) -> problem table, the same data that
-//               backs 0x3F's "如何科学刷题" topic lists, sorted by difficulty.
+//               a knowledge-point column -> problem table, the same data that
+//               backs 0x3F's structured practice topic lists, sorted by difficulty.
 //   ratings  -> zerotrac.github.io/leetcode_problem_rating/data.json
 //               the numeric difficulty 0x3F sorts his lists by.
 //
 // Titles are localized Simplified -> Traditional (twp) via opencc-js, matching
-// scripts/reconcile-titles.mjs. New problems are tagged "靈茶山艾府" so they can
-// be filtered in the practice arena. Existing problems (matched by LeetCode
-// slug) are never overwritten.
+// scripts/reconcile-titles.mjs. New problems receive the curated-source tag for
+// filtering in the practice arena. Existing problems matched by LeetCode slug
+// are never overwritten.
 //
 // Requires: opencc-js (already a devDependency).
 
@@ -22,22 +22,22 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as OpenCC from 'opencc-js';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const WRITE = process.argv.includes('--write');
-const UA = 'Mozilla/5.0 (cp-handbook import-0x3f)';
+const kRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const kWrite = process.argv.includes('--write');
+const kUa = 'Mozilla/5.0 (cp-handbook import-0x3f)';
 
-const SOLUTIONS_URL =
+const kSolutionsUrl =
   'https://raw.githubusercontent.com/EndlessCheng/codeforces-go/master/leetcode/SOLUTIONS.md';
-const RATINGS_URL = 'https://zerotrac.github.io/leetcode_problem_rating/data.json';
+const kRatingsUrl = 'https://zerotrac.github.io/leetcode_problem_rating/data.json';
 
-const toTWraw = OpenCC.Converter({ from: 'cn', to: 'twp' });
-const TW_FIXES = [[/擴充套件/g, '擴展']];
-const toTW = (s) => TW_FIXES.reduce((acc, [re, rep]) => acc.replace(re, rep), toTWraw(s ?? ''));
+const toTwRaw = OpenCC.Converter({ from: 'cn', to: 'twp' });
+const kTwFixes = [[/擴充套件/g, '擴展']];
+const toTw = (s) => kTwFixes.reduce((acc, [re, rep]) => acc.replace(re, rep), toTwRaw(s ?? ''));
 
 // 0x3F knowledge point -> our topic id. Only confident mappings are kept; rows
-// whose knowledge point has no good home (e.g. 哈希表, 链表, 二叉树) are skipped
+// whose knowledge point has no good home (e.g. hash table, linked list, binary tree) are skipped
 // so the handbook's topic taxonomy stays coherent.
-const KNOWLEDGE_TO_TOPIC = {
+const kKnowledgeToTopic = {
   滑动窗口: 'two-pointers',
   二分: 'binary-search',
   差分数组: 'intervals',
@@ -62,11 +62,11 @@ const KNOWLEDGE_TO_TOPIC = {
 
 // Difficulty label -> representative rating, used only when a problem is not in
 // the zerotrac rating set (i.e. non-contest classics).
-const LABEL_RATING = { 简单: 1200, 中等: 1600, 困难: 2200 };
+const kLabelRating = { 简单: 1200, 中等: 1600, 困难: 2200 };
 
-// 0x3F's official "如何科学刷题" roadmap (算法题单) discussion threads, attached
-// to each matching topic's reference_links. Idempotent: skipped if already present.
-const ROADMAP_LINKS = {
+// 0x3F's official roadmap discussion threads, attached to each matching topic's
+// reference_links. Idempotent: skipped if already present.
+const kRoadmapLinks = {
   'two-pointers': {
     label: '靈茶山艾府：滑動視窗與雙指針題單',
     url: 'https://leetcode.cn/circle/discuss/0viNMK/'
@@ -101,7 +101,7 @@ const ROADMAP_LINKS = {
 };
 
 async function fetchText(url) {
-  const res = await fetch(url, { headers: { 'User-Agent': UA } });
+  const res = await fetch(url, { headers: { 'User-Agent': kUa } });
   if (!res.ok) throw new Error(`GET ${url} -> HTTP ${res.status}`);
   return res.text();
 }
@@ -139,13 +139,13 @@ function parseSolutions(md) {
 }
 
 async function main() {
-  const problemsPath = path.join(ROOT, 'data', 'problems.json');
-  const problems = JSON.parse(fs.readFileSync(problemsPath, 'utf8'));
-  const existingSlugs = new Set(problems.filter((p) => p.source === 'leetcode').map((p) => p.source_id));
-  const existingIds = new Set(problems.map((p) => p.id));
+  const problems_path = path.join(kRoot, 'data', 'problems.json');
+  const problems = JSON.parse(fs.readFileSync(problems_path, 'utf8'));
+  const existing_slugs = new Set(problems.filter((p) => p.source === 'leetcode').map((p) => p.source_id));
+  const existing_ids = new Set(problems.map((p) => p.id));
 
-  const [md, ratingsJson] = await Promise.all([fetchText(SOLUTIONS_URL), fetchText(RATINGS_URL)]);
-  const ratingBySlug = new Map(JSON.parse(ratingsJson).map((r) => [r.TitleSlug, r.Rating]));
+  const [md, ratings_json] = await Promise.all([fetchText(kSolutionsUrl), fetchText(kRatingsUrl)]);
+  const rating_by_slug = new Map(JSON.parse(ratings_json).map((r) => [r.TitleSlug, r.Rating]));
 
   const rows = parseSolutions(md);
   const added = [];
@@ -153,80 +153,80 @@ async function main() {
   const skipped = { unmappedKnowledge: 0, duplicate: 0 };
 
   for (const row of rows) {
-    const topicId = KNOWLEDGE_TO_TOPIC[row.knowledge];
-    if (!topicId) {
+    const topic_id = kKnowledgeToTopic[row.knowledge];
+    if (!topic_id) {
       skipped.unmappedKnowledge++;
       continue;
     }
-    if (existingSlugs.has(row.slug) || seen.has(row.slug)) {
+    if (existing_slugs.has(row.slug) || seen.has(row.slug)) {
       skipped.duplicate++;
       continue;
     }
     seen.add(row.slug);
 
-    let rating = ratingBySlug.get(row.slug);
+    let rating = rating_by_slug.get(row.slug);
     if (rating == null) {
       const numeric = Number(row.difficulty);
-      rating = Number.isFinite(numeric) && numeric > 0 ? numeric : (LABEL_RATING[row.difficulty] ?? 1600);
+      rating = Number.isFinite(numeric) && numeric > 0 ? numeric : (kLabelRating[row.difficulty] ?? 1600);
     }
     rating = Math.round(rating);
 
     let id = `lc0x3f-${row.frontendId}`;
-    while (existingIds.has(id)) id = `${id}-b`;
-    existingIds.add(id);
+    while (existing_ids.has(id)) id = `${id}-b`;
+    existing_ids.add(id);
 
-    const knowledgeTW = toTW(row.knowledge);
+    const knowledge_tw = toTw(row.knowledge);
     added.push({
       id,
-      title: toTW(row.titleZH),
+      title: toTw(row.titleZH),
       source: 'leetcode',
       source_id: row.slug,
       frontend_id: row.frontendId,
       rating,
-      tags: Array.from(new Set([knowledgeTW, '靈茶山艾府'])),
-      topic_id: topicId,
+      tags: Array.from(new Set([knowledge_tw, '靈茶山艾府'])),
+      topic_id: topic_id,
       problem_type: 'classic',
       tier: tierForRating(rating),
-      strategy_hints: [`靈茶山艾府《如何科學刷題》${knowledgeTW}題單精選，依難度分排序練習。`],
+      strategy_hints: [`靈茶山艾府《如何科學刷題》${knowledge_tw}題單精選，依難度分排序練習。`],
       similar_problems: []
     });
   }
 
-  const byTopic = {};
-  for (const p of added) byTopic[p.topic_id] = (byTopic[p.topic_id] ?? 0) + 1;
+  const by_topic = {};
+  for (const p of added) by_topic[p.topic_id] = (by_topic[p.topic_id] ?? 0) + 1;
 
   console.log(`parsed rows:         ${rows.length}`);
   console.log(`skipped (no topic):  ${skipped.unmappedKnowledge}`);
   console.log(`skipped (duplicate): ${skipped.duplicate}`);
   console.log(`new problems:        ${added.length}`);
   console.log('per topic:');
-  for (const [topic, count] of Object.entries(byTopic).sort((a, b) => b[1] - a[1])) {
+  for (const [topic, count] of Object.entries(by_topic).sort((a, b) => b[1] - a[1])) {
     console.log(`  ${String(count).padStart(3)}  ${topic}`);
   }
 
-  if (!WRITE) {
+  if (!kWrite) {
     console.log('\ndry run — pass --write to merge into data/problems.json');
     return;
   }
 
   const merged = [...problems, ...added];
-  fs.writeFileSync(problemsPath, `${JSON.stringify(merged, null, 2)}\n`);
+  fs.writeFileSync(problems_path, `${JSON.stringify(merged, null, 2)}\n`);
   console.log(`\nwrote ${merged.length} problems to data/problems.json`);
 
   // Attach 0x3F roadmap links to the matching topics (idempotent).
-  const topicsPath = path.join(ROOT, 'data', 'topics.json');
-  const topics = JSON.parse(fs.readFileSync(topicsPath, 'utf8'));
-  let linkedTopics = 0;
+  const topics_path = path.join(kRoot, 'data', 'topics.json');
+  const topics = JSON.parse(fs.readFileSync(topics_path, 'utf8'));
+  let linked_topics = 0;
   for (const topic of topics) {
-    const link = ROADMAP_LINKS[topic.id];
+    const link = kRoadmapLinks[topic.id];
     if (!link) continue;
     topic.reference_links = topic.reference_links ?? [];
     if (topic.reference_links.some((l) => l.url === link.url)) continue;
     topic.reference_links.push({ label: link.label, url: link.url });
-    linkedTopics++;
+    linked_topics++;
   }
-  fs.writeFileSync(topicsPath, `${JSON.stringify(topics, null, 2)}\n`);
-  console.log(`linked 0x3F roadmap into ${linkedTopics} topics`);
+  fs.writeFileSync(topics_path, `${JSON.stringify(topics, null, 2)}\n`);
+  console.log(`linked 0x3F roadmap into ${linked_topics} topics`);
 }
 
 main().catch((err) => {

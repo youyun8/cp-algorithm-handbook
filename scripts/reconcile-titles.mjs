@@ -21,55 +21,55 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as OpenCC from 'opencc-js';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const WRITE = process.argv.includes('--write');
-const CHECK = process.argv.includes('--check');
-const UA = 'Mozilla/5.0 (cp-handbook title-reconcile)';
-const toTWraw = OpenCC.Converter({ from: 'cn', to: 'twp' });
+const kRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const kWrite = process.argv.includes('--write');
+const kCheck = process.argv.includes('--check');
+const kUa = 'Mozilla/5.0 (cp-handbook title-reconcile)';
+const toTwRaw = OpenCC.Converter({ from: 'cn', to: 'twp' });
 // s2twp over-localizes a few IT phrases in a math/algorithm context.
-const TW_FIXES = [[/擴充套件/g, '擴展']];
-const toTW = (s) => TW_FIXES.reduce((acc, [re, rep]) => acc.replace(re, rep), toTWraw(s));
+const kTwFixes = [[/擴充套件/g, '擴展']];
+const toTw = (s) => kTwFixes.reduce((acc, [re, rep]) => acc.replace(re, rep), toTwRaw(s));
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const norm = (s) => (s ?? '').replace(/\s+/g, ' ').trim();
 
 async function fetchRetry(url, opts = {}, tries = 4) {
-  let lastErr;
+  let last_err;
   for (let i = 0; i < tries; i++) {
     try {
-      const res = await fetch(url, { ...opts, headers: { 'User-Agent': UA, ...(opts.headers || {}) } });
+      const res = await fetch(url, { ...opts, headers: { 'User-Agent': kUa, ...(opts.headers || {}) } });
       if (res.status === 429 || res.status >= 500) throw new Error(`HTTP ${res.status}`);
       return res;
     } catch (e) {
-      lastErr = e;
+      last_err = e;
       await sleep(500 * (i + 1));
     }
   }
-  throw lastErr;
+  throw last_err;
 }
 
 // ---- per-source canonical title fetchers --------------------------------
 
-let cfMap = null;
+let cf_map = null;
 async function loadCodeforces() {
-  if (cfMap) return cfMap;
-  cfMap = new Map();
+  if (cf_map) return cf_map;
+  cf_map = new Map();
   const res = await fetchRetry('https://codeforces.com/api/problemset.problems');
   const json = await res.json();
   if (json.status !== 'OK') throw new Error('codeforces api status ' + json.status);
-  for (const p of json.result.problems) cfMap.set(`${p.contestId}${p.index}`, p.name);
-  return cfMap;
+  for (const p of json.result.problems) cf_map.set(`${p.contestId}${p.index}`, p.name);
+  return cf_map;
 }
 
-const cfContestTried = new Set();
-async function loadCfContest(contestId) {
-  if (cfContestTried.has(contestId)) return;
-  cfContestTried.add(contestId);
+const kCfContestTried = new Set();
+async function loadCfContest(contest_id) {
+  if (kCfContestTried.has(contest_id)) return;
+  kCfContestTried.add(contest_id);
   // Anonymous GET, no extra params (CF API requirement for non-gym standings).
-  const res = await fetchRetry(`https://codeforces.com/api/contest.standings?contestId=${contestId}`);
+  const res = await fetchRetry(`https://codeforces.com/api/contest.standings?contestId=${contest_id}`);
   const json = await res.json().catch(() => ({}));
   if (json.status === 'OK') {
-    for (const p of json.result.problems) cfMap.set(`${contestId}${p.index}`, p.name);
+    for (const p of json.result.problems) cf_map.set(`${contest_id}${p.index}`, p.name);
   }
   await sleep(250);
 }
@@ -104,7 +104,7 @@ async function titleLeetcode(slug) {
   const q = json?.data?.question;
   if (!q) return { error: 'slug not found' };
   const cn = q.translatedTitle && q.translatedTitle.trim();
-  const title = cn ? norm(toTW(cn)) : norm(q.title);
+  const title = cn ? norm(toTw(cn)) : norm(q.title);
   return { title, raw: cn || q.title, en: q.title, id: q.questionFrontendId };
 }
 
@@ -128,7 +128,7 @@ async function titleLuogu(id) {
   const json = await res.json();
   const name = json?.data?.problem?.name;
   if (!name) return { error: 'no problem name' };
-  return { title: norm(toTW(name)), raw: name };
+  return { title: norm(toTw(name)), raw: name };
 }
 
 async function titleCses(id) {
@@ -141,7 +141,7 @@ async function titleCses(id) {
   return { title: norm(t), raw: m[1] };
 }
 
-const FETCHERS = {
+const kFetchers = {
   codeforces: titleCodeforces,
   leetcode: titleLeetcode,
   atcoder: titleAtcoder,
@@ -151,14 +151,14 @@ const FETCHERS = {
 
 // ---- collect references -------------------------------------------------
 
-const problemsPath = path.join(ROOT, 'data/problems.json');
-const subtopicsPath = path.join(ROOT, 'data/subtopics.json');
-const problems = JSON.parse(fs.readFileSync(problemsPath, 'utf8'));
-const subtopics = JSON.parse(fs.readFileSync(subtopicsPath, 'utf8'));
+const kProblemsPath = path.join(kRoot, 'data/problems.json');
+const kSubtopicsPath = path.join(kRoot, 'data/subtopics.json');
+const kProblems = JSON.parse(fs.readFileSync(kProblemsPath, 'utf8'));
+const kSubtopics = JSON.parse(fs.readFileSync(kSubtopicsPath, 'utf8'));
 
-const refs = []; // { source, source_id, get(), set(title), where }
-for (const p of problems) {
-  refs.push({
+const kRefs = []; // { source, source_id, get(), set(title), where }
+for (const p of kProblems) {
+  kRefs.push({
     source: p.source,
     source_id: p.source_id,
     where: `problems.json#${p.id}`,
@@ -168,9 +168,9 @@ for (const p of problems) {
     }
   });
 }
-for (const s of subtopics) {
+for (const s of kSubtopics) {
   for (const pp of s.practice_problems || []) {
-    refs.push({
+    kRefs.push({
       source: pp.source,
       source_id: pp.source_id,
       where: `${s.id}/${pp.source_id}`,
@@ -184,31 +184,31 @@ for (const s of subtopics) {
 
 // ---- reconcile ----------------------------------------------------------
 
-const cache = new Map(); // source|id -> result
-const SLEEP = { leetcode: 220, atcoder: 150, luogu: 180, cses: 120, codeforces: 0 };
+const kCache = new Map(); // source|id -> result
+const kSleep = { leetcode: 220, atcoder: 150, luogu: 180, cses: 120, codeforces: 0 };
 
 async function resolve(source, id) {
   const key = `${source}|${id}`;
-  if (cache.has(key)) return cache.get(key);
+  if (kCache.has(key)) return kCache.get(key);
   let r;
   try {
-    const fn = FETCHERS[source];
+    const fn = kFetchers[source];
     r = fn ? await fn(id) : { error: `unknown source ${source}` };
   } catch (e) {
     r = { error: String(e.message || e) };
   }
-  cache.set(key, r);
-  if (SLEEP[source]) await sleep(SLEEP[source]);
+  kCache.set(key, r);
+  if (kSleep[source]) await sleep(kSleep[source]);
   return r;
 }
 
-const report = { changed: [], unchanged: 0, errors: [] };
+const kReport = { changed: [], unchanged: 0, errors: [] };
 let done = 0;
-for (const ref of refs) {
+for (const ref of kRefs) {
   const r = await resolve(ref.source, ref.source_id);
   done++;
   if (r.error) {
-    report.errors.push({
+    kReport.errors.push({
       where: ref.where,
       source: ref.source,
       source_id: ref.source_id,
@@ -218,52 +218,52 @@ for (const ref of refs) {
   } else {
     const old = norm(ref.get());
     if (old !== r.title) {
-      report.changed.push({
+      kReport.changed.push({
         where: ref.where,
         source: ref.source,
         source_id: ref.source_id,
         old: ref.get(),
         new: r.title
       });
-      if (WRITE) ref.set(r.title);
+      if (kWrite) ref.set(r.title);
     } else {
-      report.unchanged++;
+      kReport.unchanged++;
     }
   }
-  if (done % 25 === 0) process.stderr.write(`  ...${done}/${refs.length}\n`);
+  if (done % 25 === 0) process.stderr.write(`  ...${done}/${kRefs.length}\n`);
 }
 
 // ---- output -------------------------------------------------------------
 
-const reportPath = path.join(ROOT, '.subtopic-gen/title-recon-report.json');
-fs.mkdirSync(path.dirname(reportPath), { recursive: true });
-fs.writeFileSync(reportPath, JSON.stringify(report, null, 2) + '\n');
+const kReportPath = path.join(kRoot, '.subtopic-gen/title-recon-report.json');
+fs.mkdirSync(path.dirname(kReportPath), { recursive: true });
+fs.writeFileSync(kReportPath, JSON.stringify(kReport, null, 2) + '\n');
 
-if (WRITE) {
-  fs.writeFileSync(problemsPath, JSON.stringify(problems, null, 2) + '\n');
-  fs.writeFileSync(subtopicsPath, JSON.stringify(subtopics, null, 2) + '\n');
+if (kWrite) {
+  fs.writeFileSync(kProblemsPath, JSON.stringify(kProblems, null, 2) + '\n');
+  fs.writeFileSync(kSubtopicsPath, JSON.stringify(kSubtopics, null, 2) + '\n');
 }
 
 console.log('\n=== Title reconciliation ===');
-console.log(`refs scanned : ${refs.length}  (unique fetches: ${cache.size})`);
-console.log(`unchanged    : ${report.unchanged}`);
-console.log(`changed      : ${report.changed.length}${WRITE ? ' (written)' : ' (dry run)'}`);
-console.log(`errors       : ${report.errors.length}`);
-console.log(`report       : ${path.relative(ROOT, reportPath)}`);
-if (report.errors.length) {
+console.log(`refs scanned : ${kRefs.length}  (unique fetches: ${kCache.size})`);
+console.log(`unchanged    : ${kReport.unchanged}`);
+console.log(`changed      : ${kReport.changed.length}${kWrite ? ' (written)' : ' (dry run)'}`);
+console.log(`errors       : ${kReport.errors.length}`);
+console.log(`report       : ${path.relative(kRoot, kReportPath)}`);
+if (kReport.errors.length) {
   console.log('\n-- errors (likely bad / dead ids) --');
-  for (const e of report.errors)
+  for (const e of kReport.errors)
     console.log(`  [${e.source} ${e.source_id}] ${e.where}: ${e.error}  (was "${e.old}")`);
 }
-if (!WRITE && report.changed.length) {
+if (!kWrite && kReport.changed.length) {
   console.log('\n-- first 40 proposed changes --');
-  for (const c of report.changed.slice(0, 40))
+  for (const c of kReport.changed.slice(0, 40))
     console.log(`  [${c.source} ${c.source_id}] "${c.old}" -> "${c.new}"`);
 }
 
-if (CHECK && (report.changed.length || report.errors.length)) {
+if (kCheck && (kReport.changed.length || kReport.errors.length)) {
   console.error(
-    `\n✗ title drift detected: ${report.changed.length} out of sync, ${report.errors.length} unresolved id(s).`
+    `\n✗ title drift detected: ${kReport.changed.length} out of sync, ${kReport.errors.length} unresolved id(s).`
   );
   console.error('  Run `npm run reconcile:titles:write` to realign, then review the diff.');
   process.exit(1);

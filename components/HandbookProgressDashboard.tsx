@@ -18,89 +18,90 @@ interface ActivePracticeNote {
 }
 
 export function HandbookProgressDashboard({ topics, subtopics }: { topics: Topic[]; subtopics: Subtopic[] }) {
-  const practiceCompletionEvents = useProgressStore((state) => state.practiceCompletionEvents);
-  const problemNotes = useProgressStore((state) => state.problemNotes);
-  const completedPracticeProblemIds = useProgressStore((state) => state.completedPracticeProblemIds);
-  const markPracticeProblemCompleted = useProgressStore((state) => state.markPracticeProblemCompleted);
-  const unmarkPracticeProblemCompleted = useProgressStore((state) => state.unmarkPracticeProblemCompleted);
-  const [handbookFilter, setHandbookFilter] = useState<HandbookFilter>('all');
-  const [activePracticeNote, setActivePracticeNote] = useState<ActivePracticeNote | null>(null);
+  const practice_completion_events = useProgressStore((state) => state.practiceCompletionEvents);
+  const problem_notes = useProgressStore((state) => state.problemNotes);
+  const completed_practice_problem_ids = useProgressStore((state) => state.completedPracticeProblemIds);
+  const mark_practice_problem_completed = useProgressStore((state) => state.markPracticeProblemCompleted);
+  const unmark_practice_problem_completed = useProgressStore((state) => state.unmarkPracticeProblemCompleted);
+  const [handbook_filter, set_handbook_filter] = useState<HandbookFilter>('all');
+  const [active_practice_note, set_active_practice_note] = useState<ActivePracticeNote | null>(null);
 
-  const topicById = useMemo(() => new Map(topics.map((topic) => [topic.id, topic])), [topics]);
-  const completedPracticeSet = useMemo(
-    () => new Set(completedPracticeProblemIds),
-    [completedPracticeProblemIds]
+  const topic_by_id = useMemo(() => new Map(topics.map((topic) => [topic.id, topic])), [topics]);
+  const completed_practice_set = useMemo(
+    () => new Set(completed_practice_problem_ids),
+    [completed_practice_problem_ids]
   );
 
-  const handbookPracticeBreakdown = useMemo(() => {
+  const handbook_practice_breakdown = useMemo(() => {
     return subtopics
       .map((subtopic) => {
-        const practiceProblems = subtopic.practice_problems ?? [];
-        const rows = practiceProblems.map((practiceProblem) => {
-          const id = practiceProblemId(practiceProblem);
-          const completed = completedPracticeSet.has(id) || hasPracticeNote(problemNotes[id]);
-          return { id, problem: practiceProblem, completed };
+        const practice_problems = subtopic.practice_problems ?? [];
+        const rows = practice_problems.map((practice_problem) => {
+          const id = practiceProblemId(practice_problem);
+          const completed = completed_practice_set.has(id) || hasPracticeNote(problem_notes[id]);
+          return { id: id, problem: practice_problem, completed: completed };
         });
-        const completedCount = rows.filter((row) => row.completed).length;
+        const completed_count = rows.filter((row) => row.completed).length;
         const total = rows.length;
-        const parentTopic = topicById.get(subtopic.parent_id);
+        const parent_topic = topic_by_id.get(subtopic.parent_id);
         return {
           subtopic,
-          parentTopic,
-          rows,
-          completedCount,
-          total,
-          percent: total === 0 ? 0 : Math.round((completedCount / total) * 100)
+          parentTopic: parent_topic,
+          rows: rows,
+          completedCount: completed_count,
+          total: total,
+          percent: total === 0 ? 0 : Math.round((completed_count / total) * 100)
         };
       })
       .filter((item) => item.total > 0)
       .filter((item) => {
-        if (handbookFilter === 'completed') return item.completedCount === item.total;
-        if (handbookFilter === 'incomplete') return item.completedCount < item.total;
+        if (handbook_filter === 'completed') return item.completedCount === item.total;
+        if (handbook_filter === 'incomplete') return item.completedCount < item.total;
         return true;
       });
-  }, [completedPracticeSet, handbookFilter, problemNotes, subtopics, topicById]);
+  }, [completed_practice_set, handbook_filter, problem_notes, subtopics, topic_by_id]);
 
-  const handbookPracticeTotals = useMemo(() => {
-    const allPracticeProblems = subtopics.flatMap((subtopic) => subtopic.practice_problems ?? []);
-    const total = allPracticeProblems.length;
-    const completed = allPracticeProblems.filter((practiceProblem) => {
-      const id = practiceProblemId(practiceProblem);
-      return completedPracticeSet.has(id) || hasPracticeNote(problemNotes[id]);
+  const handbook_practice_totals = useMemo(() => {
+    const all_practice_problems = subtopics.flatMap((subtopic) => subtopic.practice_problems ?? []);
+    const total = all_practice_problems.length;
+    const completed = all_practice_problems.filter((practice_problem) => {
+      const id = practiceProblemId(practice_problem);
+      return completed_practice_set.has(id) || hasPracticeNote(problem_notes[id]);
     }).length;
     return {
-      total,
-      completed,
+      total: total,
+      completed: completed,
       percent: total === 0 ? 0 : Math.round((completed / total) * 100)
     };
-  }, [completedPracticeSet, problemNotes, subtopics]);
+  }, [completed_practice_set, problem_notes, subtopics]);
 
-  const coveredTopicIds = useMemo(() => {
-    const topicIds = new Set<string>();
+  const covered_topic_ids = useMemo(() => {
+    const topic_ids = new Set<string>();
     for (const subtopic of subtopics) {
-      const covered = (subtopic.practice_problems ?? []).some((practiceProblem) => {
-        const id = practiceProblemId(practiceProblem);
-        return completedPracticeSet.has(id) || hasPracticeNote(problemNotes[id]);
+      const covered = (subtopic.practice_problems ?? []).some((practice_problem) => {
+        const id = practiceProblemId(practice_problem);
+        return completed_practice_set.has(id) || hasPracticeNote(problem_notes[id]);
       });
-      if (covered) topicIds.add(subtopic.parent_id);
+      if (covered) topic_ids.add(subtopic.parent_id);
     }
-    return topicIds;
-  }, [completedPracticeSet, problemNotes, subtopics]);
+    return topic_ids;
+  }, [completed_practice_set, problem_notes, subtopics]);
 
-  const noteCount = useMemo(
+  const note_count = useMemo(
     () =>
-      Object.entries(problemNotes).filter(([id, note]) => id.startsWith('practice:') && hasPracticeNote(note))
-        .length,
-    [problemNotes]
+      Object.entries(problem_notes).filter(
+        ([id, note]) => id.startsWith('practice:') && hasPracticeNote(note)
+      ).length,
+    [problem_notes]
   );
 
-  const heatmapDays = useMemo(() => {
+  const heatmap_days = useMemo(() => {
     const counts = new Map<string, number>();
-    for (const event of practiceCompletionEvents) {
+    for (const event of practice_completion_events) {
       const key = event.completedAt.slice(0, 10);
       counts.set(key, (counts.get(key) ?? 0) + 1);
     }
-    for (const [id, note] of Object.entries(problemNotes)) {
+    for (const [id, note] of Object.entries(problem_notes)) {
       if (!id.startsWith('practice:')) continue;
       if (!hasPracticeNote(note)) continue;
       const key = note.updatedAt.slice(0, 10);
@@ -111,15 +112,15 @@ export function HandbookProgressDashboard({ topics, subtopics }: { topics: Topic
       const date = new Date();
       date.setDate(date.getDate() - (34 - index));
       const key = date.toISOString().slice(0, 10);
-      return { key, count: counts.get(key) ?? 0 };
+      return { key: key, count: counts.get(key) ?? 0 };
     });
-  }, [practiceCompletionEvents, problemNotes]);
+  }, [practice_completion_events, problem_notes]);
 
   const stats = [
-    { label: '手冊完成題目', value: handbookPracticeTotals.completed },
-    { label: '手冊覆蓋主題', value: `${coveredTopicIds.size}/${topics.length}` },
-    { label: '筆記數', value: noteCount },
-    { label: '總完成率', value: `${handbookPracticeTotals.percent}%` }
+    { label: '手冊完成題目', value: handbook_practice_totals.completed },
+    { label: '手冊覆蓋主題', value: `${covered_topic_ids.size}/${topics.length}` },
+    { label: '筆記數', value: note_count },
+    { label: '總完成率', value: `${handbook_practice_totals.percent}%` }
   ];
 
   return (
@@ -141,7 +142,7 @@ export function HandbookProgressDashboard({ topics, subtopics }: { topics: Topic
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-7 gap-2">
-            {heatmapDays.map((day) => (
+            {heatmap_days.map((day) => (
               <div
                 key={day.key}
                 title={`${day.key}：${day.count} 筆`}
@@ -164,8 +165,8 @@ export function HandbookProgressDashboard({ topics, subtopics }: { topics: Topic
             <div>
               <CardTitle>手冊練習進度</CardTitle>
               <p className="mt-2 text-sm text-muted-foreground">
-                已完成 {handbookPracticeTotals.completed}/{handbookPracticeTotals.total} 題・
-                {handbookPracticeTotals.percent}%
+                已完成 {handbook_practice_totals.completed}/{handbook_practice_totals.total} 題・
+                {handbook_practice_totals.percent}%
               </p>
             </div>
             <div className="flex rounded-xl border border-border bg-background p-1">
@@ -177,9 +178,9 @@ export function HandbookProgressDashboard({ topics, subtopics }: { topics: Topic
                 <button
                   key={option.id}
                   type="button"
-                  onClick={() => setHandbookFilter(option.id as HandbookFilter)}
+                  onClick={() => set_handbook_filter(option.id as HandbookFilter)}
                   className={
-                    handbookFilter === option.id
+                    handbook_filter === option.id
                       ? 'rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground'
                       : 'rounded-lg px-3 py-1.5 text-xs font-semibold text-muted-foreground transition hover:bg-accent hover:text-foreground'
                   }
@@ -192,13 +193,13 @@ export function HandbookProgressDashboard({ topics, subtopics }: { topics: Topic
           <div className="h-3 rounded-full bg-accent">
             <div
               className="h-3 rounded-full bg-primary"
-              style={{ width: `${handbookPracticeTotals.percent}%` }}
+              style={{ width: `${handbook_practice_totals.percent}%` }}
             />
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {handbookPracticeBreakdown.length > 0 ? (
-            handbookPracticeBreakdown.map((item) => (
+          {handbook_practice_breakdown.length > 0 ? (
+            handbook_practice_breakdown.map((item) => (
               <div key={item.subtopic.id} className="rounded-2xl border border-border p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
@@ -232,12 +233,12 @@ export function HandbookProgressDashboard({ topics, subtopics }: { topics: Topic
                       problem={row.problem}
                       completed={row.completed}
                       onOpenNote={() =>
-                        setActivePracticeNote({ id: row.id, title: problemDisplayTitle(row.problem) })
+                        set_active_practice_note({ id: row.id, title: problemDisplayTitle(row.problem) })
                       }
                       onToggleCompleted={() =>
-                        completedPracticeSet.has(row.id)
-                          ? unmarkPracticeProblemCompleted(row.id)
-                          : markPracticeProblemCompleted(row.id)
+                        completed_practice_set.has(row.id)
+                          ? unmark_practice_problem_completed(row.id)
+                          : mark_practice_problem_completed(row.id)
                       }
                     />
                   ))}
@@ -257,10 +258,10 @@ export function HandbookProgressDashboard({ topics, subtopics }: { topics: Topic
           <CardTitle>手冊覆蓋主題</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
-          {coveredTopicIds.size > 0 ? (
-            Array.from(coveredTopicIds).map((topicId) => (
-              <span key={topicId} className="rounded-full border border-border bg-accent px-3 py-2 text-sm">
-                {topicById.get(topicId)?.title ?? '未分類'}
+          {covered_topic_ids.size > 0 ? (
+            Array.from(covered_topic_ids).map((topic_id) => (
+              <span key={topic_id} className="rounded-full border border-border bg-accent px-3 py-2 text-sm">
+                {topic_by_id.get(topic_id)?.title ?? '未分類'}
               </span>
             ))
           ) : (
@@ -270,10 +271,10 @@ export function HandbookProgressDashboard({ topics, subtopics }: { topics: Topic
       </Card>
 
       <ProblemNotesModal
-        problemId={activePracticeNote?.id ?? ''}
-        title={activePracticeNote?.title}
-        open={Boolean(activePracticeNote)}
-        onClose={() => setActivePracticeNote(null)}
+        problemId={active_practice_note?.id ?? ''}
+        title={active_practice_note?.title}
+        open={Boolean(active_practice_note)}
+        onClose={() => set_active_practice_note(null)}
       />
     </div>
   );
@@ -283,8 +284,8 @@ function PracticeProgressRow({
   id,
   problem,
   completed,
-  onOpenNote,
-  onToggleCompleted
+  onOpenNote: on_open_note,
+  onToggleCompleted: on_toggle_completed
 }: {
   id: string;
   problem: PracticeProblem;
@@ -292,7 +293,7 @@ function PracticeProgressRow({
   onOpenNote: () => void;
   onToggleCompleted: () => void;
 }) {
-  const explicitlyCompleted = useProgressStore((state) => state.completedPracticeProblemIds.includes(id));
+  const explicitly_completed = useProgressStore((state) => state.completedPracticeProblemIds.includes(id));
 
   return (
     <div className="grid gap-3 rounded-xl border border-border bg-background/55 p-3 transition hover:border-primary/35 hover:bg-background/80 md:grid-cols-[1fr_auto]">
@@ -318,17 +319,17 @@ function PracticeProgressRow({
         </span>
         <button
           type="button"
-          onClick={onOpenNote}
+          onClick={on_open_note}
           className="rounded-lg border border-border px-2.5 py-1.5 text-xs font-semibold text-muted-foreground transition hover:bg-accent hover:text-foreground"
         >
           筆記
         </button>
         <button
           type="button"
-          onClick={onToggleCompleted}
+          onClick={on_toggle_completed}
           className="rounded-lg border border-border px-2.5 py-1.5 text-xs font-semibold text-muted-foreground transition hover:bg-accent hover:text-foreground"
         >
-          {explicitlyCompleted ? '取消' : '完成'}
+          {explicitly_completed ? '取消' : '完成'}
         </button>
       </div>
     </div>

@@ -20,12 +20,12 @@ import { problemDisplayTitle } from '@/lib/utils';
 import { useProgressStore } from '@/store/useProgressStore';
 
 export function ProblemCard({ problem }: { problem: Problem }) {
-  const [showHint, setShowHint] = useState(false);
-  const [showNotes, setShowNotes] = useState(false);
+  const [show_hint, set_show_hint] = useState(false);
+  const [show_notes, set_show_notes] = useState(false);
   const mounted = useMounted();
-  const reviewedProblemIds = useProgressStore((state) => state.reviewedProblemIds);
+  const reviewed_problem_ids = useProgressStore((state) => state.reviewedProblemIds);
   const submissions = useProgressStore((state) => state.submissions);
-  const problemNote = useProgressStore((state) => state.problemNotes[problem.id]);
+  const problem_note = useProgressStore((state) => state.problemNotes[problem.id]);
 
   let completion: CompletionStatus = 'none';
   if (mounted) {
@@ -34,7 +34,7 @@ export function ProblemCard({ problem }: { problem: Problem }) {
     );
     if (accepted) {
       completion = 'accepted';
-    } else if (reviewedProblemIds.includes(problem.id)) {
+    } else if (reviewed_problem_ids.includes(problem.id)) {
       completion = 'reviewed';
     }
   }
@@ -76,14 +76,14 @@ export function ProblemCard({ problem }: { problem: Problem }) {
           >
             查看策略
           </Link>
-          <Button type="button" variant="ghost" size="sm" onClick={() => setShowHint((value) => !value)}>
-            {showHint ? '隱藏提示' : '策略提示'}
+          <Button type="button" variant="ghost" size="sm" onClick={() => set_show_hint((value) => !value)}>
+            {show_hint ? '隱藏提示' : '策略提示'}
           </Button>
-          <Button type="button" variant="outline" size="sm" onClick={() => setShowNotes(true)}>
-            {problemNote ? '查看記錄' : '記錄解答'}
+          <Button type="button" variant="outline" size="sm" onClick={() => set_show_notes(true)}>
+            {problem_note ? '查看記錄' : '記錄解答'}
           </Button>
         </div>
-        {showHint ? (
+        {show_hint ? (
           <ul className="space-y-2 rounded-2xl border border-border bg-background/55 p-3 text-sm leading-6 text-muted-foreground">
             {problem.strategy_hints.map((hint) => (
               <li key={hint}>・{hint}</li>
@@ -93,8 +93,8 @@ export function ProblemCard({ problem }: { problem: Problem }) {
         <ProblemNotesModal
           problemId={problem.id}
           title={problemDisplayTitle(problem)}
-          open={showNotes}
-          onClose={() => setShowNotes(false)}
+          open={show_notes}
+          onClose={() => set_show_notes(false)}
         />
       </CardContent>
     </Card>

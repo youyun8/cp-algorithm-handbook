@@ -5,5 +5,5 @@
 // STATIC_EXPORT is read in server contexts; NEXT_PUBLIC_STATIC_EXPORT is
 // inlined into client bundles so client components see the same value and
 // avoid hydration mismatches.
-export const isStaticExport =
+export const kIsStaticExport =
   process.env.STATIC_EXPORT === 'true' || process.env.NEXT_PUBLIC_STATIC_EXPORT === 'true';

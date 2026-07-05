@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { HandbookProgressDashboard } from '@/components/HandbookProgressDashboard';
 import { PageTransition } from '@/components/PageTransition';
-import { subtopics, topics } from '@/lib/data';
+import { kSubtopics, kTopics } from '@/lib/data';
 
 export default function HandbookProgressPage() {
   return (
@@ -22,7 +22,7 @@ export default function HandbookProgressPage() {
             返回總覽
           </Link>
         </div>
-        <HandbookProgressDashboard topics={topics} subtopics={subtopics} />
+        <HandbookProgressDashboard topics={kTopics} subtopics={kSubtopics} />
       </div>
     </PageTransition>
   );

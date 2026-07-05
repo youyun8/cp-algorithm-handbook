@@ -8,20 +8,24 @@ import { useProgressStore } from '@/store/useProgressStore';
 
 export function TopicProblemsProgress({ problems, label }: { problems: Problem[]; label?: string }) {
   const mounted = useMounted();
-  const reviewedProblemIds = useProgressStore((state) => state.reviewedProblemIds);
+  const reviewed_problem_ids = useProgressStore((state) => state.reviewedProblemIds);
   const submissions = useProgressStore((state) => state.submissions);
 
   const stats = useMemo(() => {
-    const acceptedIds = new Set(
+    const accepted_ids = new Set(
       submissions.filter((submission) => submission.status === 'AC').map((submission) => submission.problemId)
     );
-    const reviewedSet = new Set(reviewedProblemIds);
+    const reviewed_set = new Set(reviewed_problem_ids);
     const completed = problems.filter(
-      (problem) => acceptedIds.has(problem.id) || reviewedSet.has(problem.id)
+      (problem) => accepted_ids.has(problem.id) || reviewed_set.has(problem.id)
     ).length;
     const total = problems.length;
-    return { completed, total, percent: total === 0 ? 0 : Math.round((completed / total) * 100) };
-  }, [problems, reviewedProblemIds, submissions]);
+    return {
+      completed: completed,
+      total: total,
+      percent: total === 0 ? 0 : Math.round((completed / total) * 100)
+    };
+  }, [problems, reviewed_problem_ids, submissions]);
 
   if (stats.total === 0) return null;
 

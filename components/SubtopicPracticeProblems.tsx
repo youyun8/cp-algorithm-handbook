@@ -19,14 +19,14 @@ import { problemDisplayTitle } from '@/lib/utils';
 import { useProgressStore } from '@/store/useProgressStore';
 
 function SubtopicPracticeProblemCard({ problem }: { problem: PracticeProblem }) {
-  const [showNotes, setShowNotes] = useState(false);
+  const [show_notes, set_show_notes] = useState(false);
   const mounted = useMounted();
-  const problemId = practiceProblemId(problem);
-  const note = useProgressStore((state) => state.problemNotes[problemId]);
-  const completedPracticeProblemIds = useProgressStore((state) => state.completedPracticeProblemIds);
-  const markPracticeProblemCompleted = useProgressStore((state) => state.markPracticeProblemCompleted);
-  const unmarkPracticeProblemCompleted = useProgressStore((state) => state.unmarkPracticeProblemCompleted);
-  const completed = mounted && completedPracticeProblemIds.includes(problemId);
+  const problem_id = practiceProblemId(problem);
+  const note = useProgressStore((state) => state.problemNotes[problem_id]);
+  const completed_practice_problem_ids = useProgressStore((state) => state.completedPracticeProblemIds);
+  const mark_practice_problem_completed = useProgressStore((state) => state.markPracticeProblemCompleted);
+  const unmark_practice_problem_completed = useProgressStore((state) => state.unmarkPracticeProblemCompleted);
+  const completed = mounted && completed_practice_problem_ids.includes(problem_id);
   const completion: CompletionStatus = mounted && (completed || hasPracticeNote(note)) ? 'reviewed' : 'none';
 
   return (
@@ -63,7 +63,7 @@ function SubtopicPracticeProblemCard({ problem }: { problem: PracticeProblem }) 
           >
             打開原題
           </ProblemSourceLink>
-          <Button type="button" variant="outline" size="sm" onClick={() => setShowNotes(true)}>
+          <Button type="button" variant="outline" size="sm" onClick={() => set_show_notes(true)}>
             {note ? '查看記錄' : '記錄解答'}
           </Button>
           <Button
@@ -71,7 +71,9 @@ function SubtopicPracticeProblemCard({ problem }: { problem: PracticeProblem }) 
             variant={completed ? 'ghost' : 'secondary'}
             size="sm"
             onClick={() =>
-              completed ? unmarkPracticeProblemCompleted(problemId) : markPracticeProblemCompleted(problemId)
+              completed
+                ? unmark_practice_problem_completed(problem_id)
+                : mark_practice_problem_completed(problem_id)
             }
           >
             {completed ? '取消完成' : '標記完成'}
@@ -79,10 +81,10 @@ function SubtopicPracticeProblemCard({ problem }: { problem: PracticeProblem }) 
         </div>
 
         <ProblemNotesModal
-          problemId={problemId}
+          problemId={problem_id}
           title={problemDisplayTitle(problem)}
-          open={showNotes}
-          onClose={() => setShowNotes(false)}
+          open={show_notes}
+          onClose={() => set_show_notes(false)}
         />
       </CardContent>
     </Card>

@@ -30,7 +30,7 @@ function ensureRegistered() {
   registered = true;
 }
 
-export const CODE_LANGUAGES: { value: string; label: string }[] = [
+export const kCodeLanguages: { value: string; label: string }[] = [
   { value: 'cpp', label: 'C++' },
   { value: 'c', label: 'C' },
   { value: 'python', label: 'Python' },
@@ -42,15 +42,15 @@ export const CODE_LANGUAGES: { value: string; label: string }[] = [
   { value: 'plaintext', label: '純文字' }
 ];
 
-export const DEFAULT_CODE_LANGUAGE = 'cpp';
+export const kDefaultCodeLanguage = 'cpp';
 
 export function CodeEditor({
   value,
-  onValueChange,
+  onValueChange: on_value_change,
   language,
   placeholder,
-  minHeight = '12rem',
-  className
+  minHeight: min_height = '12rem',
+  className: class_name
 }: {
   value: string;
   onValueChange: (value: string) => void;
@@ -77,13 +77,13 @@ export function CodeEditor({
     <div
       className={cn(
         'overflow-auto rounded-2xl border border-border bg-slate-50 dark:bg-[#0d1117]',
-        className
+        class_name
       )}
       style={{ maxHeight: '60vh' }}
     >
       <Editor
         value={value}
-        onValueChange={onValueChange}
+        onValueChange={on_value_change}
         highlight={highlight}
         placeholder={placeholder}
         padding={16}
@@ -94,7 +94,7 @@ export function CodeEditor({
             'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace',
           fontSize: 13,
           lineHeight: 1.6,
-          minHeight,
+          minHeight: min_height,
           outline: 'none'
         }}
       />

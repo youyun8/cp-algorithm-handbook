@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { PageTransition } from '@/components/PageTransition';
 import { PerformanceDashboard } from '@/components/PerformanceDashboard';
-import { problems, topics } from '@/lib/data';
+import { kProblems, kTopics } from '@/lib/data';
 
 export default function PerformanceProgressPage() {
   return (
@@ -22,7 +22,7 @@ export default function PerformanceProgressPage() {
             返回總覽
           </Link>
         </div>
-        <PerformanceDashboard problems={problems} topics={topics} />
+        <PerformanceDashboard problems={kProblems} topics={kTopics} />
       </div>
     </PageTransition>
   );

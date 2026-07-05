@@ -7,10 +7,10 @@ import { TopicGlyph } from '@/components/icons';
 import type { Subtopic, Topic } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
-const SIDEBAR_WIDTH_KEY = 'sidebar-width';
-const MIN_WIDTH = 180;
-const MAX_WIDTH = 480;
-const DEFAULT_WIDTH = 256;
+const kSidebarWidthKey = 'sidebar-width';
+const kMinWidth = 180;
+const kMaxWidth = 480;
+const kDefaultWidth = 256;
 
 interface HandbookSidebarProps {
   topics: Topic[];
@@ -23,57 +23,55 @@ interface HandbookSidebarProps {
 export function HandbookSidebar({
   topics,
   subtopics,
-  activeTopicSlug,
-  activeSubtopicSlug,
+  activeTopicSlug: active_topic_slug,
+  activeSubtopicSlug: active_subtopic_slug,
   anchors = []
 }: HandbookSidebarProps) {
-  const [collapsed, setCollapsed] = useState(false);
-  const [width, setWidth] = useState<number>(() => {
-    if (typeof window === 'undefined') return DEFAULT_WIDTH;
-    const saved = localStorage.getItem(SIDEBAR_WIDTH_KEY);
+  const [collapsed, set_collapsed] = useState(false);
+  const [width, set_width] = useState<number>(() => {
+    if (typeof window === 'undefined') return kDefaultWidth;
+    const saved = localStorage.getItem(kSidebarWidthKey);
     const parsed = saved ? parseInt(saved, 10) : NaN;
-    return !isNaN(parsed) && parsed >= MIN_WIDTH && parsed <= MAX_WIDTH
-      ? parsed
-      : DEFAULT_WIDTH;
+    return !isNaN(parsed) && parsed >= kMinWidth && parsed <= kMaxWidth ? parsed : kDefaultWidth;
   });
 
   const dragging = useRef(false);
-  const startX = useRef(0);
-  const startWidth = useRef(0);
+  const start_x = useRef(0);
+  const start_width = useRef(0);
 
-  const onMouseMove = useCallback((e: MouseEvent) => {
+  const on_mouse_move = useCallback((e: MouseEvent) => {
     if (!dragging.current) return;
-    const delta = e.clientX - startX.current;
-    const next = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, startWidth.current + delta));
-    setWidth(next);
+    const delta = e.clientX - start_x.current;
+    const next = Math.min(kMaxWidth, Math.max(kMinWidth, start_width.current + delta));
+    set_width(next);
   }, []);
 
-  const onMouseUp = useCallback(() => {
+  const on_mouse_up = useCallback(() => {
     if (!dragging.current) return;
     dragging.current = false;
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
     // Persist final width
-    setWidth((w) => {
-      localStorage.setItem(SIDEBAR_WIDTH_KEY, String(w));
+    set_width((w) => {
+      localStorage.setItem(kSidebarWidthKey, String(w));
       return w;
     });
   }, []);
 
   useEffect(() => {
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener('mousemove', on_mouse_move);
+    window.addEventListener('mouseup', on_mouse_up);
     return () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener('mousemove', on_mouse_move);
+      window.removeEventListener('mouseup', on_mouse_up);
     };
-  }, [onMouseMove, onMouseUp]);
+  }, [on_mouse_move, on_mouse_up]);
 
-  const onResizeMouseDown = (e: React.MouseEvent) => {
+  const on_resize_mouse_down = (e: React.MouseEvent) => {
     e.preventDefault();
     dragging.current = true;
-    startX.current = e.clientX;
-    startWidth.current = width;
+    start_x.current = e.clientX;
+    start_width.current = width;
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
   };
@@ -85,7 +83,7 @@ export function HandbookSidebar({
     >
       {/* Collapse toggle */}
       <button
-        onClick={() => setCollapsed(!collapsed)}
+        onClick={() => set_collapsed(!collapsed)}
         className="mb-2 flex w-full items-center justify-between rounded-xl border border-border bg-card/75 px-3 py-2 text-xs font-semibold text-muted-foreground transition hover:bg-accent hover:text-foreground"
         aria-label={collapsed ? '展開側欄' : '收合側欄'}
       >
@@ -102,17 +100,17 @@ export function HandbookSidebar({
           {/* Topics list */}
           <nav className="space-y-0.5">
             {topics.map((topic) => {
-              const isActiveTopic = activeTopicSlug === topic.slug;
+              const is_active_topic = active_topic_slug === topic.slug;
               const children = subtopics.filter((s) => s.parent_id === topic.id);
 
               return (
                 <div key={topic.id}>
                   <Link
                     href={`/handbook/${topic.slug}`}
-                    aria-current={isActiveTopic && !activeSubtopicSlug ? 'page' : undefined}
+                    aria-current={is_active_topic && !active_subtopic_slug ? 'page' : undefined}
                     className={cn(
                       'flex items-center gap-2 rounded-xl border-l-2 px-3 py-2 text-sm transition',
-                      isActiveTopic
+                      is_active_topic
                         ? 'border-blue-500 bg-primary/15 font-semibold text-primary'
                         : 'border-transparent text-muted-foreground hover:border-border hover:bg-accent hover:text-foreground'
                     )}
@@ -122,16 +120,16 @@ export function HandbookSidebar({
                   </Link>
 
                   {/* Subtopics (shown when parent is active) */}
-                  {isActiveTopic && children.length > 0 && (
+                  {is_active_topic && children.length > 0 && (
                     <div className="ml-4 mt-0.5 space-y-0.5 border-l border-border pl-2">
                       {children.map((sub) => (
                         <Link
                           key={sub.id}
                           href={`/handbook/${topic.slug}/${sub.slug}`}
-                          aria-current={activeSubtopicSlug === sub.slug ? 'page' : undefined}
+                          aria-current={active_subtopic_slug === sub.slug ? 'page' : undefined}
                           className={cn(
                             'block truncate rounded-lg px-2 py-1.5 text-xs transition',
-                            activeSubtopicSlug === sub.slug
+                            active_subtopic_slug === sub.slug
                               ? 'bg-primary/10 font-semibold text-primary'
                               : 'text-muted-foreground hover:bg-accent hover:text-foreground'
                           )}
@@ -171,7 +169,7 @@ export function HandbookSidebar({
       {/* Drag-to-resize handle — visible on hover */}
       {!collapsed && (
         <div
-          onMouseDown={onResizeMouseDown}
+          onMouseDown={on_resize_mouse_down}
           title="拖曳調整側欄寬度"
           className="absolute inset-y-0 right-0 z-10 flex w-2 cursor-col-resize items-center justify-center opacity-0 transition-opacity hover:opacity-100"
         >

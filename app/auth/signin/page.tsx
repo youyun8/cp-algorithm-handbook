@@ -2,10 +2,10 @@
 
 import { signIn } from 'next-auth/react';
 import { Lock } from 'lucide-react';
-import { isStaticExport } from '@/lib/runtime';
+import { kIsStaticExport } from '@/lib/runtime';
 
 export default function SignInPage() {
-  if (isStaticExport) {
+  if (kIsStaticExport) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="rounded-3xl border border-border bg-card p-8 text-center shadow-lg">

@@ -19,7 +19,7 @@ export function TopicHandbook({
   subtopics: Subtopic[];
   problems: Problem[];
 }) {
-  const topicSubtopics = subtopics.filter((subtopic) => subtopic.parent_id === topic.id);
+  const topic_subtopics = subtopics.filter((subtopic) => subtopic.parent_id === topic.id);
 
   return (
     <div className="flex min-h-screen gap-6">
@@ -29,7 +29,7 @@ export function TopicHandbook({
         activeTopicSlug={topic.slug}
         anchors={[
           { id: 'core', label: '核心想法' },
-          ...(topicSubtopics.length > 0 ? [{ id: 'chapters', label: '章節導讀' }] : []),
+          ...(topic_subtopics.length > 0 ? [{ id: 'chapters', label: '章節導讀' }] : []),
           { id: 'deepdive', label: '原理剖析' },
           { id: 'references', label: '參考連結' },
           { id: 'patterns', label: '補充套路' },
@@ -66,11 +66,11 @@ export function TopicHandbook({
           </LayerCallout>
         </div>
 
-        {topicSubtopics.length > 0 ? (
+        {topic_subtopics.length > 0 ? (
           <div id="chapters">
             <LayerCallout eyebrow="章節導讀" title="按題型拆開練習路線" variant="supplemental">
               <div className="grid gap-3 md:grid-cols-2">
-                {topicSubtopics.map((subtopic) => (
+                {topic_subtopics.map((subtopic) => (
                   <Link
                     key={subtopic.id}
                     href={`/handbook/${topic.slug}/${subtopic.slug}`}

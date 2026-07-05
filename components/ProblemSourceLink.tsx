@@ -10,15 +10,20 @@ interface ProblemSourceLinkProps extends Omit<AnchorHTMLAttributes<HTMLAnchorEle
   children?: ReactNode;
 }
 
-export function ProblemSourceLink({ problem, children, className, ...props }: ProblemSourceLinkProps) {
-  const leetCodeSite = useSettingsStore((state) => state.leetCodeSite);
+export function ProblemSourceLink({
+  problem,
+  children,
+  className: class_name,
+  ...props
+}: ProblemSourceLinkProps) {
+  const leet_code_site = useSettingsStore((state) => state.leetCodeSite);
 
   return (
     <a
-      href={sourceUrl(problem, leetCodeSite)}
+      href={sourceUrl(problem, leet_code_site)}
       target="_blank"
       rel="noreferrer"
-      className={cn(className)}
+      className={cn(class_name)}
       {...props}
     >
       {children ?? `${sourceLabel(problem.source)} 原題`}

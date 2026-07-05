@@ -16,54 +16,54 @@ export function ProgressOverview({
   topics: Topic[];
   subtopics: Subtopic[];
 }) {
-  const reviewedProblemIds = useProgressStore((state) => state.reviewedProblemIds);
+  const reviewed_problem_ids = useProgressStore((state) => state.reviewedProblemIds);
   const submissions = useProgressStore((state) => state.submissions);
-  const contestSessions = useProgressStore((state) => state.contestSessions);
-  const problemNotes = useProgressStore((state) => state.problemNotes);
-  const completedPracticeProblemIds = useProgressStore((state) => state.completedPracticeProblemIds);
+  const contest_sessions = useProgressStore((state) => state.contestSessions);
+  const problem_notes = useProgressStore((state) => state.problemNotes);
+  const completed_practice_problem_ids = useProgressStore((state) => state.completedPracticeProblemIds);
 
-  const handbookTotals = useMemo(() => {
-    const completedPracticeSet = new Set(completedPracticeProblemIds);
-    const allPracticeProblems = subtopics.flatMap((subtopic) => subtopic.practice_problems ?? []);
-    const completed = allPracticeProblems.filter((practiceProblem) => {
-      const id = practiceProblemId(practiceProblem);
-      return completedPracticeSet.has(id) || hasPracticeNote(problemNotes[id]);
+  const handbook_totals = useMemo(() => {
+    const completed_practice_set = new Set(completed_practice_problem_ids);
+    const all_practice_problems = subtopics.flatMap((subtopic) => subtopic.practice_problems ?? []);
+    const completed = all_practice_problems.filter((practice_problem) => {
+      const id = practiceProblemId(practice_problem);
+      return completed_practice_set.has(id) || hasPracticeNote(problem_notes[id]);
     }).length;
 
-    const coveredTopicIds = new Set<string>();
+    const covered_topic_ids = new Set<string>();
     for (const subtopic of subtopics) {
-      const covered = (subtopic.practice_problems ?? []).some((practiceProblem) => {
-        const id = practiceProblemId(practiceProblem);
-        return completedPracticeSet.has(id) || hasPracticeNote(problemNotes[id]);
+      const covered = (subtopic.practice_problems ?? []).some((practice_problem) => {
+        const id = practiceProblemId(practice_problem);
+        return completed_practice_set.has(id) || hasPracticeNote(problem_notes[id]);
       });
-      if (covered) coveredTopicIds.add(subtopic.parent_id);
+      if (covered) covered_topic_ids.add(subtopic.parent_id);
     }
 
     return {
-      completed,
-      total: allPracticeProblems.length,
+      completed: completed,
+      total: all_practice_problems.length,
       percent:
-        allPracticeProblems.length === 0 ? 0 : Math.round((completed / allPracticeProblems.length) * 100),
-      coveredTopics: coveredTopicIds.size
+        all_practice_problems.length === 0 ? 0 : Math.round((completed / all_practice_problems.length) * 100),
+      coveredTopics: covered_topic_ids.size
     };
-  }, [completedPracticeProblemIds, problemNotes, subtopics]);
+  }, [completed_practice_problem_ids, problem_notes, subtopics]);
 
-  const performanceTotals = useMemo(() => {
-    const problemById = new Map(problems.map((problem) => [problem.id, problem]));
-    const coveredTopicIds = new Set(
-      reviewedProblemIds
-        .map((id) => problemById.get(id)?.topic_id)
-        .filter((topicId): topicId is string => Boolean(topicId))
+  const performance_totals = useMemo(() => {
+    const problem_by_id = new Map(problems.map((problem) => [problem.id, problem]));
+    const covered_topic_ids = new Set(
+      reviewed_problem_ids
+        .map((id) => problem_by_id.get(id)?.topic_id)
+        .filter((topic_id): topic_id is string => Boolean(topic_id))
     );
-    const acceptedCount = new Set(
+    const accepted_count = new Set(
       submissions.filter((submission) => submission.status === 'AC').map((submission) => submission.problemId)
     ).size;
 
     return {
-      acceptedCount,
-      coveredTopics: coveredTopicIds.size
+      acceptedCount: accepted_count,
+      coveredTopics: covered_topic_ids.size
     };
-  }, [problems, reviewedProblemIds, submissions]);
+  }, [problems, reviewed_problem_ids, submissions]);
 
   return (
     <div className="grid gap-4 lg:grid-cols-2">
@@ -73,12 +73,15 @@ export function ProgressOverview({
         </CardHeader>
         <CardContent className="space-y-5">
           <div className="grid grid-cols-2 gap-3">
-            <OverviewMetric label="完成題目" value={`${handbookTotals.completed}/${handbookTotals.total}`} />
-            <OverviewMetric label="覆蓋主題" value={`${handbookTotals.coveredTopics}/${topics.length}`} />
-            <OverviewMetric label="完成率" value={`${handbookTotals.percent}%`} />
+            <OverviewMetric
+              label="完成題目"
+              value={`${handbook_totals.completed}/${handbook_totals.total}`}
+            />
+            <OverviewMetric label="覆蓋主題" value={`${handbook_totals.coveredTopics}/${topics.length}`} />
+            <OverviewMetric label="完成率" value={`${handbook_totals.percent}%`} />
             <OverviewMetric
               label="筆記數"
-              value={Object.entries(problemNotes)
+              value={Object.entries(problem_notes)
                 .filter(([id, note]) => id.startsWith('practice:') && hasPracticeNote(note))
                 .length.toString()}
             />
@@ -98,10 +101,10 @@ export function ProgressOverview({
         </CardHeader>
         <CardContent className="space-y-5">
           <div className="grid grid-cols-2 gap-3">
-            <OverviewMetric label="已複習題目" value={reviewedProblemIds.length.toString()} />
-            <OverviewMetric label="AC 題目" value={performanceTotals.acceptedCount.toString()} />
+            <OverviewMetric label="已複習題目" value={reviewed_problem_ids.length.toString()} />
+            <OverviewMetric label="AC 題目" value={performance_totals.acceptedCount.toString()} />
             <OverviewMetric label="提交紀錄" value={submissions.length.toString()} />
-            <OverviewMetric label="競賽場次" value={contestSessions.length.toString()} />
+            <OverviewMetric label="競賽場次" value={contest_sessions.length.toString()} />
           </div>
           <Link
             href="/progress/performance"

@@ -6,8 +6,14 @@ import { SettingsPanel } from '@/components/SettingsPanel';
 import { cn } from '@/lib/utils';
 import { useMounted } from '@/lib/useMounted';
 
-export function SettingsNavButton({ className, compact = false }: { className?: string; compact?: boolean }) {
-  const [open, setOpen] = useState(false);
+export function SettingsNavButton({
+  className: class_name,
+  compact = false
+}: {
+  className?: string;
+  compact?: boolean;
+}) {
+  const [open, set_open] = useState(false);
 
   return (
     <>
@@ -17,33 +23,33 @@ export function SettingsNavButton({ className, compact = false }: { className?: 
           compact
             ? 'whitespace-nowrap rounded-xl border border-border px-3 py-2 text-sm text-muted-foreground transition hover:bg-accent hover:text-foreground'
             : 'rounded-xl px-3 py-2 text-sm text-muted-foreground transition hover:bg-accent hover:text-foreground',
-          className
+          class_name
         )}
-        onClick={() => setOpen(true)}
+        onClick={() => set_open(true)}
       >
         設定
       </button>
-      <SettingsModal open={open} onClose={() => setOpen(false)} />
+      <SettingsModal open={open} onClose={() => set_open(false)} />
     </>
   );
 }
 
-function SettingsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+function SettingsModal({ open, onClose: on_close }: { open: boolean; onClose: () => void }) {
   const mounted = useMounted();
 
   useEffect(() => {
     if (!open) return;
     function onKey(event: KeyboardEvent) {
-      if (event.key === 'Escape') onClose();
+      if (event.key === 'Escape') on_close();
     }
     document.addEventListener('keydown', onKey);
-    const previousOverflow = document.body.style.overflow;
+    const previous_overflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
       document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = previousOverflow;
+      document.body.style.overflow = previous_overflow;
     };
-  }, [open, onClose]);
+  }, [open, on_close]);
 
   if (!open || !mounted) return null;
 
@@ -54,7 +60,7 @@ function SettingsModal({ open, onClose }: { open: boolean; onClose: () => void }
       aria-label="設定"
       className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
     >
-      <div className="absolute inset-0 bg-background/60 backdrop-blur-md" onClick={onClose} aria-hidden />
+      <div className="absolute inset-0 bg-background/60 backdrop-blur-md" onClick={on_close} aria-hidden />
       <div className="relative z-10 flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl border border-border bg-card/95 shadow-2xl">
         <header className="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
           <div>
@@ -63,7 +69,7 @@ function SettingsModal({ open, onClose }: { open: boolean; onClose: () => void }
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={on_close}
             aria-label="關閉"
             className="rounded-full border border-border px-2.5 py-1 text-sm text-muted-foreground transition hover:bg-accent hover:text-foreground"
           >

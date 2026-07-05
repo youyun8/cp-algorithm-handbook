@@ -9,7 +9,7 @@ import type { Problem, Subtopic, Topic } from '@/lib/types';
 
 export function SubtopicHandbook({
   subtopic,
-  parentTopic,
+  parentTopic: parent_topic,
   problems = []
 }: {
   subtopic: Subtopic;
@@ -20,7 +20,7 @@ export function SubtopicHandbook({
     <article className="space-y-6">
       <div className="rounded-3xl border border-border bg-card/80 p-6 shadow-card">
         <p className="text-sm font-medium text-muted-foreground">
-          <span className="text-primary">{parentTopic.title}</span> › 子主題
+          <span className="text-primary">{parent_topic.title}</span> › 子主題
         </p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">{subtopic.title}</h1>
         <p className="mt-3 max-w-3xl leading-7 text-muted-foreground">{subtopic.description}</p>

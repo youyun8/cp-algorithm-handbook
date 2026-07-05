@@ -1,8 +1,8 @@
-const config = {
+const kConfig = {
   plugins: {
     tailwindcss: {},
     autoprefixer: {}
   }
 };
 
-export default config;
+export default kConfig;

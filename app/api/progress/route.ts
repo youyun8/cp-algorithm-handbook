@@ -1,10 +1,10 @@
 import { auth } from '@/lib/auth';
-import { isStaticExport } from '@/lib/runtime';
+import { kIsStaticExport } from '@/lib/runtime';
 import { NextResponse } from 'next/server';
 
 // GET: load progress from GitHub Gist
 export async function GET() {
-  if (isStaticExport) {
+  if (kIsStaticExport) {
     return NextResponse.json({ data: null });
   }
 
@@ -20,24 +20,24 @@ export async function GET() {
 
   try {
     // List gists to find cp-handbook progress gist
-    const listRes = await fetch('https://api.github.com/gists', {
+    const list_res = await fetch('https://api.github.com/gists', {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: 'application/vnd.github+json'
       }
     });
     const gists: Array<{ id: string; description: string; files: Record<string, unknown> }> =
-      await listRes.json();
+      await list_res.json();
     const target = gists.find((g) => g.description === `cp-handbook-progress-${session.user.id}`);
 
     if (!target) {
       return NextResponse.json({ data: null }); // No saved progress yet
     }
 
-    const gistRes = await fetch(`https://api.github.com/gists/${target.id}`, {
+    const gist_res = await fetch(`https://api.github.com/gists/${target.id}`, {
       headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' }
     });
-    const gist = await gistRes.json();
+    const gist = await gist_res.json();
     const content = (gist.files['progress.json'] as { content: string } | undefined)?.content;
     return NextResponse.json({ data: content ? JSON.parse(content) : null });
   } catch {
@@ -47,7 +47,7 @@ export async function GET() {
 
 // POST: save progress to GitHub Gist
 export async function POST(req: Request) {
-  if (isStaticExport) {
+  if (kIsStaticExport) {
     return NextResponse.json({ error: 'Not available in static export' }, { status: 501 });
   }
 
@@ -62,26 +62,26 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
-  const updatedAt = new Date().toISOString();
+  const updated_at = new Date().toISOString();
   const content = JSON.stringify({
     ...body,
     userId: session.user.id,
-    updatedAt
+    updatedAt: updated_at
   });
 
   try {
     // Check if gist already exists
-    const listRes = await fetch('https://api.github.com/gists', {
+    const list_res = await fetch('https://api.github.com/gists', {
       headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' }
     });
-    const gists: Array<{ id: string; description: string }> = await listRes.json();
+    const gists: Array<{ id: string; description: string }> = await list_res.json();
     const existing = gists.find((g) => g.description === `cp-handbook-progress-${session.user.id}`);
 
     const method = existing ? 'PATCH' : 'POST';
     const url = existing ? `https://api.github.com/gists/${existing.id}` : 'https://api.github.com/gists';
 
-    const saveRes = await fetch(url, {
-      method,
+    const save_res = await fetch(url, {
+      method: method,
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: 'application/vnd.github+json',
@@ -90,12 +90,12 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         description: `cp-handbook-progress-${session.user.id}`,
         public: false,
-        files: { 'progress.json': { content } }
+        files: { 'progress.json': { content: content } }
       })
     });
 
-    if (!saveRes.ok) throw new Error(`GitHub API error: ${saveRes.status}`);
-    return NextResponse.json({ ok: true, updatedAt });
+    if (!save_res.ok) throw new Error(`GitHub API error: ${save_res.status}`);
+    return NextResponse.json({ ok: true, updatedAt: updated_at });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
   }

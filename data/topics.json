@@ -111,7 +111,7 @@
     "deep_dive": [
       {
         "title": "建圖常見模式（影響 BFS／DFS 寫法）",
-        "body": "建圖方式直接決定怎麼枚舉鄰居，常見有三種建模：\n\n**1. 網格圖 → 方向陣列**\n把每格 `(r, c)` 當節點，用方向陣列枚舉鄰格：\n```cpp\nint dr[4] = {-1, 1, 0, 0};\nint dc[4] = {0, 0, -1, 1};\nfor (int k = 0; k < 4; ++k) {\n    int nr = r + dr[k], nc = c + dc[k];\n    if (nr < 0 || nr >= R || nc < 0 || nc >= C) {\n        continue;  // 越界\n    }\n    if (grid[nr][nc] == '#') {\n        continue;  // 障礙\n    }\n    // 將 (nr, nc) enqueue\n}\n```\n逐行：`dr/dc` 定義上下左右（八方向再加四組對角）；先檢查越界、再檢查是否可走，最後才 enqueue。\n\n**2. 隱式圖（如單詞接龍）→ 枚舉鄰居 + 雜湊判重**\n節點不顯式存在，鄰居由規則生成（改一個字母）。用 `unordered_map/unordered_set` 把字串映射成是否已訪問，邊在枚舉時即時產生。\n\n**3. 狀態圖（如走迷宮帶鑰匙）→ 狀態壓縮**\n節點 = `(位置, 已持有鑰匙的 bitmask)`。同一格子在不同鑰匙狀態下是**不同節點**，visited 要開成 `visited[r][c][1 << keys]`，否則會誤判已訪問而漏解。"
+        "body": "建圖方式直接決定怎麼枚舉鄰居，常見有三種建模：\n\n**1. 網格圖 → 方向陣列**\n把每格 `(r, c)` 當節點，用方向陣列枚舉鄰格：\n```cpp\nint dr[4] = {-1, 1, 0, 0};\nint dc[4] = {0, 0, -1, 1};\nfor (int k = 0; k < 4; ++k) {\n    int nr = r + dr[k], nc = c + dc[k];\n    if (nr < 0 || nr >= R || nc < 0 || nc >= C) {\n        continue;\n    }\n    if (grid[nr][nc] == '#') {\n        continue;\n    }\n\n}\n```\n逐行：`dr/dc` 定義上下左右（八方向再加四組對角）；先檢查越界、再檢查是否可走，最後才 enqueue。\n\n**2. 隱式圖（如單詞接龍）→ 枚舉鄰居 + 雜湊判重**\n節點不顯式存在，鄰居由規則生成（改一個字母）。用 `unordered_map/unordered_set` 把字串映射成是否已訪問，邊在枚舉時即時產生。\n\n**3. 狀態圖（如走迷宮帶鑰匙）→ 狀態壓縮**\n節點 = `(位置, 已持有鑰匙的 bitmask)`。同一格子在不同鑰匙狀態下是**不同節點**，visited 要開成 `visited[r][c][1 << keys]`，否則會誤判已訪問而漏解。"
       },
       {
         "title": "DFS 邊分類與橋和割點",
@@ -225,7 +225,7 @@
       },
       {
         "title": "差分陣列：把區間修改壓成端點事件",
-        "body": "差分把「每個位置都加值」改寫成「從某點開始多一個增量，從某點之後取消這個增量」。對閉區間 `[l, r]` 加上 `val` 時，只需要兩個端點事件：\n\n```cpp\nvector<long long> diff(n + 2, 0);\ndiff[l] += val;      // 從 l 開始生效\ndiff[r + 1] -= val;  // r 之後失效\n\nlong long cur = 0;\nfor (int i = 1; i <= n; ++i) {\n    cur += diff[i];\n    a[i] += cur;\n}\n```\n\n若程式中不小心把 `diff[r + 1]` 寫到陣列外，最後一段修改就不會被抵銷，所以通常把差分陣列開到 `n + 2`。差分適合「所有修改先給完，最後再一次性還原」；若修改與查詢交錯，差分的不變式仍成立，但每次查詢都要重新前綴，會退化成 O(n)，此時應改用線段樹或 BIT。\n\n差分其實是掃描線的離散靜態版：`+val` 是進入事件，`-val` 是離開事件，前綴和就是目前活躍事件累積出的狀態。"
+        "body": "差分把「每個位置都加值」改寫成「從某點開始多一個增量，從某點之後取消這個增量」。對閉區間 `[l, r]` 加上 `val` 時，只需要兩個端點事件：\n\n```cpp\nvector<long long> diff(n + 2, 0);\ndiff[l] += val;\ndiff[r + 1] -= val;\n\nlong long cur = 0;\nfor (int i = 1; i <= n; ++i) {\n    cur += diff[i];\n    a[i] += cur;\n}\n```\n\n若程式中不小心把 `diff[r + 1]` 寫到陣列外，最後一段修改就不會被抵銷，所以通常把差分陣列開到 `n + 2`。差分適合「所有修改先給完，最後再一次性還原」；若修改與查詢交錯，差分的不變式仍成立，但每次查詢都要重新前綴，會退化成 O(n)，此時應改用線段樹或 BIT。\n\n差分其實是掃描線的離散靜態版：`+val` 是進入事件，`-val` 是離開事件，前綴和就是目前活躍事件累積出的狀態。"
       },
       {
         "title": "掃描線事件：端點順序與開閉區間",
@@ -314,7 +314,7 @@
       },
       {
         "title": "懶刪除：不用刪舊值也能保持正確",
-        "body": "`priority_queue` 不支援刪除任意元素，也沒有 decrease-key。當一個節點找到更短距離時，舊的 `(舊距離, 節點)` 仍留在堆裡。懶刪除的做法是：先把新值推進堆，等舊值浮到堆頂時再丟棄。\n\n```cpp\nwhile (!pq.empty()) {\n    auto [d, u] = pq.top();\n    pq.pop();\n    if (d != dist[u]) {\n        continue;  // 這筆候選已過期\n    }\n    for (auto [v, w] : graph[u]) {\n        if (dist[v] > d + w) {\n            dist[v] = d + w;\n            pq.push({dist[v], v});\n        }\n    }\n}\n```\n\n正確性來自比對 `d == dist[u]`：只有目前仍是最佳紀錄的候選才會被擴展，過期候選不會影響答案。這會讓堆中出現重複節點，但每次成功鬆弛最多新增一筆候選，總推入次數通常由邊數控制，Dijkstra 複雜度為 O((V + E) log E)。"
+        "body": "`priority_queue` 不支援刪除任意元素，也沒有 decrease-key。當一個節點找到更短距離時，舊的 `(舊距離, 節點)` 仍留在堆裡。懶刪除的做法是：先把新值推進堆，等舊值浮到堆頂時再丟棄。\n\n```cpp\nwhile (!pq.empty()) {\n    auto [d, u] = pq.top();\n    pq.pop();\n    if (d != dist[u]) {\n        continue;\n    }\n    for (auto [v, w] : graph[u]) {\n        if (dist[v] > d + w) {\n            dist[v] = d + w;\n            pq.push({dist[v], v});\n        }\n    }\n}\n```\n\n正確性來自比對 `d == dist[u]`：只有目前仍是最佳紀錄的候選才會被擴展，過期候選不會影響答案。這會讓堆中出現重複節點，但每次成功鬆弛最多新增一筆候選，總推入次數通常由邊數控制，Dijkstra 複雜度為 O((V + E) log E)。"
       },
       {
         "title": "多路合併與 Top-K：堆中元素要帶足狀態",
@@ -487,7 +487,7 @@
       },
       {
         "title": "對向雙指針與排序前提",
-        "body": "對向雙指針通常從左右兩端往中間移，常見於 two sum、三數之和、容器盛水。它依賴的不是窗口合法性，而是排序後的方向單調性。\n\n```cpp\nsort(a.begin(), a.end());\nint l = 0, r = n - 1;\nwhile (l < r) {\n    long long sum = a[l] + a[r];\n    if (sum == target) {\n        // record answer\n        ++l;\n        --r;\n    } else if (sum < target) {\n        ++l;  // 需要更大的和\n    } else {\n        --r;  // 需要更小的和\n    }\n}\n```\n\n當 `sum < target` 時，固定 `r` 再把 `l` 左移只會更小，沒有意義；因此只能 `l++`。這就是正確性的剪枝理由。若題目要求去重，要在找到答案後跳過相同值；若原始下標很重要，排序前要一起保存 index。"
+        "body": "對向雙指針通常從左右兩端往中間移，常見於 two sum、三數之和、容器盛水。它依賴的不是窗口合法性，而是排序後的方向單調性。\n\n```cpp\nsort(a.begin(), a.end());\nint l = 0, r = n - 1;\nwhile (l < r) {\n    long long sum = a[l] + a[r];\n    if (sum == target) {\n        // record answer\n        ++l;\n        --r;\n    } else if (sum < target) {\n        ++l;\n    } else {\n        --r;\n    }\n}\n```\n\n當 `sum < target` 時，固定 `r` 再把 `l` 左移只會更小，沒有意義；因此只能 `l++`。這就是正確性的剪枝理由。若題目要求去重，要在找到答案後跳過相同值；若原始下標很重要，排序前要一起保存 index。"
       }
     ],
     "reference_links": [
@@ -559,7 +559,7 @@
       },
       {
         "title": "帶權並查集：維護到根的偏移",
-        "body": "帶權並查集在父指標上額外記錄「目前節點到父節點的關係」。常見題型是差值約束，例如已知 `value[b] - value[a] = w`，要判斷新約束是否與舊約束矛盾。\n\n```cpp\nint find(int x) {\n    if (parent[x] == x) return x;\n    int p = parent[x];\n    int root = find(p);\n    rel[x] += rel[p];   // x 到根 = x 到父 + 父到根\n    parent[x] = root;\n    return root;\n}\n```\n\n呼叫 `find(x)` 後，`rel[x]` 必須代表 x 到根的偏移，這是最重要的不變式。合併 `a`、`b` 時，先壓縮兩者路徑，若根相同，就檢查 `rel[b] - rel[a] == w`；若根不同，把一個根接到另一個根，並用這條等式推出根之間的偏移。"
+        "body": "帶權並查集在父指標上額外記錄「目前節點到父節點的關係」。常見題型是差值約束，例如已知 `value[b] - value[a] = w`，要判斷新約束是否與舊約束矛盾。\n\n```cpp\nint find(int x) {\n    if (parent[x] == x) return x;\n    int p = parent[x];\n    int root = find(p);\n    rel[x] += rel[p];\n    parent[x] = root;\n    return root;\n}\n```\n\n呼叫 `find(x)` 後，`rel[x]` 必須代表 x 到根的偏移，這是最重要的不變式。合併 `a`、`b` 時，先壓縮兩者路徑，若根相同，就檢查 `rel[b] - rel[a] == w`；若根不同，把一個根接到另一個根，並用這條等式推出根之間的偏移。"
       },
       {
         "title": "DSU 適用邊界：只加邊容易，刪邊要離線",
@@ -620,7 +620,7 @@
     "deep_dive": [
       {
         "title": "LCA 查詢的兩階段",
-        "body": "LCA 查詢分兩階段，都靠二進位分解：\n```cpp\n// u: current node or left endpoint.\n// v: neighbor node or right endpoint.\nint lca(int u, int v) {\n    if (depth[u] < depth[v]) {\n        swap(u, v);  // 讓 u 較深\n    }\n    int diff = depth[u] - depth[v];\n    for (int k = 0; k < kLog; ++k) {  // 階段一：把 u 提到與 v 同深度\n        if (diff >> k & 1) {\n            u = up[u][k];\n        }\n    }\n    if (u == v) {\n        return u;                        // v 是 u 的祖先\n    }\n    for (int k = kLog - 1; k >= 0; --k) {  // 階段二：高位到低位同步上跳\n        if (up[u][k] != up[v][k]) {\n            u = up[u][k];\n            v = up[v][k];\n        }\n    }\n    return up[u][0];  // 再跳一步即 LCA\n}\n```\n逐行：先確保 u 較深，用 `diff` 的二進位把 u 上提對齊深度；若對齊後相等，v 本身就是 LCA；否則**從高位往低位**同步跳——只在『跳了之後兩者仍不相同』時才跳，保證停在 LCA 正下方，最後 `up[u][0]` 就是 LCA。階段二必須由高位往低位，才能逼近而不越過。"
+        "body": "LCA 查詢分兩階段，都靠二進位分解：\n```cpp\n// u: current node or left endpoint.\n// v: neighbor node or right endpoint.\nint lca(int u, int v) {\n    if (depth[u] < depth[v]) {\n        swap(u, v);\n    }\n    int diff = depth[u] - depth[v];\n    for (int k = 0; k < kLog; ++k) {\n        if (diff >> k & 1) {\n            u = up[u][k];\n        }\n    }\n    if (u == v) {\n        return u;\n    }\n    for (int k = kLog - 1; k >= 0; --k) {\n        if (up[u][k] != up[v][k]) {\n            u = up[u][k];\n            v = up[v][k];\n        }\n    }\n    return up[u][0];\n}\n```\n逐行：先確保 u 較深，用 `diff` 的二進位把 u 上提對齊深度；若對齊後相等，v 本身就是 LCA；否則**從高位往低位**同步跳——只在『跳了之後兩者仍不相同』時才跳，保證停在 LCA 正下方，最後 `up[u][0]` 就是 LCA。階段二必須由高位往低位，才能逼近而不越過。"
       },
       {
         "title": "四種 LCA 算法比較",
@@ -628,7 +628,7 @@
       },
       {
         "title": "預處理 up 表：二進位拆解祖先距離",
-        "body": "倍增的核心是 `up[v][k]`：從節點 v 往上跳 `2^k` 步會到哪個祖先。先用 DFS 建出深度與 immediate parent，再用動態規劃補表。\n\n```cpp\nup[v][0] = parent;\nfor (int k = 1; k < LOG; ++k) {\n    up[v][k] = up[up[v][k - 1]][k - 1];\n}\n```\n\n這個轉移的意思是：跳 `2^k` 步可以拆成先跳 `2^(k-1)`，再從落點再跳 `2^(k-1)`。查詢時也一樣，把要上升的步數拆成二進位；哪一位是 1，就套用那一層跳躍。\n\n常見邊界：根節點的父親可設成自己，避免 `up[0]` 越界；`LOG` 要滿足 `2^LOG > n`；如果樹很深，DFS 遞迴可能 stack overflow，可改 iterative stack 或調整環境。"
+        "body": "倍增的核心是 `up[v][k]`：從節點 v 往上跳 `2^k` 步會到哪個祖先。先用 DFS 建出深度與 immediate parent，再用動態規劃補表。\n\n```cpp\nup[v][0] = parent;\nfor (int k = 1; k < kLog; ++k) {\n    up[v][k] = up[up[v][k - 1]][k - 1];\n}\n```\n\n這個轉移的意思是：跳 `2^k` 步可以拆成先跳 `2^(k-1)`，再從落點再跳 `2^(k-1)`。查詢時也一樣，把要上升的步數拆成二進位；哪一位是 1，就套用那一層跳躍。\n\n常見邊界：根節點的父親可設成自己，避免 `up[0]` 越界；`LOG` 要滿足 `2^LOG > n`；如果樹很深，DFS 遞迴可能 stack overflow，可改 iterative stack 或調整環境。"
       }
     ],
     "reference_links": [
@@ -1003,15 +1003,15 @@
     "deep_dive": [
       {
         "title": "啞節點：讓頭尾與中間一視同仁",
-        "body": "處理「刪除節點」「在某位置插入」「合併兩串列」時，頭節點往往要特判。引入 dummy 後，頭節點不再特殊。\n\n```cpp\nListNode* removeElements(ListNode* head, int val) {\n    ListNode dummy(0, head);\n    ListNode* cur = &dummy;\n    while (cur->next) {\n        if (cur->next->val == val) {\n            cur->next = cur->next->next; // 跳過待刪節點\n        } else {\n            cur = cur->next;\n        }\n    }\n    return dummy.next;\n}\n```\n\n刪除的核心是「用前驅節點繞過目標」：`cur->next = cur->next->next`。因為要拿到前驅，迴圈才以 `cur->next` 為判斷對象而非 `cur`。"
+        "body": "處理「刪除節點」「在某位置插入」「合併兩串列」時，頭節點往往要特判。引入 dummy 後，頭節點不再特殊。\n\n```cpp\nListNode* removeElements(ListNode* head, int val) {\n    ListNode dummy(0, head);\n    ListNode* cur = &dummy;\n    while (cur->next) {\n        if (cur->next->val == val) {\n            cur->next = cur->next->next;\n        } else {\n            cur = cur->next;\n        }\n    }\n    return dummy.next;\n}\n```\n\n刪除的核心是「用前驅節點繞過目標」：`cur->next = cur->next->next`。因為要拿到前驅，迴圈才以 `cur->next` 為判斷對象而非 `cur`。"
       },
       {
         "title": "反轉：prev / cur / next 三指標",
-        "body": "反轉是鏈結串列最常考的子程序，務必背到能不假思索寫出。\n\n```cpp\nListNode* reverseList(ListNode* head) {\n    ListNode* prev = nullptr;\n    ListNode* cur = head;\n    while (cur) {\n        ListNode* nxt = cur->next;  // 先存後繼\n        cur->next = prev;           // 翻轉指向\n        prev = cur;                 // 整體右移\n        cur = nxt;\n    }\n    return prev; // 新的頭\n}\n```\n\n「反轉前 k 個」「每 k 個一組反轉」都是它的變體：先用啞節點框住要反轉的區段，反轉後再把區段兩端接回主串列。"
+        "body": "反轉是鏈結串列最常考的子程序，務必背到能不假思索寫出。\n\n```cpp\nListNode* reverseList(ListNode* head) {\n    ListNode* prev = nullptr;\n    ListNode* cur = head;\n    while (cur) {\n        ListNode* nxt = cur->next;\n        cur->next = prev;\n        prev = cur;\n        cur = nxt;\n    }\n    return prev;\n}\n```\n\n「反轉前 k 個」「每 k 個一組反轉」都是它的變體：先用啞節點框住要反轉的區段，反轉後再把區段兩端接回主串列。"
       },
       {
         "title": "快慢指標：找中點、判環、找環入口",
-        "body": "快慢指標是 O(1) 空間解決「中點」「判環」「倒數第 k 個」的統一工具。\n\n```cpp\nListNode* detectCycle(ListNode* head) {\n    ListNode *slow = head, *fast = head;\n    while (fast && fast->next) {\n        slow = slow->next;\n        fast = fast->next->next;\n        if (slow == fast) {              // 相遇 → 有環\n            ListNode* p = head;\n            while (p != slow) { p = p->next; slow = slow->next; }\n            return p;                     // 環入口\n        }\n    }\n    return nullptr;\n}\n```\n\n相遇後，從頭與相遇點各派一個指標同速前進，再次相遇處即環入口（由 Floyd 判圈的距離等式推得）。找中點時只需讓 `fast` 走到尾，`slow` 即落在中點。"
+        "body": "快慢指標是 O(1) 空間解決「中點」「判環」「倒數第 k 個」的統一工具。\n\n```cpp\nListNode* detectCycle(ListNode* head) {\n    ListNode *slow = head, *fast = head;\n    while (fast && fast->next) {\n        slow = slow->next;\n        fast = fast->next->next;\n        if (slow == fast) {\n            ListNode* p = head;\n            while (p != slow) { p = p->next; slow = slow->next; }\n            return p;\n        }\n    }\n    return nullptr;\n}\n```\n\n相遇後，從頭與相遇點各派一個指標同速前進，再次相遇處即環入口（由 Floyd 判圈的距離等式推得）。找中點時只需讓 `fast` 走到尾，`slow` 即落在中點。"
       }
     ],
     "reference_links": [
@@ -1062,11 +1062,11 @@
     "deep_dive": [
       {
         "title": "一套 DFS 框架，三種遍歷次序",
-        "body": "前／中／後序的差別只是「處理當前節點」相對於遞迴左右孩子的位置。\n\n```cpp\nvoid dfs(TreeNode* node) {\n    if (!node) return;\n    // 前序：visit(node);\n    dfs(node->left);\n    // 中序：visit(node);  // BST → 遞增序列\n    dfs(node->right);\n    // 後序：visit(node);  // 子樹資訊都已就緒\n}\n```\n\n判斷該用哪一種：問題若需要「先用父層資訊」走前序；若需要「先得到子樹答案再合併」走後序；BST 求第 k 小、驗證合法性走中序。"
+        "body": "前／中／後序的差別只是「處理當前節點」相對於遞迴左右孩子的位置。\n\n```cpp\nvoid dfs(TreeNode* node) {\n    if (!node) return;\n\n    dfs(node->left);\n\n    dfs(node->right);\n\n}\n```\n\n判斷該用哪一種：問題若需要「先用父層資訊」走前序；若需要「先得到子樹答案再合併」走後序；BST 求第 k 小、驗證合法性走中序。"
       },
       {
         "title": "自底向上 DFS：用回傳值聚合子樹",
-        "body": "許多「全域最優」問題（最大路徑和、直徑、最近公共祖先）用後序一趟解決：遞迴回傳「以當前節點為端點」的局部量，同時用全域變數更新「跨過當前節點」的答案。\n\n```cpp\nint best = INT_MIN;\nint gain(TreeNode* node) {        // 回傳：從 node 向下延伸的最大鏈和\n    if (!node) return 0;\n    int l = max(gain(node->left), 0);\n    int r = max(gain(node->right), 0);\n    best = max(best, node->val + l + r);  // 跨過 node 的路徑\n    return node->val + max(l, r);         // 只能選一邊往上接\n}\n```\n\n關鍵在於區分兩種量：**回傳給父層的**（只能單邊延伸）與**用來更新答案的**（可左右合併）。直徑題把 `node->val` 換成邊數 1 即可。"
+        "body": "許多「全域最優」問題（最大路徑和、直徑、最近公共祖先）用後序一趟解決：遞迴回傳「以當前節點為端點」的局部量，同時用全域變數更新「跨過當前節點」的答案。\n\n```cpp\nint best = INT_MIN;\nint gain(TreeNode* node) {\n    if (!node) return 0;\n    int l = max(gain(node->left), 0);\n    int r = max(gain(node->right), 0);\n    best = max(best, node->val + l + r);\n    return node->val + max(l, r);\n}\n```\n\n關鍵在於區分兩種量：**回傳給父層的**（只能單邊延伸）與**用來更新答案的**（可左右合併）。直徑題把 `node->val` 換成邊數 1 即可。"
       },
       {
         "title": "層序 BFS 與 BST 中序",

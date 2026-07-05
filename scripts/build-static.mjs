@@ -9,9 +9,9 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, renameSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
-const root = process.cwd();
-const apiDir = join(root, 'app', 'api');
-const stash = join(root, '.static-export-stash', 'api');
+const kRoot = process.cwd();
+const kApiDir = join(kRoot, 'app', 'api');
+const kStash = join(kRoot, '.static-export-stash', 'api');
 
 function moveIfExists(from, to) {
   if (!existsSync(from)) return false;
@@ -23,7 +23,7 @@ function moveIfExists(from, to) {
 
 let moved = false;
 try {
-  moved = moveIfExists(apiDir, stash);
+  moved = moveIfExists(kApiDir, kStash);
 
   const env = {
     ...process.env,
@@ -48,7 +48,7 @@ try {
   }
 } finally {
   if (moved) {
-    moveIfExists(stash, apiDir);
-    rmSync(join(root, '.static-export-stash'), { recursive: true, force: true });
+    moveIfExists(kStash, kApiDir);
+    rmSync(join(kRoot, '.static-export-stash'), { recursive: true, force: true });
   }
 }

@@ -19,23 +19,23 @@ interface PickedProblem {
   position: Position;
 }
 
-const positionLabels: Record<Position, string> = { 0: 'Q1', 1: 'Q2', 2: 'Q3', 3: 'Q4' };
+const kPositionLabels: Record<Position, string> = { 0: 'Q1', 1: 'Q2', 2: 'Q3', 3: 'Q4' };
 
-const positionClass: Record<Position, string> = {
+const kPositionClass: Record<Position, string> = {
   0: 'border-emerald-400/40 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
   1: 'border-blue-400/40 bg-blue-500/15 text-blue-700 dark:text-blue-300',
   2: 'border-orange-400/40 bg-orange-500/15 text-orange-700 dark:text-orange-300',
   3: 'border-rose-400/40 bg-rose-500/15 text-rose-700 dark:text-rose-300'
 };
 
-function lcUrl(titleSlug: string, site: 'cn' | 'en') {
+function lcUrl(title_slug: string, site: 'cn' | 'en') {
   const host = site === 'en' ? 'leetcode.com' : 'leetcode.cn';
-  return `https://${host}/problems/${titleSlug}/`;
+  return `https://${host}/problems/${title_slug}/`;
 }
 
-function contestUrl(contestId: string, site: 'cn' | 'en') {
+function contestUrl(contest_id: string, site: 'cn' | 'en') {
   const host = site === 'en' ? 'leetcode.com' : 'leetcode.cn';
-  return `https://${host}/contest/${contestId}/`;
+  return `https://${host}/contest/${contest_id}/`;
 }
 
 function pickRandom<T>(arr: T[], n: number): T[] {
@@ -50,17 +50,17 @@ function pickRandom<T>(arr: T[], n: number): T[] {
 }
 
 export function ContestRandomPicker({ contests }: { contests: Contest[] }) {
-  const leetCodeSite = useSettingsStore((s) => s.leetCodeSite);
+  const leet_code_site = useSettingsStore((s) => s.leetCodeSite);
 
-  const [contestType, setContestType] = useState<ContestType>('all');
-  const [positions, setPositions] = useState<Set<Position>>(new Set([2, 3]));
-  const [minRating, setMinRating] = useState(1600);
-  const [maxRating, setMaxRating] = useState(2800);
-  const [pickCount, setPickCount] = useState(4);
-  const [picked, setPicked] = useState<PickedProblem[]>([]);
+  const [contest_type, set_contest_type] = useState<ContestType>('all');
+  const [positions, set_positions] = useState<Set<Position>>(new Set([2, 3]));
+  const [min_rating, set_min_rating] = useState(1600);
+  const [max_rating, set_max_rating] = useState(2800);
+  const [pick_count, set_pick_count] = useState(4);
+  const [picked, set_picked] = useState<PickedProblem[]>([]);
 
   function togglePosition(pos: Position) {
-    setPositions((prev) => {
+    set_positions((prev) => {
       const next = new Set(prev);
       if (next.has(pos)) {
         if (next.size > 1) next.delete(pos);
@@ -74,24 +74,24 @@ export function ContestRandomPicker({ contests }: { contests: Contest[] }) {
   const pool = useMemo<PickedProblem[]>(() => {
     const result: PickedProblem[] = [];
     for (const contest of contests) {
-      if (contestType !== 'all' && contest.type !== contestType) continue;
+      if (contest_type !== 'all' && contest.type !== contest_type) continue;
       for (const pos of [0, 1, 2, 3] as Position[]) {
         if (!positions.has(pos)) continue;
         const prob = contest.problems[pos];
         if (!prob) continue;
         if (prob.rating === 0) continue;
-        if (prob.rating < minRating || prob.rating > maxRating) continue;
-        result.push({ problem: prob, contest, position: pos });
+        if (prob.rating < min_rating || prob.rating > max_rating) continue;
+        result.push({ problem: prob, contest: contest, position: pos });
       }
     }
     return result;
-  }, [contests, contestType, positions, minRating, maxRating]);
+  }, [contests, contest_type, positions, min_rating, max_rating]);
 
   function pick() {
-    setPicked(pickRandom(pool, pickCount));
+    set_picked(pickRandom(pool, pick_count));
   }
 
-  const typeOptions: { value: ContestType; label: string }[] = [
+  const type_options: { value: ContestType; label: string }[] = [
     { value: 'all', label: '全部' },
     { value: 'weekly', label: '週賽' },
     { value: 'biweekly', label: '雙週賽' }
@@ -107,14 +107,14 @@ export function ContestRandomPicker({ contests }: { contests: Contest[] }) {
           <div className="space-y-2 text-sm">
             <span className="text-muted-foreground">比賽類型</span>
             <div className="flex gap-2">
-              {typeOptions.map((opt) => (
+              {type_options.map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
-                  onClick={() => setContestType(opt.value)}
+                  onClick={() => set_contest_type(opt.value)}
                   className={cn(
                     'rounded-lg border px-3 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                    contestType === opt.value
+                    contest_type === opt.value
                       ? 'border-primary bg-primary text-primary-foreground'
                       : 'border-border text-muted-foreground hover:bg-accent hover:text-foreground'
                   )}
@@ -136,11 +136,11 @@ export function ContestRandomPicker({ contests }: { contests: Contest[] }) {
                   className={cn(
                     'rounded-lg border px-3 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                     positions.has(pos)
-                      ? positionClass[pos]
+                      ? kPositionClass[pos]
                       : 'border-border text-muted-foreground hover:bg-accent hover:text-foreground'
                   )}
                 >
-                  {positionLabels[pos]}
+                  {kPositionLabels[pos]}
                 </button>
               ))}
             </div>
@@ -151,20 +151,20 @@ export function ContestRandomPicker({ contests }: { contests: Contest[] }) {
             <div className="flex items-center gap-2">
               <input
                 type="number"
-                value={minRating}
+                value={min_rating}
                 min={800}
                 max={3500}
-                onChange={(e) => setMinRating(Number(e.target.value))}
+                onChange={(e) => set_min_rating(Number(e.target.value))}
                 className="w-24 rounded-lg border border-border bg-background px-2.5 py-1.5"
                 aria-label="最低 rating"
               />
               <span className="text-muted-foreground">–</span>
               <input
                 type="number"
-                value={maxRating}
+                value={max_rating}
                 min={800}
                 max={3500}
-                onChange={(e) => setMaxRating(Number(e.target.value))}
+                onChange={(e) => set_max_rating(Number(e.target.value))}
                 className="w-24 rounded-lg border border-border bg-background px-2.5 py-1.5"
                 aria-label="最高 rating"
               />
@@ -175,10 +175,10 @@ export function ContestRandomPicker({ contests }: { contests: Contest[] }) {
             <span className="text-muted-foreground">抽取題數</span>
             <input
               type="number"
-              value={pickCount}
+              value={pick_count}
               min={1}
               max={10}
-              onChange={(e) => setPickCount(Math.max(1, Math.min(10, Number(e.target.value))))}
+              onChange={(e) => set_pick_count(Math.max(1, Math.min(10, Number(e.target.value))))}
               className="w-24 rounded-lg border border-border bg-background px-2.5 py-1.5"
             />
           </div>
@@ -188,7 +188,7 @@ export function ContestRandomPicker({ contests }: { contests: Contest[] }) {
       <div className="flex flex-wrap items-center gap-3">
         <Button onClick={pick} disabled={pool.length === 0} className="gap-2">
           <Shuffle className="h-4 w-4" aria-hidden />
-          隨機抽題（{pickCount} 題）
+          隨機抽題（{pick_count} 題）
         </Button>
         {picked.length > 0 && (
           <Button variant="secondary" onClick={pick} className="gap-2">
@@ -215,7 +215,7 @@ export function ContestRandomPicker({ contests }: { contests: Contest[] }) {
               problem={problem}
               contest={contest}
               position={position}
-              site={leetCodeSite}
+              site={leet_code_site}
             />
           ))}
         </div>
@@ -246,7 +246,7 @@ function PickedProblemCard({
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="space-y-1">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge className={positionClass[position]}>{positionLabels[position]}</Badge>
+            <Badge className={kPositionClass[position]}>{kPositionLabels[position]}</Badge>
             {problem.premium && (
               <Badge className="border-amber-400/40 bg-amber-500/15 text-amber-700 dark:text-amber-300">
                 Premium

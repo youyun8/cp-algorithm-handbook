@@ -36,10 +36,10 @@ cp .env.example .env.local
 編輯 `.env.local`，填入以下值（取得方式參見「Vercel 部署」的步驟 2–4）：
 
 ```env
-GITHUB_CLIENT_ID=...       # 開發用 OAuth App 的 Client ID
-GITHUB_CLIENT_SECRET=...   # 開發用 OAuth App 的 Client Secret
+GITHUB_CLIENT_ID=...       # Development OAuth App client ID
+GITHUB_CLIENT_SECRET=...   # Development OAuth App client secret
 AUTH_SECRET=...             # openssl rand -hex 32
-GITHUB_GIST_TOKEN=...      # 含 gist 範圍的 Personal Access Token
+GITHUB_GIST_TOKEN=...      # Personal access token with gist scope
 ```
 
 > 本地開發需要建立一個獨立的 GitHub OAuth App，Callback URL 填
@@ -49,7 +49,7 @@ GITHUB_GIST_TOKEN=...      # 含 gist 範圍的 Personal Access Token
 
 ```bash
 npm run dev
-# 開啟 http://localhost:3000
+# Open http://localhost:3000
 ```
 
 ---
@@ -142,7 +142,7 @@ GitHub Pages 不支援 Server-Side Rendering，OAuth 與雲端同步在此模式
 
 ```bash
 npm run deploy
-# 等同於 npm run build:static + gh-pages 推送
+# Equivalent to npm run build:static + gh-pages publish
 ```
 
 `npm run build:static`（由 `scripts/build-static.mjs` 驅動）會：
@@ -159,9 +159,9 @@ npm run deploy
 
 ```
 data/
-├── topics.json      # 主題資料（17 個主題）
-├── subtopics.json   # 子主題資料（64 個子主題，每主題 3–5 個）
-└── problems.json    # 題目資料（263 題，含靈茶山艾府精選題單）
+├── topics.json      # Topic data
+├── subtopics.json   # Subtopic data
+└── problems.json    # Problem data
 ```
 
 ### 新增主題

@@ -9,22 +9,22 @@ import { SettingsNavButton } from '@/components/SettingsModal';
 import { SignOutButton } from '@/components/SignOutButton';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { auth } from '@/lib/auth';
-import { isStaticExport } from '@/lib/runtime';
+import { kIsStaticExport } from '@/lib/runtime';
 
-const navItems = [
+const kNavItems = [
   { href: '/', label: '首頁', icon: Home },
   { href: '/handbook', label: '手冊', icon: BookOpen },
   { href: '/practice', label: '練習場', icon: Dumbbell },
   { href: '/progress', label: '進度', icon: BarChart3 }
 ];
 
-const repoName = process.env.GITHUB_REPOSITORY?.split('/')[1];
-const inferredBasePath = process.env.GITHUB_ACTIONS === 'true' && repoName ? `/${repoName}` : '';
-const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? inferredBasePath;
-const appIconSrc = `${basePath}/icon.svg`;
+const kRepoName = process.env.GITHUB_REPOSITORY?.split('/')[1];
+const kInferredBasePath = process.env.GITHUB_ACTIONS === 'true' && kRepoName ? `/${kRepoName}` : '';
+const kBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? kInferredBasePath;
+const kAppIconSrc = `${kBasePath}/icon.svg`;
 
 export async function AppShell({ children }: { children: ReactNode }) {
-  const session = isStaticExport ? null : await auth();
+  const session = kIsStaticExport ? null : await auth();
 
   return (
     <div className="min-h-screen">
@@ -35,7 +35,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
             className="flex items-center gap-2.5 font-semibold tracking-tight transition-opacity hover:opacity-90"
           >
             <Image
-              src={appIconSrc}
+              src={kAppIconSrc}
               alt=""
               width={36}
               height={36}
@@ -47,7 +47,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
             <span className="text-[15px]">競程策略手冊</span>
           </Link>
           <nav className="hidden items-center gap-0.5 md:flex">
-            {navItems.map((item) => (
+            {kNavItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -74,7 +74,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
                 <SignOutButton />
               </div>
             ) : (
-              !isStaticExport && (
+              !kIsStaticExport && (
                 <a
                   href="/auth/signin"
                   className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-accent hover:text-foreground"
@@ -91,7 +91,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
           as="nav"
           className="flex gap-1.5 overflow-x-auto px-4 pb-3 scrollbar-thin md:hidden"
         >
-          {navItems.map((item) => (
+          {kNavItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}

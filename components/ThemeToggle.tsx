@@ -7,7 +7,7 @@ import { useMounted } from '@/lib/useMounted';
 
 export function ThemeToggle() {
   const mounted = useMounted();
-  const { theme, resolvedTheme, setTheme } = useTheme();
+  const { theme, resolvedTheme: resolved_theme, setTheme: set_theme } = useTheme();
 
   if (!mounted) {
     return (
@@ -17,11 +17,11 @@ export function ThemeToggle() {
     );
   }
 
-  const currentTheme = theme ?? 'system';
-  const isDark = resolvedTheme === 'dark';
-  const nextTheme = currentTheme === 'system' ? 'light' : currentTheme === 'light' ? 'dark' : 'system';
-  const label = currentTheme === 'system' ? '系統' : isDark ? '深色' : '淺色';
-  const Icon = currentTheme === 'system' ? Monitor : currentTheme === 'light' ? Sun : Moon;
+  const current_theme = theme ?? 'system';
+  const is_dark = resolved_theme === 'dark';
+  const next_theme = current_theme === 'system' ? 'light' : current_theme === 'light' ? 'dark' : 'system';
+  const label = current_theme === 'system' ? '系統' : is_dark ? '深色' : '淺色';
+  const Icon = current_theme === 'system' ? Monitor : current_theme === 'light' ? Sun : Moon;
 
   return (
     <Button
@@ -31,7 +31,7 @@ export function ThemeToggle() {
       aria-label={`色彩模式：${label}（點擊切換）`}
       title={`色彩模式：${label}`}
       className="gap-1.5"
-      onClick={() => setTheme(nextTheme)}
+      onClick={() => set_theme(next_theme)}
     >
       <Icon className="h-4 w-4" aria-hidden />
       <span className="hidden sm:inline">{label}</span>

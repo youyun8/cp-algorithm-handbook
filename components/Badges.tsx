@@ -18,8 +18,8 @@ export function DifficultyBadge({ rating }: { rating: number }) {
   );
 }
 
-export function ProblemTypeBadge({ problemType }: { problemType: Problem['problem_type'] }) {
-  return <Badge className={problemTypeClass(problemType)}>{problemTypeLabel(problemType)}</Badge>;
+export function ProblemTypeBadge({ problemType: problem_type }: { problemType: Problem['problem_type'] }) {
+  return <Badge className={problemTypeClass(problem_type)}>{problemTypeLabel(problem_type)}</Badge>;
 }
 
 export function TierBadge({ tier }: { tier: Problem['tier'] }) {
@@ -36,7 +36,7 @@ export function SourceBadge({ source }: { source: Problem['source'] }) {
 
 export type CompletionStatus = 'accepted' | 'reviewed' | 'none';
 
-const completionMeta: Record<CompletionStatus, { label: string; className: string }> = {
+const kCompletionMeta: Record<CompletionStatus, { label: string; className: string }> = {
   accepted: {
     label: '已通過',
     className: 'border-emerald-400/40 bg-emerald-500/15 text-emerald-800 dark:text-emerald-300'
@@ -49,6 +49,6 @@ const completionMeta: Record<CompletionStatus, { label: string; className: strin
 };
 
 export function CompletionBadge({ status }: { status: CompletionStatus }) {
-  const meta = completionMeta[status];
+  const meta = kCompletionMeta[status];
   return <Badge className={meta.className}>{meta.label}</Badge>;
 }

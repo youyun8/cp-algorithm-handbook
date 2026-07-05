@@ -11,24 +11,24 @@ import {
   useSettingsStore
 } from '@/store/useSettingsStore';
 
-const themeOptions = [
+const kThemeOptions = [
   { value: 'system', label: '跟隨系統', description: '使用作業系統目前的外觀設定。' },
   { value: 'light', label: '淺色', description: '固定使用淺色介面。' },
   { value: 'dark', label: '深色', description: '固定使用深色介面。' }
 ] as const;
 
-const leetCodeOptions: { value: LeetCodeSite; label: string; description: string }[] = [
+const kLeetCodeOptions: { value: LeetCodeSite; label: string; description: string }[] = [
   { value: 'cn', label: 'CN', description: 'LeetCode 中國站：leetcode.cn' },
   { value: 'en', label: 'EN', description: 'LeetCode 國際站：leetcode.com' }
 ];
 
-const contentWidthOptions: { value: ContentWidth; label: string; description: string }[] = [
+const kContentWidthOptions: { value: ContentWidth; label: string; description: string }[] = [
   { value: 'standard', label: '標準', description: '維持較集中的閱讀寬度，適合手冊與策略頁。' },
   { value: 'wide', label: '寬', description: '放寬內容寬度至約 1760px，適合表格、題卡與大螢幕。' },
   { value: 'full', label: '全幅', description: '內容填滿視窗寬度，消除兩側空白，適合超寬螢幕。' }
 ];
 
-const textSizeOptions: { value: TextSize; label: string; description: string }[] = [
+const kTextSizeOptions: { value: TextSize; label: string; description: string }[] = [
   { value: 'small', label: '小', description: '提高資訊密度，適合大螢幕快速掃讀。' },
   { value: 'standard', label: '標準', description: '使用預設文字大小。' },
   { value: 'large', label: '大', description: '放大文字，適合長時間閱讀。' }
@@ -36,15 +36,15 @@ const textSizeOptions: { value: TextSize; label: string; description: string }[]
 
 export function SettingsPanel() {
   const mounted = useMounted();
-  const { theme, resolvedTheme, setTheme } = useTheme();
-  const leetCodeSite = useSettingsStore((state) => state.leetCodeSite);
-  const contentWidth = useSettingsStore((state) => state.contentWidth);
-  const textSize = useSettingsStore((state) => state.textSize);
-  const setLeetCodeSite = useSettingsStore((state) => state.setLeetCodeSite);
-  const setContentWidth = useSettingsStore((state) => state.setContentWidth);
-  const setTextSize = useSettingsStore((state) => state.setTextSize);
+  const { theme, resolvedTheme: resolved_theme, setTheme: set_theme } = useTheme();
+  const leet_code_site = useSettingsStore((state) => state.leetCodeSite);
+  const content_width = useSettingsStore((state) => state.contentWidth);
+  const text_size = useSettingsStore((state) => state.textSize);
+  const set_leet_code_site = useSettingsStore((state) => state.setLeetCodeSite);
+  const set_content_width = useSettingsStore((state) => state.setContentWidth);
+  const set_text_size = useSettingsStore((state) => state.setTextSize);
 
-  const currentTheme = mounted ? (theme ?? 'system') : 'system';
+  const current_theme = mounted ? (theme ?? 'system') : 'system';
 
   return (
     <div className="grid gap-5 lg:grid-cols-[1fr_0.85fr]">
@@ -57,15 +57,15 @@ export function SettingsPanel() {
           </p>
         </div>
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
-          {themeOptions.map((option) => {
-            const selected = currentTheme === option.value;
+          {kThemeOptions.map((option) => {
+            const selected = current_theme === option.value;
             return (
               <Button
                 key={option.value}
                 type="button"
                 variant={selected ? 'default' : 'outline'}
                 className="h-auto flex-col items-start gap-2 p-4 text-left"
-                onClick={() => setTheme(option.value)}
+                onClick={() => set_theme(option.value)}
                 aria-pressed={selected}
               >
                 <span className="text-sm font-semibold">{option.label}</span>
@@ -82,7 +82,7 @@ export function SettingsPanel() {
           })}
         </div>
         <p className="mt-4 text-sm text-muted-foreground">
-          目前實際顯示：{mounted ? (resolvedTheme === 'dark' ? '深色' : '淺色') : '讀取中'}
+          目前實際顯示：{mounted ? (resolved_theme === 'dark' ? '深色' : '淺色') : '讀取中'}
         </p>
       </section>
 
@@ -95,15 +95,15 @@ export function SettingsPanel() {
           </p>
         </div>
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-          {contentWidthOptions.map((option) => {
-            const selected = contentWidth === option.value;
+          {kContentWidthOptions.map((option) => {
+            const selected = content_width === option.value;
             return (
               <Button
                 key={option.value}
                 type="button"
                 variant={selected ? 'default' : 'outline'}
                 className="h-auto flex-col items-start gap-2 p-4 text-left"
-                onClick={() => setContentWidth(option.value)}
+                onClick={() => set_content_width(option.value)}
                 aria-pressed={selected}
               >
                 <span className="text-sm font-semibold">{option.label}</span>
@@ -130,15 +130,15 @@ export function SettingsPanel() {
           </p>
         </div>
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
-          {textSizeOptions.map((option) => {
-            const selected = textSize === option.value;
+          {kTextSizeOptions.map((option) => {
+            const selected = text_size === option.value;
             return (
               <Button
                 key={option.value}
                 type="button"
                 variant={selected ? 'default' : 'outline'}
                 className="h-auto flex-col items-start gap-2 p-4 text-left"
-                onClick={() => setTextSize(option.value)}
+                onClick={() => set_text_size(option.value)}
                 aria-pressed={selected}
               >
                 <span className="text-sm font-semibold">{option.label}</span>
@@ -165,15 +165,15 @@ export function SettingsPanel() {
           </p>
         </div>
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-          {leetCodeOptions.map((option) => {
-            const selected = leetCodeSite === option.value;
+          {kLeetCodeOptions.map((option) => {
+            const selected = leet_code_site === option.value;
             return (
               <Button
                 key={option.value}
                 type="button"
                 variant={selected ? 'default' : 'outline'}
                 className="h-auto flex-col items-start gap-2 p-4 text-left"
-                onClick={() => setLeetCodeSite(option.value)}
+                onClick={() => set_leet_code_site(option.value)}
                 aria-pressed={selected}
               >
                 <span className="text-sm font-semibold">{option.label}</span>

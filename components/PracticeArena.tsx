@@ -34,9 +34,9 @@ import {
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { useProgressStore } from '@/store/useProgressStore';
 
-const statusOptions: SubmissionStatus[] = ['AC', 'WA', 'TLE', 'SKIP'];
+const kStatusOptions: SubmissionStatus[] = ['AC', 'WA', 'TLE', 'SKIP'];
 
-const PAGE_SIZE = 20;
+const kPageSize = 20;
 type ContestType = 'all' | 'weekly' | 'biweekly';
 type Position = 0 | 1 | 2 | 3;
 type ActiveTab = 'problems' | 'contest' | 'lc-contest';
@@ -48,23 +48,23 @@ interface PickedContestProblem {
   canonicalProblem?: Problem;
 }
 
-const positionLabels: Record<Position, string> = { 0: 'Q1', 1: 'Q2', 2: 'Q3', 3: 'Q4' };
+const kPositionLabels: Record<Position, string> = { 0: 'Q1', 1: 'Q2', 2: 'Q3', 3: 'Q4' };
 
-const positionClass: Record<Position, string> = {
+const kPositionClass: Record<Position, string> = {
   0: 'border-emerald-400/40 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
   1: 'border-blue-400/40 bg-blue-500/15 text-blue-700 dark:text-blue-300',
   2: 'border-orange-400/40 bg-orange-500/15 text-orange-700 dark:text-orange-300',
   3: 'border-rose-400/40 bg-rose-500/15 text-rose-700 dark:text-rose-300'
 };
 
-const statusIcon: Record<SubmissionStatus, LucideIcon> = {
+const kStatusIcon: Record<SubmissionStatus, LucideIcon> = {
   AC: Check,
   WA: X,
   TLE: Clock,
   SKIP: SkipForward
 };
 
-const statusButtonClass: Record<SubmissionStatus, string> = {
+const kStatusButtonClass: Record<SubmissionStatus, string> = {
   AC: 'hover:border-emerald-400/60 hover:bg-emerald-500/15 hover:text-emerald-600 dark:hover:text-emerald-300',
   WA: 'hover:border-red-400/60 hover:bg-red-500/15 hover:text-red-600 dark:hover:text-red-300',
   TLE: 'hover:border-amber-400/60 hover:bg-amber-500/15 hover:text-amber-600 dark:hover:text-amber-300',
@@ -82,14 +82,14 @@ function pickRandom<T>(arr: T[], n: number): T[] {
   return result;
 }
 
-function lcUrl(titleSlug: string, site: 'cn' | 'en') {
+function lcUrl(title_slug: string, site: 'cn' | 'en') {
   const host = site === 'en' ? 'leetcode.com' : 'leetcode.cn';
-  return `https://${host}/problems/${titleSlug}/`;
+  return `https://${host}/problems/${title_slug}/`;
 }
 
-function contestUrl(contestId: string, site: 'cn' | 'en') {
+function contestUrl(contest_id: string, site: 'cn' | 'en') {
   const host = site === 'en' ? 'leetcode.com' : 'leetcode.cn';
-  return `https://${host}/contest/${contestId}/`;
+  return `https://${host}/contest/${contest_id}/`;
 }
 
 export function PracticeArena({
@@ -103,40 +103,40 @@ export function PracticeArena({
   subtopics: Subtopic[];
   contests: Contest[];
 }) {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('problems');
-  const [problemCount, setProblemCount] = useState(5);
-  const [durationMinutes, setDurationMinutes] = useState(90);
-  const [page, setPage] = useState(1);
-  const [filterSignatureState, setFilterSignatureState] = useState('');
-  const [topicFilter, setTopicFilter] = useState('all');
-  const [subtopicFilter, setSubtopicFilter] = useState('all');
-  const [contestType, setContestType] = useState<ContestType>('all');
-  const [contestPositions, setContestPositions] = useState<Set<Position>>(new Set([2, 3]));
-  const [contestMinRating, setContestMinRating] = useState(1600);
-  const [contestMaxRating, setContestMaxRating] = useState(2800);
-  const [contestPickCount, setContestPickCount] = useState(4);
-  const [pickedContestProblems, setPickedContestProblems] = useState<PickedContestProblem[]>([]);
-  const [now, setNow] = useState(() => Date.now());
-  const leetCodeSite = useSettingsStore((state) => state.leetCodeSite);
-  const currentRating = useProgressStore((state) => state.currentRating);
+  const [active_tab, set_active_tab] = useState<ActiveTab>('problems');
+  const [problem_count, set_problem_count] = useState(5);
+  const [duration_minutes, set_duration_minutes] = useState(90);
+  const [page, set_page] = useState(1);
+  const [filter_signature_state, set_filter_signature_state] = useState('');
+  const [topic_filter, set_topic_filter] = useState('all');
+  const [subtopic_filter, set_subtopic_filter] = useState('all');
+  const [contest_type, set_contest_type] = useState<ContestType>('all');
+  const [contest_positions, set_contest_positions] = useState<Set<Position>>(new Set([2, 3]));
+  const [contest_min_rating, set_contest_min_rating] = useState(1600);
+  const [contest_max_rating, set_contest_max_rating] = useState(2800);
+  const [contest_pick_count, set_contest_pick_count] = useState(4);
+  const [picked_contest_problems, set_picked_contest_problems] = useState<PickedContestProblem[]>([]);
+  const [now, set_now] = useState(() => Date.now());
+  const leet_code_site = useSettingsStore((state) => state.leetCodeSite);
+  const current_rating = useProgressStore((state) => state.currentRating);
   const filters = useProgressStore((state) => state.filters);
-  const reviewedProblemIds = useProgressStore((state) => state.reviewedProblemIds);
+  const reviewed_problem_ids = useProgressStore((state) => state.reviewedProblemIds);
   const submissions = useProgressStore((state) => state.submissions);
-  const activeContest = useProgressStore((state) => state.activeContest);
-  const setCurrentRating = useProgressStore((state) => state.setCurrentRating);
-  const setFilters = useProgressStore((state) => state.setFilters);
-  const startContest = useProgressStore((state) => state.startContest);
-  const endContest = useProgressStore((state) => state.endContest);
-  const logSubmission = useProgressStore((state) => state.logSubmission);
+  const active_contest = useProgressStore((state) => state.activeContest);
+  const set_current_rating = useProgressStore((state) => state.setCurrentRating);
+  const set_filters = useProgressStore((state) => state.setFilters);
+  const start_contest = useProgressStore((state) => state.startContest);
+  const end_contest = useProgressStore((state) => state.endContest);
+  const log_submission = useProgressStore((state) => state.logSubmission);
 
   useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    const timer = window.setInterval(() => set_now(Date.now()), 1000);
     return () => window.clearInterval(timer);
   }, []);
 
-  const topicById = useMemo(() => new Map(topics.map((topic) => [topic.id, topic])), [topics]);
-  const problemById = useMemo(() => new Map(problems.map((problem) => [problem.id, problem])), [problems]);
-  const problemBySlug = useMemo(
+  const topic_by_id = useMemo(() => new Map(topics.map((topic) => [topic.id, topic])), [topics]);
+  const problem_by_id = useMemo(() => new Map(problems.map((problem) => [problem.id, problem])), [problems]);
+  const problem_by_slug = useMemo(
     () =>
       new Map(
         problems
@@ -145,12 +145,12 @@ export function PracticeArena({
       ),
     [problems]
   );
-  const visibleSubtopics = useMemo(
-    () => subtopics.filter((subtopic) => topicFilter === 'all' || subtopic.parent_id === topicFilter),
-    [subtopics, topicFilter]
+  const visible_subtopics = useMemo(
+    () => subtopics.filter((subtopic) => topic_filter === 'all' || subtopic.parent_id === topic_filter),
+    [subtopics, topic_filter]
   );
-  const reviewedSet = useMemo(() => new Set(reviewedProblemIds), [reviewedProblemIds]);
-  const acceptedSet = useMemo(
+  const reviewed_set = useMemo(() => new Set(reviewed_problem_ids), [reviewed_problem_ids]);
+  const accepted_set = useMemo(
     () =>
       new Set(
         submissions
@@ -159,107 +159,107 @@ export function PracticeArena({
       ),
     [submissions]
   );
-  const allTags = useMemo(
+  const all_tags = useMemo(
     () => Array.from(new Set(problems.flatMap((problem) => problem.tags))).sort(),
     [problems]
   );
-  const bands = ratingBands(currentRating);
+  const bands = ratingBands(current_rating);
 
-  const filteredProblems = useMemo(() => {
+  const filtered_problems = useMemo(() => {
     return problems
       .filter((problem) => {
         if (filters.tag !== 'all' && !problem.tags.includes(filters.tag)) return false;
-        if (topicFilter !== 'all' && problem.topic_id !== topicFilter) return false;
-        if (subtopicFilter !== 'all' && !problem.subtopic_ids?.includes(subtopicFilter)) return false;
+        if (topic_filter !== 'all' && problem.topic_id !== topic_filter) return false;
+        if (subtopic_filter !== 'all' && !problem.subtopic_ids?.includes(subtopic_filter)) return false;
         if (problem.rating < filters.minRating) return false;
         if (filters.maxRating !== null && problem.rating > filters.maxRating) return false;
         if (filters.problemType !== 'all' && problem.problem_type !== filters.problemType) return false;
-        if (filters.completion === 'reviewed' && !reviewedSet.has(problem.id)) return false;
-        if (filters.completion === 'unreviewed' && reviewedSet.has(problem.id)) return false;
-        if (filters.completion === 'accepted' && !acceptedSet.has(problem.id)) return false;
+        if (filters.completion === 'reviewed' && !reviewed_set.has(problem.id)) return false;
+        if (filters.completion === 'unreviewed' && reviewed_set.has(problem.id)) return false;
+        if (filters.completion === 'accepted' && !accepted_set.has(problem.id)) return false;
         return true;
       })
       .sort((a, b) => {
         if (filters.band === 'stretch') return (b.solve_count ?? 0) - (a.solve_count ?? 0);
         return a.rating - b.rating || (b.solve_count ?? 0) - (a.solve_count ?? 0);
       });
-  }, [acceptedSet, filters, problems, reviewedSet, subtopicFilter, topicFilter]);
+  }, [accepted_set, filters, problems, reviewed_set, subtopic_filter, topic_filter]);
 
-  const contestPool = useMemo<PickedContestProblem[]>(() => {
+  const contest_pool = useMemo<PickedContestProblem[]>(() => {
     const result: PickedContestProblem[] = [];
     for (const contest of contests) {
-      if (contestType !== 'all' && contest.type !== contestType) continue;
+      if (contest_type !== 'all' && contest.type !== contest_type) continue;
       for (const position of [0, 1, 2, 3] as Position[]) {
-        if (!contestPositions.has(position)) continue;
+        if (!contest_positions.has(position)) continue;
         const problem = contest.problems[position];
         if (!problem) continue;
         if (problem.rating === 0) continue;
-        if (problem.rating < contestMinRating || problem.rating > contestMaxRating) continue;
+        if (problem.rating < contest_min_rating || problem.rating > contest_max_rating) continue;
         result.push({
-          problem,
-          contest,
-          position,
-          canonicalProblem: problemBySlug.get(problem.titleSlug)
+          problem: problem,
+          contest: contest,
+          position: position,
+          canonicalProblem: problem_by_slug.get(problem.titleSlug)
         });
       }
     }
     return result;
-  }, [contestMaxRating, contestMinRating, contestPositions, contestType, contests, problemBySlug]);
+  }, [contest_max_rating, contest_min_rating, contest_positions, contest_type, contests, problem_by_slug]);
 
-  const contestProblems = useMemo(() => {
-    if (!activeContest) return [];
-    const picked = new Set(activeContest.problemIds);
+  const contest_problems = useMemo(() => {
+    if (!active_contest) return [];
+    const picked = new Set(active_contest.problemIds);
     return problems.filter((problem) => picked.has(problem.id));
-  }, [activeContest, problems]);
+  }, [active_contest, problems]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredProblems.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-  const pagedProblems = useMemo(
-    () => filteredProblems.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
-    [filteredProblems, currentPage]
+  const total_pages = Math.max(1, Math.ceil(filtered_problems.length / kPageSize));
+  const current_page = Math.min(page, total_pages);
+  const paged_problems = useMemo(
+    () => filtered_problems.slice((current_page - 1) * kPageSize, current_page * kPageSize),
+    [filtered_problems, current_page]
   );
 
-  const filterSignature = `${filters.tag}|${filters.problemType}|${filters.completion}|${filters.band}|${filters.minRating}|${filters.maxRating}|${currentRating}|${topicFilter}|${subtopicFilter}`;
-  if (filterSignature !== filterSignatureState) {
-    setFilterSignatureState(filterSignature);
-    setPage(1);
+  const filter_signature = `${filters.tag}|${filters.problemType}|${filters.completion}|${filters.band}|${filters.minRating}|${filters.maxRating}|${current_rating}|${topic_filter}|${subtopic_filter}`;
+  if (filter_signature !== filter_signature_state) {
+    set_filter_signature_state(filter_signature);
+    set_page(1);
   }
 
-  const remainingText = useMemo(() => {
-    if (!activeContest) return '尚未開始';
-    const endTime = new Date(activeContest.startedAt).getTime() + activeContest.durationMinutes * 60_000;
-    const remaining = Math.max(0, endTime - now);
+  const remaining_text = useMemo(() => {
+    if (!active_contest) return '尚未開始';
+    const end_time = new Date(active_contest.startedAt).getTime() + active_contest.durationMinutes * 60_000;
+    const remaining = Math.max(0, end_time - now);
     const minutes = Math.floor(remaining / 60_000);
     const seconds = Math.floor((remaining % 60_000) / 1000);
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  }, [activeContest, now]);
+  }, [active_contest, now]);
 
-  const isContestActive = activeContest !== null;
-  const isContestExpired = useMemo(() => {
-    if (!activeContest) return false;
-    const endTime = new Date(activeContest.startedAt).getTime() + activeContest.durationMinutes * 60_000;
-    return Date.now() >= endTime;
-  }, [activeContest, now]);
+  const is_contest_active = active_contest !== null;
+  const is_contest_expired = useMemo(() => {
+    if (!active_contest) return false;
+    const end_time = new Date(active_contest.startedAt).getTime() + active_contest.durationMinutes * 60_000;
+    return now >= end_time;
+  }, [active_contest, now]);
 
-  function applyBand(bandId: typeof filters.band) {
-    const band = bands.find((item) => item.id === bandId);
+  function applyBand(band_id: typeof filters.band) {
+    const band = bands.find((item) => item.id === band_id);
     if (!band) return;
-    setFilters({ band: bandId, minRating: band.min, maxRating: band.max });
+    set_filters({ band: band_id, minRating: band.min, maxRating: band.max });
   }
 
   function updateRating(value: number) {
-    setCurrentRating(value);
+    set_current_rating(value);
     const band = ratingBands(value).find((item) => item.id === filters.band);
-    if (band) setFilters({ minRating: band.min, maxRating: band.max });
+    if (band) set_filters({ minRating: band.min, maxRating: band.max });
   }
 
   function beginContest() {
-    const picked = pickRandom(filteredProblems, problemCount).map((problem) => problem.id);
-    if (picked.length > 0) startContest(picked, durationMinutes);
+    const picked = pickRandom(filtered_problems, problem_count).map((problem) => problem.id);
+    if (picked.length > 0) start_contest(picked, duration_minutes);
   }
 
   function toggleContestPosition(position: Position) {
-    setContestPositions((prev) => {
+    set_contest_positions((prev) => {
       const next = new Set(prev);
       if (next.has(position)) {
         if (next.size > 1) next.delete(position);
@@ -271,7 +271,7 @@ export function PracticeArena({
   }
 
   function pickContestProblems() {
-    setPickedContestProblems(pickRandom(contestPool, contestPickCount));
+    set_picked_contest_problems(pickRandom(contest_pool, contest_pick_count));
   }
 
   const tabs: { id: ActiveTab; label: string; icon: LucideIcon; description: string }[] = [
@@ -307,7 +307,7 @@ export function PracticeArena({
             <span className="text-muted-foreground">自評分數</span>
             <input
               type="number"
-              value={currentRating}
+              value={current_rating}
               onChange={(event) => updateRating(Number(event.target.value))}
               className="w-full rounded-xl border border-border bg-background px-3 py-2"
             />
@@ -316,11 +316,11 @@ export function PracticeArena({
             <span className="text-muted-foreground">標籤</span>
             <select
               value={filters.tag}
-              onChange={(event) => setFilters({ tag: event.target.value })}
+              onChange={(event) => set_filters({ tag: event.target.value })}
               className="w-full rounded-xl border border-border bg-background px-3 py-2"
             >
               <option value="all">全部標籤</option>
-              {allTags.map((tag) => (
+              {all_tags.map((tag) => (
                 <option key={tag} value={tag}>
                   {tag}
                 </option>
@@ -330,10 +330,10 @@ export function PracticeArena({
           <label className="space-y-2 text-sm">
             <span className="text-muted-foreground">主題</span>
             <select
-              value={topicFilter}
+              value={topic_filter}
               onChange={(event) => {
-                setTopicFilter(event.target.value);
-                setSubtopicFilter('all');
+                set_topic_filter(event.target.value);
+                set_subtopic_filter('all');
               }}
               className="w-full rounded-xl border border-border bg-background px-3 py-2"
             >
@@ -348,14 +348,14 @@ export function PracticeArena({
           <label className="space-y-2 text-sm">
             <span className="text-muted-foreground">子分類</span>
             <select
-              value={subtopicFilter}
-              onChange={(event) => setSubtopicFilter(event.target.value)}
+              value={subtopic_filter}
+              onChange={(event) => set_subtopic_filter(event.target.value)}
               className="w-full rounded-xl border border-border bg-background px-3 py-2"
             >
               <option value="all">全部子分類</option>
-              {visibleSubtopics.map((subtopic) => (
+              {visible_subtopics.map((subtopic) => (
                 <option key={subtopic.id} value={subtopic.id}>
-                  {topicById.get(subtopic.parent_id)?.title ?? '未分類'} / {subtopic.title}
+                  {topic_by_id.get(subtopic.parent_id)?.title ?? '未分類'} / {subtopic.title}
                 </option>
               ))}
             </select>
@@ -365,7 +365,7 @@ export function PracticeArena({
             <select
               value={filters.problemType}
               onChange={(event) =>
-                setFilters({ problemType: event.target.value as typeof filters.problemType })
+                set_filters({ problemType: event.target.value as typeof filters.problemType })
               }
               className="w-full rounded-xl border border-border bg-background px-3 py-2"
             >
@@ -380,7 +380,7 @@ export function PracticeArena({
             <select
               value={filters.completion}
               onChange={(event) =>
-                setFilters({ completion: event.target.value as typeof filters.completion })
+                set_filters({ completion: event.target.value as typeof filters.completion })
               }
               className="w-full rounded-xl border border-border bg-background px-3 py-2"
             >
@@ -396,7 +396,7 @@ export function PracticeArena({
               <input
                 type="number"
                 value={filters.minRating}
-                onChange={(event) => setFilters({ minRating: Number(event.target.value) })}
+                onChange={(event) => set_filters({ minRating: Number(event.target.value) })}
                 className="rounded-xl border border-border bg-background px-3 py-2"
                 aria-label="最低分數"
               />
@@ -404,7 +404,7 @@ export function PracticeArena({
                 type="number"
                 value={filters.maxRating ?? ''}
                 onChange={(event) =>
-                  setFilters({ maxRating: event.target.value ? Number(event.target.value) : null })
+                  set_filters({ maxRating: event.target.value ? Number(event.target.value) : null })
                 }
                 placeholder="無上限"
                 className="rounded-xl border border-border bg-background px-3 py-2"
@@ -444,17 +444,17 @@ export function PracticeArena({
             <button
               key={tab.id}
               type="button"
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => set_active_tab(tab.id)}
               className={cn(
                 'flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                activeTab === tab.id
+                active_tab === tab.id
                   ? 'bg-background text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
               <Icon className="h-4 w-4 shrink-0" aria-hidden />
               <span>{tab.label}</span>
-              {tab.id === 'contest' && isContestActive && !isContestExpired && (
+              {tab.id === 'contest' && is_contest_active && !is_contest_expired && (
                 <span className="ml-1 inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
               )}
             </button>
@@ -462,39 +462,39 @@ export function PracticeArena({
         })}
       </div>
 
-      {/* ── Tab: 題庫練習 ────────────────────────────────────────────────── */}
-      {activeTab === 'problems' && (
+      {/* Tab: problem practice */}
+      {active_tab === 'problems' && (
         <>
           <Card>
             <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
-              <CardTitle>題庫結果（{filteredProblems.length} 題）</CardTitle>
-              {filteredProblems.length > 0 ? (
+              <CardTitle>題庫結果（{filtered_problems.length} 題）</CardTitle>
+              {filtered_problems.length > 0 ? (
                 <span className="text-sm text-muted-foreground">
-                  第 {currentPage} / {totalPages} 頁
+                  第 {current_page} / {total_pages} 頁
                 </span>
               ) : null}
             </CardHeader>
             <CardContent className="grid gap-3">
-              {pagedProblems.map((problem) => (
+              {paged_problems.map((problem) => (
                 <PracticeProblemRow
                   key={problem.id}
                   problem={problem}
-                  topicTitle={topicById.get(problem.topic_id)?.title ?? '未分類'}
-                  onLog={(status) => logSubmission(problem.id, status, problem.topic_id)}
+                  topicTitle={topic_by_id.get(problem.topic_id)?.title ?? '未分類'}
+                  onLog={(status) => log_submission(problem.id, status, problem.topic_id)}
                 />
               ))}
-              {filteredProblems.length === 0 ? (
+              {filtered_problems.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-border p-6 text-sm text-muted-foreground">
                   目前篩選條件沒有符合的題目。
                 </div>
               ) : null}
-              {totalPages > 1 ? (
+              {total_pages > 1 ? (
                 <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  total={filteredProblems.length}
-                  pageSize={PAGE_SIZE}
-                  onChange={setPage}
+                  currentPage={current_page}
+                  totalPages={total_pages}
+                  total={filtered_problems.length}
+                  pageSize={kPageSize}
+                  onChange={set_page}
                 />
               ) : null}
             </CardContent>
@@ -507,7 +507,7 @@ export function PracticeArena({
             <CardContent className="space-y-3">
               {submissions.length > 0 ? (
                 submissions.slice(0, 12).map((submission) => {
-                  const problem = problemById.get(submission.problemId);
+                  const problem = problem_by_id.get(submission.problemId);
                   return (
                     <div
                       key={submission.id}
@@ -535,8 +535,8 @@ export function PracticeArena({
         </>
       )}
 
-      {/* ── Tab: 虛擬競賽 ────────────────────────────────────────────────── */}
-      {activeTab === 'contest' && (
+      {/* Tab: virtual contest */}
+      {active_tab === 'contest' && (
         <Card>
           <CardHeader>
             <CardTitle>虛擬競賽模式</CardTitle>
@@ -552,8 +552,8 @@ export function PracticeArena({
                 <input
                   type="number"
                   min={1}
-                  value={problemCount}
-                  onChange={(event) => setProblemCount(Number(event.target.value))}
+                  value={problem_count}
+                  onChange={(event) => set_problem_count(Number(event.target.value))}
                   className="w-full rounded-xl border border-border bg-background px-3 py-2"
                 />
               </label>
@@ -562,8 +562,8 @@ export function PracticeArena({
                 <input
                   type="number"
                   min={10}
-                  value={durationMinutes}
-                  onChange={(event) => setDurationMinutes(Number(event.target.value))}
+                  value={duration_minutes}
+                  onChange={(event) => set_duration_minutes(Number(event.target.value))}
                   className="w-full rounded-xl border border-border bg-background px-3 py-2"
                 />
               </label>
@@ -571,19 +571,19 @@ export function PracticeArena({
                 <Button
                   type="button"
                   onClick={beginContest}
-                  disabled={filteredProblems.length === 0 || isContestActive}
+                  disabled={filtered_problems.length === 0 || is_contest_active}
                 >
                   開始模擬賽
                 </Button>
-                {isContestActive ? (
-                  <Button type="button" variant="secondary" onClick={endContest}>
+                {is_contest_active ? (
+                  <Button type="button" variant="secondary" onClick={end_contest}>
                     結束競賽
                   </Button>
                 ) : null}
               </div>
             </div>
 
-            {filteredProblems.length === 0 && (
+            {filtered_problems.length === 0 && (
               <p className="text-sm text-amber-600 dark:text-amber-400">
                 ⚠ 目前篩選結果為空，請調整上方篩選器後再開始。
               </p>
@@ -593,28 +593,28 @@ export function PracticeArena({
             <div
               className={cn(
                 'rounded-2xl border p-4',
-                isContestActive && !isContestExpired
+                is_contest_active && !is_contest_expired
                   ? 'border-emerald-400/40 bg-emerald-500/10'
-                  : isContestExpired
+                  : is_contest_expired
                     ? 'border-rose-400/40 bg-rose-500/10'
                     : 'border-border bg-background/50'
               )}
             >
-              <p className="text-sm text-muted-foreground">{isContestExpired ? '時間到' : '剩餘時間'}</p>
+              <p className="text-sm text-muted-foreground">{is_contest_expired ? '時間到' : '剩餘時間'}</p>
               <p className="mt-1 text-3xl font-semibold tabular-nums">
-                {isContestExpired ? '00:00' : remainingText}
+                {is_contest_expired ? '00:00' : remaining_text}
               </p>
             </div>
 
             {/* Contest problem list */}
-            {contestProblems.length > 0 ? (
+            {contest_problems.length > 0 ? (
               <div className="grid gap-3 md:grid-cols-2">
-                {contestProblems.map((problem) => (
+                {contest_problems.map((problem) => (
                   <PracticeProblemRow
                     key={problem.id}
                     problem={problem}
-                    topicTitle={topicById.get(problem.topic_id)?.title ?? '未分類'}
-                    onLog={(status) => logSubmission(problem.id, status, problem.topic_id)}
+                    topicTitle={topic_by_id.get(problem.topic_id)?.title ?? '未分類'}
+                    onLog={(status) => log_submission(problem.id, status, problem.topic_id)}
                   />
                 ))}
               </div>
@@ -627,8 +627,8 @@ export function PracticeArena({
         </Card>
       )}
 
-      {/* ── Tab: 競賽抽題 ────────────────────────────────────────────────── */}
-      {activeTab === 'lc-contest' && (
+      {/* Tab: contest picker */}
+      {active_tab === 'lc-contest' && (
         <Card>
           <CardHeader>
             <CardTitle>LeetCode 競賽抽題</CardTitle>
@@ -652,10 +652,10 @@ export function PracticeArena({
                     <button
                       key={value}
                       type="button"
-                      onClick={() => setContestType(value as ContestType)}
+                      onClick={() => set_contest_type(value as ContestType)}
                       className={cn(
                         'rounded-lg border px-3 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                        contestType === value
+                        contest_type === value
                           ? 'border-primary bg-primary text-primary-foreground'
                           : 'border-border text-muted-foreground hover:bg-accent hover:text-foreground'
                       )}
@@ -676,12 +676,12 @@ export function PracticeArena({
                       onClick={() => toggleContestPosition(position)}
                       className={cn(
                         'rounded-lg border px-3 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                        contestPositions.has(position)
-                          ? positionClass[position]
+                        contest_positions.has(position)
+                          ? kPositionClass[position]
                           : 'border-border text-muted-foreground hover:bg-accent hover:text-foreground'
                       )}
                     >
-                      {positionLabels[position]}
+                      {kPositionLabels[position]}
                     </button>
                   ))}
                 </div>
@@ -692,16 +692,16 @@ export function PracticeArena({
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
-                    value={contestMinRating}
-                    onChange={(event) => setContestMinRating(Number(event.target.value))}
+                    value={contest_min_rating}
+                    onChange={(event) => set_contest_min_rating(Number(event.target.value))}
                     className="w-24 rounded-lg border border-border bg-background px-2.5 py-1.5"
                     aria-label="最低 rating"
                   />
                   <span className="text-muted-foreground">–</span>
                   <input
                     type="number"
-                    value={contestMaxRating}
-                    onChange={(event) => setContestMaxRating(Number(event.target.value))}
+                    value={contest_max_rating}
+                    onChange={(event) => set_contest_max_rating(Number(event.target.value))}
                     className="w-24 rounded-lg border border-border bg-background px-2.5 py-1.5"
                     aria-label="最高 rating"
                   />
@@ -714,9 +714,9 @@ export function PracticeArena({
                   type="number"
                   min={1}
                   max={10}
-                  value={contestPickCount}
+                  value={contest_pick_count}
                   onChange={(event) =>
-                    setContestPickCount(Math.max(1, Math.min(10, Number(event.target.value))))
+                    set_contest_pick_count(Math.max(1, Math.min(10, Number(event.target.value))))
                   }
                   className="w-24 rounded-lg border border-border bg-background px-2.5 py-1.5"
                 />
@@ -725,49 +725,49 @@ export function PracticeArena({
 
             {/* Action row */}
             <div className="flex flex-wrap items-center gap-3">
-              <Button onClick={pickContestProblems} disabled={contestPool.length === 0} className="gap-2">
+              <Button onClick={pickContestProblems} disabled={contest_pool.length === 0} className="gap-2">
                 <Shuffle className="h-4 w-4" aria-hidden />
-                隨機抽題（{contestPickCount} 題）
+                隨機抽題（{contest_pick_count} 題）
               </Button>
-              {pickedContestProblems.length > 0 ? (
+              {picked_contest_problems.length > 0 ? (
                 <Button variant="secondary" onClick={pickContestProblems} className="gap-2">
                   <RefreshCw className="h-4 w-4" aria-hidden />
                   重新抽取
                 </Button>
               ) : null}
               <span className="text-sm text-muted-foreground">
-                符合條件：{contestPool.length} 題（來自{' '}
-                {new Set(contestPool.map((p) => p.contest.contestId)).size} 場比賽）
+                符合條件：{contest_pool.length} 題（來自{' '}
+                {new Set(contest_pool.map((p) => p.contest.contestId)).size} 場比賽）
               </span>
             </div>
 
             {/* Picked problems */}
-            {contestPool.length === 0 && (
+            {contest_pool.length === 0 && (
               <div className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
                 目前篩選條件沒有符合的題目，請調整難度範圍或題目位置。
               </div>
             )}
-            {pickedContestProblems.length > 0 ? (
+            {picked_contest_problems.length > 0 ? (
               <div className="grid gap-3 md:grid-cols-2">
-                {pickedContestProblems.map((picked, index) => (
+                {picked_contest_problems.map((picked, index) => (
                   <ContestPickedProblemRow
                     key={`${picked.problem.id}-${index}`}
                     picked={picked}
-                    site={leetCodeSite}
+                    site={leet_code_site}
                     topicTitle={
                       picked.canonicalProblem
-                        ? (topicById.get(picked.canonicalProblem.topic_id)?.title ?? '未分類')
+                        ? (topic_by_id.get(picked.canonicalProblem.topic_id)?.title ?? '未分類')
                         : '未分類'
                     }
                     onLog={(status) =>
                       picked.canonicalProblem
-                        ? logSubmission(picked.canonicalProblem.id, status, picked.canonicalProblem.topic_id)
+                        ? log_submission(picked.canonicalProblem.id, status, picked.canonicalProblem.topic_id)
                         : undefined
                     }
                   />
                 ))}
               </div>
-            ) : contestPool.length > 0 ? (
+            ) : contest_pool.length > 0 ? (
               <div className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
                 按「隨機抽題」從 LeetCode 週賽題庫抽取題目。
               </div>
@@ -782,8 +782,8 @@ export function PracticeArena({
 function ContestPickedProblemRow({
   picked,
   site,
-  topicTitle,
-  onLog
+  topicTitle: topic_title,
+  onLog: on_log
 }: {
   picked: PickedContestProblem;
   site: 'cn' | 'en';
@@ -791,8 +791,10 @@ function ContestPickedProblemRow({
   onLog: (status: SubmissionStatus) => void;
 }) {
   const canonical = picked.canonicalProblem;
-  const [showNotes, setShowNotes] = useState(false);
-  const problemNote = useProgressStore((state) => (canonical ? state.problemNotes[canonical.id] : undefined));
+  const [show_notes, set_show_notes] = useState(false);
+  const problem_note = useProgressStore((state) =>
+    canonical ? state.problemNotes[canonical.id] : undefined
+  );
 
   return (
     <div className="rounded-2xl border border-border bg-card/60 p-4 shadow-sm transition hover:border-primary/40 hover:shadow-card-hover">
@@ -802,10 +804,10 @@ function ContestPickedProblemRow({
             <span
               className={cn(
                 'rounded-full border px-2.5 py-1 text-xs font-medium',
-                positionClass[picked.position]
+                kPositionClass[picked.position]
               )}
             >
-              {positionLabels[picked.position]}
+              {kPositionLabels[picked.position]}
             </span>
             {picked.problem.premium ? (
               <span className="rounded-full border border-amber-400/40 bg-amber-500/15 px-2.5 py-1 text-xs font-medium text-amber-700 dark:text-amber-300">
@@ -831,7 +833,7 @@ function ContestPickedProblemRow({
             </a>
           )}
           <p className="mt-1 text-sm text-muted-foreground">
-            {topicTitle}・
+            {topic_title}・
             <a
               href={contestUrl(picked.contest.contestId, site)}
               target="_blank"
@@ -862,28 +864,28 @@ function ContestPickedProblemRow({
         {canonical ? (
           <button
             type="button"
-            onClick={() => setShowNotes(true)}
+            onClick={() => set_show_notes(true)}
             className="text-sm font-medium text-primary transition hover:underline"
           >
-            {problemNote ? '查看解答與思路' : '記錄解答與思路'}
+            {problem_note ? '查看解答與思路' : '記錄解答與思路'}
           </button>
         ) : null}
       </div>
       {canonical ? (
         <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border/60 pt-3">
           <span className="text-xs text-muted-foreground">記錄結果</span>
-          {statusOptions.map((status) => {
+          {kStatusOptions.map((status) => {
             const label = submissionStatusLabel(status);
-            const Icon = statusIcon[status];
+            const Icon = kStatusIcon[status];
             return (
               <button
                 key={status}
                 type="button"
-                onClick={() => onLog(status)}
+                onClick={() => on_log(status)}
                 title={label}
                 className={cn(
                   'inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-background/60 px-2.5 text-xs font-medium text-muted-foreground transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                  statusButtonClass[status]
+                  kStatusButtonClass[status]
                 )}
               >
                 <Icon className="h-3.5 w-3.5" aria-hidden />
@@ -897,8 +899,8 @@ function ContestPickedProblemRow({
         <ProblemNotesModal
           problemId={canonical.id}
           title={problemDisplayTitle(canonical)}
-          open={showNotes}
-          onClose={() => setShowNotes(false)}
+          open={show_notes}
+          onClose={() => set_show_notes(false)}
         />
       ) : null}
     </div>
@@ -907,15 +909,15 @@ function ContestPickedProblemRow({
 
 function PracticeProblemRow({
   problem,
-  topicTitle,
-  onLog
+  topicTitle: topic_title,
+  onLog: on_log
 }: {
   problem: Problem;
   topicTitle: string;
   onLog: (status: SubmissionStatus) => void;
 }) {
-  const [showNotes, setShowNotes] = useState(false);
-  const problemNote = useProgressStore((state) => state.problemNotes[problem.id]);
+  const [show_notes, set_show_notes] = useState(false);
+  const problem_note = useProgressStore((state) => state.problemNotes[problem.id]);
 
   return (
     <div className="rounded-2xl border border-border bg-card/60 p-4 shadow-sm transition hover:border-primary/40 hover:shadow-card-hover">
@@ -924,7 +926,7 @@ function PracticeProblemRow({
           <Link href={`/problems/${problem.id}`} className="font-medium transition-colors hover:text-primary">
             {problem.title}
           </Link>
-          <p className="mt-1 text-sm text-muted-foreground">{topicTitle}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{topic_title}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <DifficultyBadge rating={problem.rating} />
@@ -944,26 +946,26 @@ function PracticeProblemRow({
         </span>
         <button
           type="button"
-          onClick={() => setShowNotes(true)}
+          onClick={() => set_show_notes(true)}
           className="text-sm font-medium text-primary transition hover:underline"
         >
-          {problemNote ? '查看解答與思路' : '記錄解答與思路'}
+          {problem_note ? '查看解答與思路' : '記錄解答與思路'}
         </button>
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border/60 pt-3">
         <span className="text-xs text-muted-foreground">記錄結果</span>
-        {statusOptions.map((status) => {
+        {kStatusOptions.map((status) => {
           const label = submissionStatusLabel(status);
-          const Icon = statusIcon[status];
+          const Icon = kStatusIcon[status];
           return (
             <button
               key={status}
               type="button"
-              onClick={() => onLog(status)}
+              onClick={() => on_log(status)}
               title={label}
               className={cn(
                 'inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-background/60 px-2.5 text-xs font-medium text-muted-foreground transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                statusButtonClass[status]
+                kStatusButtonClass[status]
               )}
             >
               <Icon className="h-3.5 w-3.5" aria-hidden />
@@ -975,19 +977,19 @@ function PracticeProblemRow({
       <ProblemNotesModal
         problemId={problem.id}
         title={problemDisplayTitle(problem)}
-        open={showNotes}
-        onClose={() => setShowNotes(false)}
+        open={show_notes}
+        onClose={() => set_show_notes(false)}
       />
     </div>
   );
 }
 
 function Pagination({
-  currentPage,
-  totalPages,
+  currentPage: current_page,
+  totalPages: total_pages,
   total,
-  pageSize,
-  onChange
+  pageSize: page_size,
+  onChange: on_change
 }: {
   currentPage: number;
   totalPages: number;
@@ -995,9 +997,9 @@ function Pagination({
   pageSize: number;
   onChange: (page: number) => void;
 }) {
-  const from = (currentPage - 1) * pageSize + 1;
-  const to = Math.min(currentPage * pageSize, total);
-  const pages = pageRange(currentPage, totalPages);
+  const from = (current_page - 1) * page_size + 1;
+  const to = Math.min(current_page * page_size, total);
+  const pages = pageRange(current_page, total_pages);
 
   return (
     <div className="mt-2 flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-4">
@@ -1007,8 +1009,8 @@ function Pagination({
       <div className="flex items-center gap-1">
         <button
           type="button"
-          onClick={() => onChange(currentPage - 1)}
-          disabled={currentPage <= 1}
+          onClick={() => on_change(current_page - 1)}
+          disabled={current_page <= 1}
           aria-label="上一頁"
           className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted-foreground transition hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
         >
@@ -1023,11 +1025,11 @@ function Pagination({
             <button
               key={p}
               type="button"
-              onClick={() => onChange(p)}
-              aria-current={p === currentPage ? 'page' : undefined}
+              onClick={() => on_change(p)}
+              aria-current={p === current_page ? 'page' : undefined}
               className={cn(
                 'inline-flex h-8 min-w-8 items-center justify-center rounded-lg border px-2 text-sm font-medium tabular-nums transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                p === currentPage
+                p === current_page
                   ? 'border-primary bg-primary text-primary-foreground'
                   : 'border-border text-muted-foreground hover:bg-accent hover:text-foreground'
               )}
@@ -1038,8 +1040,8 @@ function Pagination({
         )}
         <button
           type="button"
-          onClick={() => onChange(currentPage + 1)}
-          disabled={currentPage >= totalPages}
+          onClick={() => on_change(current_page + 1)}
+          disabled={current_page >= total_pages}
           aria-label="下一頁"
           className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted-foreground transition hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
         >

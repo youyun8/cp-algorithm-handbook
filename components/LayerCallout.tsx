@@ -20,7 +20,7 @@ type LayerVariant =
   | 'pitfalls'
   | 'problems';
 
-const variantStyle: Record<LayerVariant, { panel: string; chip: string; icon: LucideIcon }> = {
+const kVariantStyle: Record<LayerVariant, { panel: string; chip: string; icon: LucideIcon }> = {
   motivation: {
     panel: 'border-amber-400/30 bg-amber-500/[0.06]',
     chip: 'bg-amber-500/15 text-amber-600 dark:text-amber-300',
@@ -69,7 +69,7 @@ export function LayerCallout({
   variant: LayerVariant;
   children: ReactNode;
 }) {
-  const style = variantStyle[variant];
+  const style = kVariantStyle[variant];
   const Icon = style.icon;
   return (
     <section className={cn('rounded-3xl border p-5 shadow-card sm:p-6', style.panel)}>

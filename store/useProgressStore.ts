@@ -59,21 +59,21 @@ interface ProgressState {
   filters: PracticeFilters;
   setCurrentRating: (rating: number) => void;
   setFilters: (filters: Partial<PracticeFilters>) => void;
-  markReviewed: (problemId: string, topicId?: string) => void;
-  logSubmission: (problemId: string, status: SubmissionStatus, topicId?: string) => void;
+  markReviewed: (problem_id: string, topic_id?: string) => void;
+  logSubmission: (problem_id: string, status: SubmissionStatus, topic_id?: string) => void;
   saveProblemNote: (
-    problemId: string,
+    problem_id: string,
     note: Partial<Pick<ProblemNote, 'solution' | 'thought' | 'language'>>
   ) => void;
-  markPracticeProblemCompleted: (problemId: string) => void;
-  unmarkPracticeProblemCompleted: (problemId: string) => void;
-  startContest: (problemIds: string[], durationMinutes: number) => void;
+  markPracticeProblemCompleted: (problem_id: string) => void;
+  unmarkPracticeProblemCompleted: (problem_id: string) => void;
+  startContest: (problem_ids: string[], duration_minutes: number) => void;
   endContest: () => void;
   syncToCloud: () => Promise<{ ok: boolean; error?: string }>;
   loadFromCloud: () => Promise<{ ok: boolean; error?: string }>;
 }
 
-const defaultFilters: PracticeFilters = {
+const kDefaultFilters: PracticeFilters = {
   tag: 'all',
   minRating: 1800,
   maxRating: 2000,
@@ -103,75 +103,75 @@ export const useProgressStore = create<ProgressState>()(
       problemNotes: {},
       completedPracticeProblemIds: [],
       lastCloudSyncAt: undefined,
-      filters: defaultFilters,
+      filters: kDefaultFilters,
       setCurrentRating: (rating) => set({ currentRating: rating }),
       setFilters: (filters) => set((state) => ({ filters: { ...state.filters, ...filters } })),
-      markReviewed: (problemId, topicId) =>
+      markReviewed: (problem_id, topic_id) =>
         set((state) => {
-          const alreadyReviewed = state.reviewedProblemIds.includes(problemId);
+          const already_reviewed = state.reviewedProblemIds.includes(problem_id);
           return {
-            reviewedProblemIds: uniqueAppend(state.reviewedProblemIds, problemId),
-            coveredTopicIds: topicId ? uniqueAppend(state.coveredTopicIds, topicId) : state.coveredTopicIds,
-            reviewEvents: alreadyReviewed
+            reviewedProblemIds: uniqueAppend(state.reviewedProblemIds, problem_id),
+            coveredTopicIds: topic_id ? uniqueAppend(state.coveredTopicIds, topic_id) : state.coveredTopicIds,
+            reviewEvents: already_reviewed
               ? state.reviewEvents
-              : [...state.reviewEvents, { problemId, reviewedAt: new Date().toISOString() }]
+              : [...state.reviewEvents, { problemId: problem_id, reviewedAt: new Date().toISOString() }]
           };
         }),
-      logSubmission: (problemId, status, topicId) => {
+      logSubmission: (problem_id, status, topic_id) => {
         const submission: SubmissionLog = {
           id: createId('submission'),
-          problemId,
+          problemId: problem_id,
           status,
           createdAt: new Date().toISOString()
         };
 
         set((state) => ({
           submissions: [submission, ...state.submissions].slice(0, 200),
-          coveredTopicIds: topicId ? uniqueAppend(state.coveredTopicIds, topicId) : state.coveredTopicIds
+          coveredTopicIds: topic_id ? uniqueAppend(state.coveredTopicIds, topic_id) : state.coveredTopicIds
         }));
 
         if (status === 'AC') {
-          get().markReviewed(problemId, topicId);
+          get().markReviewed(problem_id, topic_id);
         }
       },
-      saveProblemNote: (problemId, note) =>
+      saveProblemNote: (problem_id, note) =>
         set((state) => ({
           problemNotes: {
             ...state.problemNotes,
-            [problemId]: {
-              solution: note.solution ?? state.problemNotes[problemId]?.solution ?? '',
-              thought: note.thought ?? state.problemNotes[problemId]?.thought ?? '',
-              language: note.language ?? state.problemNotes[problemId]?.language,
+            [problem_id]: {
+              solution: note.solution ?? state.problemNotes[problem_id]?.solution ?? '',
+              thought: note.thought ?? state.problemNotes[problem_id]?.thought ?? '',
+              language: note.language ?? state.problemNotes[problem_id]?.language,
               updatedAt: new Date().toISOString()
             }
           }
         })),
-      markPracticeProblemCompleted: (problemId) =>
+      markPracticeProblemCompleted: (problem_id) =>
         set((state) => {
-          const alreadyCompleted = state.completedPracticeProblemIds.includes(problemId);
+          const already_completed = state.completedPracticeProblemIds.includes(problem_id);
           return {
-            completedPracticeProblemIds: uniqueAppend(state.completedPracticeProblemIds, problemId),
-            practiceCompletionEvents: alreadyCompleted
+            completedPracticeProblemIds: uniqueAppend(state.completedPracticeProblemIds, problem_id),
+            practiceCompletionEvents: already_completed
               ? state.practiceCompletionEvents
               : [
                   ...state.practiceCompletionEvents,
-                  { problemId, completedAt: new Date().toISOString() }
+                  { problemId: problem_id, completedAt: new Date().toISOString() }
                 ].slice(-200)
           };
         }),
-      unmarkPracticeProblemCompleted: (problemId) =>
+      unmarkPracticeProblemCompleted: (problem_id) =>
         set((state) => ({
-          completedPracticeProblemIds: state.completedPracticeProblemIds.filter((id) => id !== problemId),
+          completedPracticeProblemIds: state.completedPracticeProblemIds.filter((id) => id !== problem_id),
           practiceCompletionEvents: state.practiceCompletionEvents.filter(
-            (event) => event.problemId !== problemId
+            (event) => event.problemId !== problem_id
           )
         })),
-      startContest: (problemIds, durationMinutes) =>
+      startContest: (problem_ids, duration_minutes) =>
         set({
           activeContest: {
             id: createId('contest'),
-            problemIds,
-            durationMinutes,
+            problemIds: problem_ids,
+            durationMinutes: duration_minutes,
             startedAt: new Date().toISOString()
           }
         }),

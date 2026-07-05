@@ -4,16 +4,16 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { CODE_LANGUAGES, CodeEditor, DEFAULT_CODE_LANGUAGE } from '@/components/CodeEditor';
+import { kCodeLanguages, CodeEditor, kDefaultCodeLanguage } from '@/components/CodeEditor';
 import { MarkdownBlock } from '@/components/MarkdownBlock';
 import { useMounted } from '@/lib/useMounted';
 import { useProgressStore } from '@/store/useProgressStore';
 
 export function ProblemNotesModal({
-  problemId,
+  problemId: problem_id,
   title,
   open,
-  onClose
+  onClose: on_close
 }: {
   problemId: string;
   title?: string;
@@ -26,16 +26,16 @@ export function ProblemNotesModal({
   useEffect(() => {
     if (!open) return;
     function onKey(event: KeyboardEvent) {
-      if (event.key === 'Escape') onClose();
+      if (event.key === 'Escape') on_close();
     }
     document.addEventListener('keydown', onKey);
-    const previousOverflow = document.body.style.overflow;
+    const previous_overflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
       document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = previousOverflow;
+      document.body.style.overflow = previous_overflow;
     };
-  }, [open, onClose]);
+  }, [open, on_close]);
 
   if (!open || !mounted) return null;
 
@@ -47,39 +47,39 @@ export function ProblemNotesModal({
       className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
     >
       {/* Blurred, dimmed backdrop */}
-      <div className="absolute inset-0 bg-background/60 backdrop-blur-md" onClick={onClose} aria-hidden />
+      <div className="absolute inset-0 bg-background/60 backdrop-blur-md" onClick={on_close} aria-hidden />
       {/* The dialog body remounts each time it opens, so its form state is
           initialized from the latest saved note without a re-hydration effect. */}
-      <NotesDialogBody problemId={problemId} title={title} onClose={onClose} />
+      <NotesDialogBody problemId={problem_id} title={title} onClose={on_close} />
     </div>,
     document.body
   );
 }
 
 function NotesDialogBody({
-  problemId,
+  problemId: problem_id,
   title,
-  onClose
+  onClose: on_close
 }: {
   problemId: string;
   title?: string;
   onClose: () => void;
 }) {
-  const note = useProgressStore((state) => state.problemNotes[problemId]);
-  const saveProblemNote = useProgressStore((state) => state.saveProblemNote);
+  const note = useProgressStore((state) => state.problemNotes[problem_id]);
+  const save_problem_note = useProgressStore((state) => state.saveProblemNote);
 
-  const [solution, setSolution] = useState(note?.solution ?? '');
-  const [thought, setThought] = useState(note?.thought ?? '');
-  const [language, setLanguage] = useState(note?.language ?? DEFAULT_CODE_LANGUAGE);
-  const [thoughtView, setThoughtView] = useState<'edit' | 'preview'>('preview');
-  const [saved, setSaved] = useState(false);
+  const [solution, set_solution] = useState(note?.solution ?? '');
+  const [thought, set_thought] = useState(note?.thought ?? '');
+  const [language, set_language] = useState(note?.language ?? kDefaultCodeLanguage);
+  const [thought_view, set_thought_view] = useState<'edit' | 'preview'>('preview');
+  const [saved, set_saved] = useState(false);
 
   function handleSave() {
-    saveProblemNote(problemId, { solution, thought, language });
-    setSaved(true);
+    save_problem_note(problem_id, { solution, thought, language });
+    set_saved(true);
   }
 
-  const updatedAt = note?.updatedAt
+  const updated_at = note?.updatedAt
     ? new Intl.DateTimeFormat('zh-TW', {
         month: '2-digit',
         day: '2-digit',
@@ -94,11 +94,11 @@ function NotesDialogBody({
         <div className="min-w-0">
           <p className="text-sm font-semibold text-foreground">記錄解答與思路</p>
           {title ? <p className="mt-0.5 truncate text-xs text-muted-foreground">{title}</p> : null}
-          {updatedAt ? <p className="mt-0.5 text-xs text-muted-foreground">上次更新：{updatedAt}</p> : null}
+          {updated_at ? <p className="mt-0.5 text-xs text-muted-foreground">上次更新：{updated_at}</p> : null}
         </div>
         <button
           type="button"
-          onClick={onClose}
+          onClick={on_close}
           aria-label="關閉"
           className="rounded-full border border-border p-1.5 text-muted-foreground transition hover:bg-accent hover:text-foreground"
         >
@@ -115,12 +115,12 @@ function NotesDialogBody({
               <select
                 value={language}
                 onChange={(event) => {
-                  setLanguage(event.target.value);
-                  setSaved(false);
+                  set_language(event.target.value);
+                  set_saved(false);
                 }}
                 className="rounded-lg border border-border bg-background/70 px-2 py-1 text-xs text-foreground outline-none focus:border-primary"
               >
-                {CODE_LANGUAGES.map((option) => (
+                {kCodeLanguages.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
@@ -132,10 +132,12 @@ function NotesDialogBody({
             value={solution}
             language={language}
             onValueChange={(value) => {
-              setSolution(value);
-              setSaved(false);
+              set_solution(value);
+              set_saved(false);
             }}
-            placeholder={'// 在此貼上 / 撰寫你的解答程式碼\n// 會依所選語言自動上色'}
+            placeholder={
+              '// Paste or write your solution code here\n// Highlighting follows the selected language'
+            }
             minHeight="14rem"
           />
         </div>
@@ -153,9 +155,9 @@ function NotesDialogBody({
                 <button
                   key={option.id}
                   type="button"
-                  onClick={() => setThoughtView(option.id)}
+                  onClick={() => set_thought_view(option.id)}
                   className={
-                    thoughtView === option.id
+                    thought_view === option.id
                       ? 'rounded-lg bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground'
                       : 'rounded-lg px-2.5 py-1 text-xs text-muted-foreground transition hover:text-foreground'
                   }
@@ -165,12 +167,12 @@ function NotesDialogBody({
               ))}
             </div>
           </div>
-          {thoughtView === 'edit' ? (
+          {thought_view === 'edit' ? (
             <textarea
               value={thought}
               onChange={(event) => {
-                setThought(event.target.value);
-                setSaved(false);
+                set_thought(event.target.value);
+                set_saved(false);
               }}
               rows={4}
               className="min-h-28 w-full resize-y rounded-2xl border border-border bg-card/70 px-3 py-2 font-mono text-sm leading-6 outline-none transition placeholder:text-muted-foreground/70 focus:border-primary focus:ring-2 focus:ring-primary/25"
@@ -198,7 +200,7 @@ function NotesDialogBody({
           {saved ? (
             <span className="text-xs font-medium text-emerald-600 dark:text-emerald-300">已儲存</span>
           ) : null}
-          <Button type="button" variant="ghost" size="sm" onClick={onClose}>
+          <Button type="button" variant="ghost" size="sm" onClick={on_close}>
             關閉
           </Button>
           <Button type="button" size="sm" onClick={handleSave}>

@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { useMounted } from '@/lib/useMounted';
 import { useSettingsStore } from '@/store/useSettingsStore';
 
-const widthClass = {
+const kWidthClass = {
   standard: 'max-w-7xl',
   wide: 'max-w-[110rem]',
   full: 'max-w-none'
@@ -13,7 +13,7 @@ const widthClass = {
 
 export function AppWidthContainer({
   as: Component = 'div',
-  className,
+  className: class_name,
   children
 }: {
   as?: ElementType;
@@ -21,8 +21,8 @@ export function AppWidthContainer({
   children: ReactNode;
 }) {
   const mounted = useMounted();
-  const contentWidth = useSettingsStore((state) => state.contentWidth);
-  const resolvedWidth = mounted ? contentWidth : 'wide';
+  const content_width = useSettingsStore((state) => state.contentWidth);
+  const resolved_width = mounted ? content_width : 'wide';
 
-  return <Component className={cn('mx-auto', widthClass[resolvedWidth], className)}>{children}</Component>;
+  return <Component className={cn('mx-auto', kWidthClass[resolved_width], class_name)}>{children}</Component>;
 }

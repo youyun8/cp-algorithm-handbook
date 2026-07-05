@@ -7,35 +7,35 @@ import { problemTypeLabel } from '@/lib/utils';
 import { useProgressStore } from '@/store/useProgressStore';
 
 export function PerformanceDashboard({ problems, topics }: { problems: Problem[]; topics: Topic[] }) {
-  const reviewedProblemIds = useProgressStore((state) => state.reviewedProblemIds);
+  const reviewed_problem_ids = useProgressStore((state) => state.reviewedProblemIds);
   const submissions = useProgressStore((state) => state.submissions);
-  const reviewEvents = useProgressStore((state) => state.reviewEvents);
-  const contestSessions = useProgressStore((state) => state.contestSessions);
+  const review_events = useProgressStore((state) => state.reviewEvents);
+  const contest_sessions = useProgressStore((state) => state.contestSessions);
 
-  const problemById = useMemo(() => new Map(problems.map((problem) => [problem.id, problem])), [problems]);
+  const problem_by_id = useMemo(() => new Map(problems.map((problem) => [problem.id, problem])), [problems]);
 
-  const coveredTopics = useMemo(
+  const covered_topics = useMemo(
     () =>
       new Set(
-        reviewedProblemIds
-          .map((id) => problemById.get(id)?.topic_id)
-          .filter((topicId): topicId is string => Boolean(topicId))
+        reviewed_problem_ids
+          .map((id) => problem_by_id.get(id)?.topic_id)
+          .filter((topic_id): topic_id is string => Boolean(topic_id))
       ),
-    [problemById, reviewedProblemIds]
+    [problem_by_id, reviewed_problem_ids]
   );
 
-  const weakAreas = useMemo(() => {
+  const weak_areas = useMemo(() => {
     return topics
       .map((topic) => {
-        const topicProblems = new Set(
+        const topic_problems = new Set(
           problems.filter((problem) => problem.topic_id === topic.id).map((problem) => problem.id)
         );
-        const attempts = submissions.filter((submission) => topicProblems.has(submission.problemId));
+        const attempts = submissions.filter((submission) => topic_problems.has(submission.problemId));
         const accepted = attempts.filter((submission) => submission.status === 'AC').length;
         const total = attempts.filter((submission) => submission.status !== 'SKIP').length;
         return {
           topic,
-          total,
+          total: total,
           rate: total === 0 ? null : accepted / total
         };
       })
@@ -44,13 +44,13 @@ export function PerformanceDashboard({ problems, topics }: { problems: Problem[]
       .slice(0, 4);
   }, [problems, submissions, topics]);
 
-  const typeBreakdown = useMemo(() => {
-    const acceptedIds = new Set(
+  const type_breakdown = useMemo(() => {
+    const accepted_ids = new Set(
       submissions.filter((submission) => submission.status === 'AC').map((submission) => submission.problemId)
     );
     const counts = { template: 0, classic: 0, insight_transfer: 0 };
-    acceptedIds.forEach((id) => {
-      const problem = problemById.get(id);
+    accepted_ids.forEach((id) => {
+      const problem = problem_by_id.get(id);
       if (problem) counts[problem.problem_type] += 1;
     });
     const total = Math.max(1, counts.template + counts.classic + counts.insight_transfer);
@@ -59,9 +59,9 @@ export function PerformanceDashboard({ problems, topics }: { problems: Problem[]
       count,
       percent: Math.round((count / total) * 100)
     }));
-  }, [problemById, submissions]);
+  }, [problem_by_id, submissions]);
 
-  const submissionBreakdown = useMemo(() => {
+  const submission_breakdown = useMemo(() => {
     const statuses = { AC: 0, WA: 0, TLE: 0, SKIP: 0 };
     for (const submission of submissions) {
       statuses[submission.status] += 1;
@@ -74,9 +74,9 @@ export function PerformanceDashboard({ problems, topics }: { problems: Problem[]
     }));
   }, [submissions]);
 
-  const heatmapDays = useMemo(() => {
+  const heatmap_days = useMemo(() => {
     const counts = new Map<string, number>();
-    for (const event of reviewEvents) {
+    for (const event of review_events) {
       const key = event.reviewedAt.slice(0, 10);
       counts.set(key, (counts.get(key) ?? 0) + 1);
     }
@@ -89,14 +89,14 @@ export function PerformanceDashboard({ problems, topics }: { problems: Problem[]
       const date = new Date();
       date.setDate(date.getDate() - (34 - index));
       const key = date.toISOString().slice(0, 10);
-      return { key, count: counts.get(key) ?? 0 };
+      return { key: key, count: counts.get(key) ?? 0 };
     });
-  }, [reviewEvents, submissions]);
+  }, [review_events, submissions]);
 
   const stats = [
-    { label: '已複習題目', value: reviewedProblemIds.length },
-    { label: '實戰覆蓋主題', value: `${coveredTopics.size}/${topics.length}` },
-    { label: '競賽場次', value: contestSessions.length },
+    { label: '已複習題目', value: reviewed_problem_ids.length },
+    { label: '實戰覆蓋主題', value: `${covered_topics.size}/${topics.length}` },
+    { label: '競賽場次', value: contest_sessions.length },
     { label: '提交紀錄', value: submissions.length }
   ];
 
@@ -119,8 +119,8 @@ export function PerformanceDashboard({ problems, topics }: { problems: Problem[]
             <CardTitle>弱區偵測</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {weakAreas.length > 0 ? (
-              weakAreas.map((item) => (
+            {weak_areas.length > 0 ? (
+              weak_areas.map((item) => (
                 <div key={item.topic.id} className="rounded-2xl border border-border p-4">
                   <div className="flex items-center justify-between gap-3">
                     <p className="font-medium">{item.topic.title}</p>
@@ -147,7 +147,7 @@ export function PerformanceDashboard({ problems, topics }: { problems: Problem[]
             <CardTitle>題型通過比例</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {typeBreakdown.map((item) => (
+            {type_breakdown.map((item) => (
               <div key={item.type}>
                 <div className="flex justify-between text-sm">
                   <span>{problemTypeLabel(item.type)}</span>
@@ -170,7 +170,7 @@ export function PerformanceDashboard({ problems, topics }: { problems: Problem[]
             <CardTitle>提交狀態比例</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {submissionBreakdown.map((item) => (
+            {submission_breakdown.map((item) => (
               <div key={item.status}>
                 <div className="flex justify-between text-sm">
                   <span>{item.status}</span>
@@ -192,7 +192,7 @@ export function PerformanceDashboard({ problems, topics }: { problems: Problem[]
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-7 gap-2">
-              {heatmapDays.map((day) => (
+              {heatmap_days.map((day) => (
                 <div
                   key={day.key}
                   title={`${day.key}：${day.count} 筆`}
@@ -215,10 +215,10 @@ export function PerformanceDashboard({ problems, topics }: { problems: Problem[]
           <CardTitle>實戰覆蓋主題</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
-          {Array.from(coveredTopics).length > 0 ? (
-            Array.from(coveredTopics).map((topicId) => (
-              <span key={topicId} className="rounded-full border border-border bg-accent px-3 py-2 text-sm">
-                {topics.find((topic) => topic.id === topicId)?.title ?? '未分類'}
+          {Array.from(covered_topics).length > 0 ? (
+            Array.from(covered_topics).map((topic_id) => (
+              <span key={topic_id} className="rounded-full border border-border bg-accent px-3 py-2 text-sm">
+                {topics.find((topic) => topic.id === topic_id)?.title ?? '未分類'}
               </span>
             ))
           ) : (

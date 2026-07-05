@@ -3,12 +3,12 @@ import { cn } from '@/lib/utils';
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {}
 
-export function Badge({ className, ...props }: BadgeProps) {
+export function Badge({ className: class_name, ...props }: BadgeProps) {
   return (
     <span
       className={cn(
         'inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold leading-none',
-        className
+        class_name
       )}
       {...props}
     />

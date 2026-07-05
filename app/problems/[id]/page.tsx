@@ -1,21 +1,21 @@
 import { notFound } from 'next/navigation';
 import { PageTransition } from '@/components/PageTransition';
 import { ProblemStrategy } from '@/components/ProblemStrategy';
-import { getSimilarProblems, problemById, problems, topicById } from '@/lib/data';
+import { getSimilarProblems, kProblemById, kProblems, kTopicById } from '@/lib/data';
 
 export function generateStaticParams() {
-  return problems.map((problem) => ({ id: problem.id }));
+  return kProblems.map((problem) => ({ id: problem.id }));
 }
 
 export default async function ProblemPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const problem = problemById.get(id);
+  const problem = kProblemById.get(id);
 
   if (!problem) {
     notFound();
   }
 
-  const topic = topicById.get(problem.topic_id);
+  const topic = kTopicById.get(problem.topic_id);
 
   if (!topic) {
     notFound();

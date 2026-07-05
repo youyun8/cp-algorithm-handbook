@@ -8,42 +8,42 @@ import { useProgressStore } from '@/store/useProgressStore';
 
 export function ProgressSummary({ problems, topics }: { problems: Problem[]; topics: Topic[] }) {
   const mounted = useMounted();
-  const reviewedProblemIds = useProgressStore((state) => state.reviewedProblemIds);
-  const contestSessions = useProgressStore((state) => state.contestSessions);
-  const currentRating = useProgressStore((state) => state.currentRating);
+  const reviewed_problem_ids = useProgressStore((state) => state.reviewedProblemIds);
+  const contest_sessions = useProgressStore((state) => state.contestSessions);
+  const current_rating = useProgressStore((state) => state.currentRating);
   const submissions = useProgressStore((state) => state.submissions);
-  const reviewEvents = useProgressStore((state) => state.reviewEvents);
+  const review_events = useProgressStore((state) => state.reviewEvents);
 
-  const topicCount = useMemo(() => {
-    const reviewed = new Set(reviewedProblemIds);
+  const topic_count = useMemo(() => {
+    const reviewed = new Set(reviewed_problem_ids);
     return new Set(problems.filter((problem) => reviewed.has(problem.id)).map((problem) => problem.topic_id))
       .size;
-  }, [problems, reviewedProblemIds]);
+  }, [problems, reviewed_problem_ids]);
 
-  const problemById = useMemo(() => new Map(problems.map((problem) => [problem.id, problem])), [problems]);
-  const recentActivity = useMemo(() => {
+  const problem_by_id = useMemo(() => new Map(problems.map((problem) => [problem.id, problem])), [problems]);
+  const recent_activity = useMemo(() => {
     return [
       ...submissions.map((submission) => ({
         id: submission.id,
         at: submission.createdAt,
-        label: `提交：${problemById.get(submission.problemId)?.title ?? '未知題目'}`
+        label: `提交：${problem_by_id.get(submission.problemId)?.title ?? '未知題目'}`
       })),
-      ...reviewEvents.map((event) => ({
+      ...review_events.map((event) => ({
         id: `${event.problemId}-${event.reviewedAt}`,
         at: event.reviewedAt,
-        label: `複習：${problemById.get(event.problemId)?.title ?? '未知題目'}`
+        label: `複習：${problem_by_id.get(event.problemId)?.title ?? '未知題目'}`
       }))
     ]
       .sort((a, b) => b.at.localeCompare(a.at))
       .slice(0, 3);
-  }, [problemById, reviewEvents, submissions]);
+  }, [problem_by_id, review_events, submissions]);
 
   const stats = mounted
     ? [
-        { label: '已複習題目', value: reviewedProblemIds.length.toString() },
-        { label: '覆蓋主題', value: `${topicCount}/${topics.length}` },
-        { label: '模擬賽場次', value: contestSessions.length.toString() },
-        { label: '自評分數', value: currentRating.toString() }
+        { label: '已複習題目', value: reviewed_problem_ids.length.toString() },
+        { label: '覆蓋主題', value: `${topic_count}/${topics.length}` },
+        { label: '模擬賽場次', value: contest_sessions.length.toString() },
+        { label: '自評分數', value: current_rating.toString() }
       ]
     : [
         { label: '已複習題目', value: '0' },
@@ -73,9 +73,9 @@ export function ProgressSummary({ problems, topics }: { problems: Problem[]; top
         </div>
         <div className="mt-5 rounded-2xl border border-border bg-background/45 p-4">
           <p className="text-sm font-medium">最近活動</p>
-          {mounted && recentActivity.length > 0 ? (
+          {mounted && recent_activity.length > 0 ? (
             <div className="mt-3 space-y-2">
-              {recentActivity.map((activity) => (
+              {recent_activity.map((activity) => (
                 <p key={activity.id} className="text-sm text-muted-foreground">
                   {activity.label}・{new Date(activity.at).toLocaleDateString('zh-TW')}
                 </p>

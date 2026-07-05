@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { ThemeProvider } from 'next-themes';
 import { SessionProvider } from 'next-auth/react';
 import { AppPreferenceEffects } from '@/components/AppPreferenceEffects';
-import { isStaticExport } from '@/lib/runtime';
+import { kIsStaticExport } from '@/lib/runtime';
 
 export function ClientProviders({ children }: { children: ReactNode }) {
   const themed = (
@@ -17,7 +17,7 @@ export function ClientProviders({ children }: { children: ReactNode }) {
   // In static export there is no /api/auth/session endpoint, so skip the
   // SessionProvider (its background fetch would 404). Cloud sync is disabled
   // in that mode anyway.
-  if (isStaticExport) {
+  if (kIsStaticExport) {
     return themed;
   }
 

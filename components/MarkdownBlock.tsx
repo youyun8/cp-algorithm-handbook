@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { cn } from '@/lib/utils';
 
-const cppKeywords = new Set([
+const kCppKeywords = new Set([
   'auto',
   'bool',
   'break',
@@ -44,7 +44,7 @@ const cppKeywords = new Set([
   'while'
 ]);
 
-const cppTypesAndFunctions = new Set([
+const kCppTypesAndFunctions = new Set([
   'array',
   'deque',
   'greater',
@@ -62,16 +62,16 @@ const cppTypesAndFunctions = new Set([
   'vector'
 ]);
 
-function HighlightedCode({ children, className }: { children: string; className?: string }) {
-  const language = className?.replace('language-', '') ?? 'text';
+function HighlightedCode({ children, className: class_name }: { children: string; className?: string }) {
+  const language = class_name?.replace('language-', '') ?? 'text';
 
   return (
-    <code className={cn('block min-w-max font-mono text-[13px]', className)} data-language={language}>
+    <code className={cn('block min-w-max font-mono text-[13px]', class_name)} data-language={language}>
       {children
         .replace(/\n$/, '')
         .split('\n')
-        .map((line, lineIndex) => (
-          <span key={lineIndex} className="block">
+        .map((line, line_index) => (
+          <span key={line_index} className="block">
             {highlightCppLine(line)}
           </span>
         ))}
@@ -82,25 +82,25 @@ function HighlightedCode({ children, className }: { children: string; className?
 function highlightCppLine(line: string) {
   const tokens: ReactNode[] = [];
   let index = 0;
-  let tokenIndex = 0;
+  let token_index = 0;
 
-  const push = (text: string, className?: string) => {
+  const push = (text: string, class_name?: string) => {
     if (!text) return;
     tokens.push(
-      className ? (
-        <span key={tokenIndex++} className={className}>
+      class_name ? (
+        <span key={token_index++} className={class_name}>
           {text}
         </span>
       ) : (
-        <span key={tokenIndex++}>{text}</span>
+        <span key={token_index++}>{text}</span>
       )
     );
   };
 
   while (index < line.length) {
-    const commentStart = line.indexOf('//', index);
+    const comment_start = line.indexOf('//', index);
 
-    if (commentStart === index) {
+    if (comment_start === index) {
       push(line.slice(index), 'text-emerald-700 dark:text-emerald-300');
       break;
     }
@@ -135,20 +135,20 @@ function highlightCppLine(line: string) {
       break;
     }
 
-    const numberMatch = line.slice(index).match(/^\b\d+(?:\.\d+)?\b/);
-    if (numberMatch) {
-      push(numberMatch[0], 'text-blue-700 dark:text-blue-300');
-      index += numberMatch[0].length;
+    const number_match = line.slice(index).match(/^\b\d+(?:\.\d+)?\b/);
+    if (number_match) {
+      push(number_match[0], 'text-blue-700 dark:text-blue-300');
+      index += number_match[0].length;
       continue;
     }
 
-    const wordMatch = line.slice(index).match(/^[A-Za-z_][A-Za-z0-9_]*/);
-    if (wordMatch) {
-      const word = wordMatch[0];
+    const word_match = line.slice(index).match(/^[A-Za-z_][A-Za-z0-9_]*/);
+    if (word_match) {
+      const word = word_match[0];
 
-      if (cppKeywords.has(word)) {
+      if (kCppKeywords.has(word)) {
         push(word, 'font-semibold text-fuchsia-700 dark:text-fuchsia-300');
-      } else if (cppTypesAndFunctions.has(word)) {
+      } else if (kCppTypesAndFunctions.has(word)) {
         push(word, 'text-sky-700 dark:text-sky-300');
       } else {
         push(word);
@@ -158,12 +158,12 @@ function highlightCppLine(line: string) {
       continue;
     }
 
-    const operatorMatch = line
+    const operator_match = line
       .slice(index)
       .match(/^(?:==|!=|<=|>=|\+\+|--|&&|\|\||->|::|[+\-*/%=!<>()[\]{}.,;:&|])/);
-    if (operatorMatch) {
-      push(operatorMatch[0], 'text-slate-700 dark:text-slate-300');
-      index += operatorMatch[0].length;
+    if (operator_match) {
+      push(operator_match[0], 'text-slate-700 dark:text-slate-300');
+      index += operator_match[0].length;
       continue;
     }
 
@@ -174,59 +174,59 @@ function highlightCppLine(line: string) {
   return tokens;
 }
 
-export function MarkdownBlock({ children, className }: { children: string; className?: string }) {
+export function MarkdownBlock({ children, className: class_name }: { children: string; className?: string }) {
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
-      className={cn('space-y-3 text-sm leading-7', className)}
+      className={cn('space-y-3 text-sm leading-7', class_name)}
       components={{
-        p: ({ children: paragraphChildren }) => <p>{paragraphChildren}</p>,
-        h1: ({ children: headingChildren }) => (
-          <h1 className="text-lg font-semibold text-foreground">{headingChildren}</h1>
+        p: ({ children: paragraph_children }) => <p>{paragraph_children}</p>,
+        h1: ({ children: heading_children }) => (
+          <h1 className="text-lg font-semibold text-foreground">{heading_children}</h1>
         ),
-        h2: ({ children: headingChildren }) => (
-          <h2 className="text-base font-semibold text-foreground">{headingChildren}</h2>
+        h2: ({ children: heading_children }) => (
+          <h2 className="text-base font-semibold text-foreground">{heading_children}</h2>
         ),
-        h3: ({ children: headingChildren }) => (
-          <h3 className="text-sm font-semibold text-foreground">{headingChildren}</h3>
+        h3: ({ children: heading_children }) => (
+          <h3 className="text-sm font-semibold text-foreground">{heading_children}</h3>
         ),
-        blockquote: ({ children: quoteChildren }) => (
+        blockquote: ({ children: quote_children }) => (
           <blockquote className="space-y-3 border-l-4 border-primary/40 pl-4 text-muted-foreground italic">
-            {quoteChildren}
+            {quote_children}
           </blockquote>
         ),
-        a: ({ children: linkChildren, href }) => (
+        a: ({ children: link_children, href }) => (
           <a
             href={href}
             target="_blank"
             rel="noopener noreferrer"
             className="font-medium text-primary underline underline-offset-2"
           >
-            {linkChildren}
+            {link_children}
           </a>
         ),
         hr: () => <hr className="border-border" />,
-        ul: ({ children: listChildren }) => (
-          <ul className="list-inside list-['・'] space-y-2">{listChildren}</ul>
+        ul: ({ children: list_children }) => (
+          <ul className="list-inside list-['・'] space-y-2">{list_children}</ul>
         ),
-        ol: ({ children: listChildren }) => (
-          <ol className="list-inside list-decimal space-y-2">{listChildren}</ol>
+        ol: ({ children: list_children }) => (
+          <ol className="list-inside list-decimal space-y-2">{list_children}</ol>
         ),
-        li: ({ children: itemChildren }) => <li>{itemChildren}</li>,
-        code: ({ children: codeChildren, className: codeClassName }) => {
-          if (codeClassName) {
-            return <HighlightedCode className={codeClassName}>{String(codeChildren)}</HighlightedCode>;
+        li: ({ children: item_children }) => <li>{item_children}</li>,
+        code: ({ children: code_children, className: code_class_name }) => {
+          if (code_class_name) {
+            return <HighlightedCode className={code_class_name}>{String(code_children)}</HighlightedCode>;
           }
 
           return (
             <code className="rounded-md bg-muted px-1.5 py-0.5 font-mono text-[0.85em] text-foreground">
-              {codeChildren}
+              {code_children}
             </code>
           );
         },
-        pre: ({ children: preChildren }) => (
+        pre: ({ children: pre_children }) => (
           <pre className="overflow-x-auto rounded-2xl border border-border bg-slate-100 p-4 font-mono leading-6 text-slate-900 dark:bg-[#0d1117] dark:text-slate-100">
-            {preChildren}
+            {pre_children}
           </pre>
         )
       }}

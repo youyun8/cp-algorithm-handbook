@@ -13,7 +13,8 @@ import {
 import { kProblemById } from '@/lib/data';
 import { countTopics, type TrainingCampPhase, type TrainingCampTopic } from '@/lib/trainingCamp';
 import { getTrainingCampNote } from '@/lib/trainingCampNotes';
-import { MarkdownBlock } from '@/components/MarkdownBlock';
+import { InlineMarkdown } from '@/components/MarkdownBlock';
+import { CodeReveal } from '@/components/CodeReveal';
 import type { Problem } from '@/lib/types';
 import { cn, difficultyClass, problemDisplayTitle, sourceUrl } from '@/lib/utils';
 
@@ -87,13 +88,13 @@ function TopicTree({
             </div>
 
             {topic.summary ? (
-              <p className="mt-2 text-sm leading-7 text-muted-foreground">{topic.summary}</p>
+              <p className="mt-2 text-sm leading-7 text-muted-foreground">
+                <InlineMarkdown>{topic.summary}</InlineMarkdown>
+              </p>
             ) : null}
 
             {topic.code ? (
-              <div className="mt-3">
-                <MarkdownBlock>{`\`\`\`cpp\n${topic.code}\n\`\`\``}</MarkdownBlock>
-              </div>
+              <CodeReveal code={topic.code} title={topic.title} complexity={topic.complexity} />
             ) : null}
 
             {topic.children && topic.children.length > 0 ? (
@@ -239,7 +240,9 @@ export function TrainingCampOverview({
                               <Lightbulb className="h-4 w-4 text-blue-600 dark:text-blue-300" aria-hidden />
                               <p className="text-sm font-semibold">本講重點</p>
                             </div>
-                            <p className="mt-2 text-sm leading-7 text-muted-foreground">{note.summary}</p>
+                            <p className="mt-2 text-sm leading-7 text-muted-foreground">
+                              <InlineMarkdown>{note.summary}</InlineMarkdown>
+                            </p>
                           </div>
                         ) : null}
 
@@ -265,12 +268,14 @@ export function TrainingCampOverview({
                                       ) : null}
                                     </div>
                                     <p className="mt-2 text-sm leading-7 text-muted-foreground">
-                                      {impl.idea}
+                                      <InlineMarkdown>{impl.idea}</InlineMarkdown>
                                     </p>
                                     {impl.code ? (
-                                      <div className="mt-3">
-                                        <MarkdownBlock>{`\`\`\`cpp\n${impl.code}\n\`\`\``}</MarkdownBlock>
-                                      </div>
+                                      <CodeReveal
+                                        code={impl.code}
+                                        title={impl.title}
+                                        complexity={impl.complexity}
+                                      />
                                     ) : null}
                                   </div>
                                 ))}
@@ -295,7 +300,9 @@ export function TrainingCampOverview({
                                       aria-hidden
                                       className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-rose-500/70"
                                     />
-                                    <span className="min-w-0 flex-1">{pitfall}</span>
+                                    <span className="min-w-0 flex-1">
+                                      <InlineMarkdown>{pitfall}</InlineMarkdown>
+                                    </span>
                                   </li>
                                 ))}
                               </ul>
@@ -311,7 +318,9 @@ export function TrainingCampOverview({
                                   {note.tips.map((tip) => (
                                     <li key={`${module.id}-tip-${tip}`} className="flex gap-2 text-sm leading-7 text-emerald-900 dark:text-emerald-100">
                                       <span aria-hidden className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500/70" />
-                                      <span className="min-w-0 flex-1">{tip}</span>
+                                      <span className="min-w-0 flex-1">
+                                        <InlineMarkdown>{tip}</InlineMarkdown>
+                                      </span>
                                     </li>
                                   ))}
                                 </ul>

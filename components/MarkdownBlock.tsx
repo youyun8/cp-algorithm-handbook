@@ -1,7 +1,39 @@
-import type { ReactNode } from 'react';
+import { Fragment, type ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { cn } from '@/lib/utils';
+
+/**
+ * Renders a prose string with only inline `code` spans honoured; every other
+ * character (including `*`, `_`, `[`, `]` used in math such as `2^k` or
+ * `Σ_{d|n}`) is emitted literally. We deliberately do NOT run these short
+ * summaries through a full Markdown parser: they contain no intentional
+ * bold/italic/links, and a parser would mangle bare `*`/`_` in formulae into
+ * emphasis. This keeps inline code like `rand()` or `__gnu_pbds` styled while
+ * leaving math untouched.
+ */
+export function InlineMarkdown({ children, className: class_name }: { children: string; className?: string }) {
+  // Split on properly-paired backtick spans; unmatched backticks stay literal.
+  const segments = children.split(/(`[^`]+`)/g);
+
+  return (
+    <span className={cn(class_name)}>
+      {segments.map((segment, index) => {
+        if (segment.length >= 2 && segment.startsWith('`') && segment.endsWith('`')) {
+          return (
+            <code
+              key={index}
+              className="rounded-md bg-muted px-1.5 py-0.5 font-mono text-[0.85em] text-foreground"
+            >
+              {segment.slice(1, -1)}
+            </code>
+          );
+        }
+        return <Fragment key={index}>{segment}</Fragment>;
+      })}
+    </span>
+  );
+}
 
 const kCppKeywords = new Set([
   'auto',

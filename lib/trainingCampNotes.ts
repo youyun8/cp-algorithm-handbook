@@ -24,13 +24,22 @@ export const kTrainingCampNotes: Record<string, TrainingCampNote> = {
       {
         title: '關閉同步、加速 cin/cout',
         idea: '預設的 cin/cout 會與 C 的 stdio 同步，讀入 10^6 級別資料時會明顯變慢。在 main 開頭關閉同步並解除 cin/cout 綁定即可。關閉後不要再混用 scanf/printf。',
-        code: 'int main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    int n;\n    cin >> n;\n    return 0;\n}',
+        code: `int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    int n;
+    cin >> n;
+    return 0;
+}`,
         complexity: '輸入 O(n)，常數大幅下降'
       },
       {
         title: '選對整數型別',
         idea: 'int 約到 2.1×10^9，任何可能超過的乘法或前綴和都要用 long long。判斷準則：把最大輸入代入運算式，只要中間值可能超過 2×10^9 就升型。',
-        code: 'long long sum = 0;\nfor (int i = 0; i < n; ++i) sum += (long long)a[i] * b[i];'
+        code: `long long sum = 0;
+for (int i = 0; i < n; ++i) {
+    sum += (long long)a[i] * b[i];
+}`
       }
     ],
     pitfalls: [
@@ -56,7 +65,12 @@ export const kTrainingCampNotes: Record<string, TrainingCampNote> = {
       {
         title: '遞迴三要素',
         idea: '寫遞迴先確定：終止條件、每層要做的事、如何縮小問題。缺少終止條件會無限遞迴，縮小方向錯誤會堆疊溢位。',
-        code: 'long long fib(int n) {\n    if (n <= 1) return n; // 終止條件\n    return fib(n - 1) + fib(n - 2); // 縮小規模\n}',
+        code: `long long fib(int n) {
+    if (n <= 1) {
+        return n; // 終止條件
+    }
+    return fib(n - 1) + fib(n - 2); // 縮小規模
+}`,
         complexity: '樸素 O(2^n)，加記憶化後 O(n)'
       }
     ],
@@ -78,13 +92,26 @@ export const kTrainingCampNotes: Record<string, TrainingCampNote> = {
       {
         title: '單鏈表的插入與刪除',
         idea: '鏈表的價值在於 O(1) 改接指標。刪除節點要先找到「前驅」，再讓前驅指向下一個；插入則相反。務必處理頭節點與空表的邊界。',
-        code: 'struct Node { int val; Node* next; };\n// 在 p 之後插入 x\nvoid insertAfter(Node* p, int x) {\n    Node* q = new Node{x, p->next};\n    p->next = q;\n}',
+        code: `struct Node {
+    int val;
+    Node* next;
+};
+// 在 p 之後插入 x
+void insertAfter(Node* p, int x) {
+    Node* q = new Node{x, p->next};
+    p->next = q;
+}`,
         complexity: '插入/刪除 O(1)，查找 O(n)'
       },
       {
         title: '用 STL 容器代替手寫',
         idea: '賽場上大多數情境用 vector、stack、queue 就夠，省下手寫指標的除錯時間。需要兩端操作時用 deque。',
-        code: 'stack<int> st;\nst.push(1);\nif (!st.empty()) { int t = st.top(); st.pop(); }'
+        code: `stack<int> st;
+st.push(1);
+if (!st.empty()) {
+    int t = st.top();
+    st.pop();
+}`
       }
     ],
     pitfalls: [
@@ -105,7 +132,14 @@ export const kTrainingCampNotes: Record<string, TrainingCampNote> = {
       {
         title: '前中後序遞迴遍歷',
         idea: '三種深度遍歷只差「處理當前節點」的位置：前序在遞迴左右子樹之前，中序在之間，後序在之後。層序則改用佇列做 BFS。',
-        code: 'void inorder(Node* r) {\n    if (!r) return;\n    inorder(r->left);\n    visit(r);          // 中序：夾在左右之間\n    inorder(r->right);\n}',
+        code: `void inorder(Node* r) {
+    if (!r) {
+        return;
+    }
+    inorder(r->left);
+    visit(r); // 中序：夾在左右之間
+    inorder(r->right);
+}`,
         complexity: 'O(n)'
       },
       {
@@ -132,13 +166,27 @@ export const kTrainingCampNotes: Record<string, TrainingCampNote> = {
       {
         title: '鄰接表存圖',
         idea: '稀疏圖（邊數遠小於點數平方）一律用鄰接表，空間 O(n+m)。vector<int> g[N] 最直觀；追求極致常數才用鏈式前向星。',
-        code: 'vector<int> g[N];\ng[u].push_back(v);\ng[v].push_back(u); // 無向圖雙向加邊',
+        code: `vector<int> g[N];
+g[u].push_back(v);
+g[v].push_back(u); // 無向圖雙向加邊`,
         complexity: '空間 O(n+m)'
       },
       {
         title: 'BFS 求最短步數',
         idea: '無權圖最短路用 BFS：起點入隊並標記，逐層擴展，第一次訪問到的層數就是最短步數。用 visited 避免重複入隊。',
-        code: 'queue<int> q; q.push(s); dist[s] = 0;\nwhile (!q.empty()) {\n    int u = q.front(); q.pop();\n    for (int v : g[u]) if (dist[v] == -1) {\n        dist[v] = dist[u] + 1;\n        q.push(v);\n    }\n}',
+        code: `queue<int> q;
+q.push(s);
+dist[s] = 0;
+while (!q.empty()) {
+    int u = q.front();
+    q.pop();
+    for (int v : g[u]) {
+        if (dist[v] == -1) {
+            dist[v] = dist[u] + 1;
+            q.push(v);
+        }
+    }
+}`,
         complexity: 'O(n+m)'
       }
     ],
@@ -160,7 +208,14 @@ export const kTrainingCampNotes: Record<string, TrainingCampNote> = {
       {
         title: '貪心：先排序再掃描',
         idea: '多數貪心的骨架是「按某個關鍵字排序，再一次掃描做選擇」。難點在證明排序關鍵字正確——通常用交換論證：證明交換任意逆序對不會變差。',
-        code: 'sort(a, a + n, [](auto& x, auto& y){ return x.end < y.end; });\nint cnt = 0, last = -INF;\nfor (auto& it : a) if (it.start >= last) { ++cnt; last = it.end; }',
+        code: `sort(a, a + n, [](auto& x, auto& y) { return x.end < y.end; });
+int cnt = 0, last = -INF;
+for (auto& it : a) {
+    if (it.start >= last) {
+        ++cnt;
+        last = it.end;
+    }
+}`,
         complexity: 'O(n log n)'
       },
       {
@@ -187,7 +242,21 @@ export const kTrainingCampNotes: Record<string, TrainingCampNote> = {
       {
         title: '高精度加法',
         idea: '低位對齊，逐位相加並處理進位。逆序存儲讓「個位在下標 0」，進位自然向高位傳播。',
-        code: 'vector<int> add(vector<int>& A, vector<int>& B) {\n    vector<int> C; int carry = 0;\n    for (int i = 0; i < A.size() || i < B.size() || carry; ++i) {\n        if (i < A.size()) carry += A[i];\n        if (i < B.size()) carry += B[i];\n        C.push_back(carry % 10);\n        carry /= 10;\n    }\n    return C;\n}',
+        code: `vector<int> add(vector<int>& A, vector<int>& B) {
+    vector<int> C;
+    int carry = 0;
+    for (int i = 0; i < A.size() || i < B.size() || carry; ++i) {
+        if (i < A.size()) {
+            carry += A[i];
+        }
+        if (i < B.size()) {
+            carry += B[i];
+        }
+        C.push_back(carry % 10);
+        carry /= 10;
+    }
+    return C;
+}`,
         complexity: 'O(len)'
       },
       {
@@ -214,13 +283,32 @@ export const kTrainingCampNotes: Record<string, TrainingCampNote> = {
       {
         title: '二分答案',
         idea: '當「答案越大越容易/越難滿足」具單調性時，二分答案值再用 check 驗證，把最優化問題轉成判定問題。',
-        code: 'int lo = 0, hi = MAX;\nwhile (lo < hi) {\n    int mid = lo + (hi - lo) / 2;\n    if (check(mid)) hi = mid; else lo = mid + 1;\n}\n// lo 即最小可行答案',
+        code: `int lo = 0, hi = MAX;
+while (lo < hi) {
+    int mid = lo + (hi - lo) / 2;
+    if (check(mid)) {
+        hi = mid;
+    } else {
+        lo = mid + 1;
+    }
+}
+// lo 即最小可行答案`,
         complexity: 'O(log(range) × check)'
       },
       {
         title: 'DFS 回溯模板',
         idea: '在每一層做選擇、遞迴、撤銷選擇（回溯）。撤銷是關鍵，否則狀態會污染其他分支。',
-        code: 'void dfs(int step) {\n    if (step == n) { record(); return; }\n    for (int c : choices) {\n        make(c);\n        dfs(step + 1);\n        undo(c);   // 回溯\n    }\n}'
+        code: `void dfs(int step) {
+    if (step == n) {
+        record();
+        return;
+    }
+    for (int c : choices) {
+        make(c);
+        dfs(step + 1);
+        undo(c); // 回溯
+    }
+}`
       }
     ],
     pitfalls: [
@@ -241,13 +329,23 @@ export const kTrainingCampNotes: Record<string, TrainingCampNote> = {
       {
         title: '01 背包（滾動一維）',
         idea: 'f[j] 表示容量 j 的最大價值。因為每件物品只能取一次，容量要「從大到小」遍歷，才不會重複取同一件。',
-        code: 'for (int i = 0; i < n; ++i)\n    for (int j = W; j >= w[i]; --j)\n        f[j] = max(f[j], f[j - w[i]] + v[i]);',
+        code: `for (int i = 0; i < n; ++i) {
+    for (int j = W; j >= w[i]; --j) {
+        f[j] = max(f[j], f[j - w[i]] + v[i]);
+    }
+}`,
         complexity: 'O(nW)'
       },
       {
         title: '區間 DP',
         idea: 'f[i][j] 表示區間 [i,j] 的最優解，按區間長度從小到大枚舉，內層枚舉分割點 k。',
-        code: 'for (int len = 2; len <= n; ++len)\n    for (int i = 1, j = len; j <= n; ++i, ++j)\n        for (int k = i; k < j; ++k)\n            f[i][j] = min(f[i][j], f[i][k] + f[k+1][j] + cost(i,j));',
+        code: `for (int len = 2; len <= n; ++len) {
+    for (int i = 1, j = len; j <= n; ++i, ++j) {
+        for (int k = i; k < j; ++k) {
+            f[i][j] = min(f[i][j], f[i][k] + f[k + 1][j] + cost(i, j));
+        }
+    }
+}`,
         complexity: 'O(n^3)'
       }
     ],
@@ -269,12 +367,16 @@ export const kTrainingCampNotes: Record<string, TrainingCampNote> = {
       {
         title: 'priority_queue 定製比較',
         idea: '預設是大根堆。要小根堆可用 greater，或存負值。自訂結構體則傳比較器，注意「比較器語意與 sort 相反」——回傳 true 表示優先級更低。',
-        code: 'priority_queue<int, vector<int>, greater<int>> minHeap;\nminHeap.push(3); minHeap.push(1);\nint mn = minHeap.top(); // 1'
+        code: `priority_queue<int, vector<int>, greater<int>> minHeap;
+minHeap.push(3);
+minHeap.push(1);
+int mn = minHeap.top(); // 1`
       },
       {
         title: 'set 有序性與二分',
         idea: 'set 內部有序，lower_bound/upper_bound 是成員函數（O(log n)），別用 std::lower_bound（對 set 會退化成 O(n)）。',
-        code: 'set<int> s = {1, 4, 9};\nauto it = s.lower_bound(5); // 指向 9'
+        code: `set<int> s = {1, 4, 9};
+auto it = s.lower_bound(5); // 指向 9`
       }
     ],
     pitfalls: [
@@ -295,13 +397,29 @@ export const kTrainingCampNotes: Record<string, TrainingCampNote> = {
       {
         title: '並查集（路徑壓縮 + 按秩合併）',
         idea: 'find 時把路徑上所有點直接掛到根下（路徑壓縮），合併時把小樹掛大樹下，均攤幾乎 O(1)。',
-        code: 'int find(int x) { return fa[x] == x ? x : fa[x] = find(fa[x]); }\nvoid uni(int a, int b) { fa[find(a)] = find(b); }',
+        code: `int find(int x) {
+    return fa[x] == x ? x : fa[x] = find(fa[x]);
+}
+void uni(int a, int b) {
+    fa[find(a)] = find(b);
+}`,
         complexity: '均攤 O(α(n))'
       },
       {
         title: '樹狀陣列（單點改、前綴查）',
         idea: '用 lowbit(x)=x&-x 跳躍維護前綴和，單點修改與前綴查詢都是 O(log n)，常數比線段樹小很多。',
-        code: 'void add(int i, int v) { for (; i <= n; i += i & -i) c[i] += v; }\nint sum(int i) { int s = 0; for (; i; i -= i & -i) s += c[i]; return s; }',
+        code: `void add(int i, int v) {
+    for (; i <= n; i += i & -i) {
+        c[i] += v;
+    }
+}
+int sum(int i) {
+    int s = 0;
+    for (; i; i -= i & -i) {
+        s += c[i];
+    }
+    return s;
+}`,
         complexity: 'O(log n) 每次操作'
       },
       {
@@ -328,13 +446,32 @@ export const kTrainingCampNotes: Record<string, TrainingCampNote> = {
       {
         title: 'KMP 的 next 陣列',
         idea: 'next[i] 表示模式串前 i 個字元的最長公共前後綴長度。匹配失配時用它跳轉，避免主串指標回退，達成 O(n+m)。',
-        code: 'vector<int> nxt(m);\nfor (int i = 1, j = 0; i < m; ++i) {\n    while (j && p[i] != p[j]) j = nxt[j - 1];\n    if (p[i] == p[j]) ++j;\n    nxt[i] = j;\n}',
+        code: `vector<int> nxt(m);
+for (int i = 1, j = 0; i < m; ++i) {
+    while (j && p[i] != p[j]) {
+        j = nxt[j - 1];
+    }
+    if (p[i] == p[j]) {
+        ++j;
+    }
+    nxt[i] = j;
+}`,
         complexity: 'O(n+m)'
       },
       {
         title: 'Trie 插入與查詢',
         idea: '每個節點有若干子指標（如 26 個字母）。插入沿字元下沉、缺節點就建；查詢沿字元走，走不通即不存在。',
-        code: 'int ch[N][26], cnt = 0;\nvoid insert(const string& s) {\n    int u = 0;\n    for (char c : s) {\n        int x = c - 97;\n        if (!ch[u][x]) ch[u][x] = ++cnt;\n        u = ch[u][x];\n    }\n}',
+        code: `int ch[N][26], cnt = 0;
+void insert(const string& s) {
+    int u = 0;
+    for (char c : s) {
+        int x = c - 97;
+        if (!ch[u][x]) {
+            ch[u][x] = ++cnt;
+        }
+        u = ch[u][x];
+    }
+}`,
         complexity: 'O(字串長度)'
       }
     ],
@@ -356,7 +493,13 @@ export const kTrainingCampNotes: Record<string, TrainingCampNote> = {
       {
         title: '旋轉是所有平衡樹的原子操作',
         idea: '左旋/右旋在不破壞 BST 性質的前提下調整樹高。所有平衡樹（AVL、Treap、Splay）都靠旋轉來維持或恢復平衡。',
-        code: '// 右旋：x 的左子 y 上提\nNode* rotateRight(Node* x) {\n    Node* y = x->l; x->l = y->r; y->r = x;\n    return y;\n}'
+        code: `// 右旋：x 的左子 y 上提
+Node* rotateRight(Node* x) {
+    Node* y = x->l;
+    x->l = y->r;
+    y->r = x;
+    return y;
+}`
       },
       {
         title: 'Treap = BST + 堆',
@@ -372,7 +515,7 @@ export const kTrainingCampNotes: Record<string, TrainingCampNote> = {
     tips: [
       'Treap 的隨機優先級可用 `rand()` 或 `chrono` 種子，比賽中 `srand(time(0))` 即可。',
       '旋轉操作只要記住「左旋提右子、右旋提左子」，判斷誰當新根就好。',
-      '普通平衡樹題目，若無區間反轉等特殊操作，直接用 `std::set` 或 `__gnu_pbds` 省下大量除錯時間。'
+      '普通平衡樹題目，若無區間反轉等特殊操作，直接用 `std::set`（只需增刪查）或 GCC 內建的 `__gnu_pbds::tree`（還要排名／第 k 小）省下大量除錯時間；後者的完整用法見「平衡樹」講次的「用 __gnu_pbds 免手寫平衡樹」一節。'
     ]
   },
   'strengthening-graph-advanced': {
@@ -382,7 +525,22 @@ export const kTrainingCampNotes: Record<string, TrainingCampNote> = {
       {
         title: 'Tarjan 求強連通分量',
         idea: '維護 dfn（訪問時間）與 low（能回溯到的最早祖先）。用堆疊存當前路徑，當 dfn[u]==low[u] 時彈出堆疊得到一個 SCC。',
-        code: 'void tarjan(int u) {\n    dfn[u] = low[u] = ++idx;\n    stk.push(u); inStk[u] = true;\n    for (int v : g[u]) {\n        if (!dfn[v]) { tarjan(v); low[u] = min(low[u], low[v]); }\n        else if (inStk[v]) low[u] = min(low[u], dfn[v]);\n    }\n    if (dfn[u] == low[u]) { /* 彈棧成一個 SCC */ }\n}',
+        code: `void tarjan(int u) {
+    dfn[u] = low[u] = ++idx;
+    stk.push(u);
+    inStk[u] = true;
+    for (int v : g[u]) {
+        if (!dfn[v]) {
+            tarjan(v);
+            low[u] = min(low[u], low[v]);
+        } else if (inStk[v]) {
+            low[u] = min(low[u], dfn[v]);
+        }
+    }
+    if (dfn[u] == low[u]) {
+        /* 彈棧成一個 SCC */
+    }
+}`,
         complexity: 'O(n+m)'
       }
     ],
@@ -404,7 +562,22 @@ export const kTrainingCampNotes: Record<string, TrainingCampNote> = {
       {
         title: '堆優化 Dijkstra',
         idea: '每次取當前最短的未定點擴展。用小根堆維護候選距離，適用「非負權」圖。取出時若距離過期就跳過。',
-        code: 'priority_queue<pair<int,int>, vector<pair<int,int>>, greater<>> pq;\npq.push({0, s}); dist[s] = 0;\nwhile (!pq.empty()) {\n    auto [d, u] = pq.top(); pq.pop();\n    if (d > dist[u]) continue;\n    for (auto [v, w] : g[u]) if (dist[u] + w < dist[v]) {\n        dist[v] = dist[u] + w; pq.push({dist[v], v});\n    }\n}',
+        code: `priority_queue<pair<int, int>, vector<pair<int, int>>, greater<>> pq;
+pq.push({0, s});
+dist[s] = 0;
+while (!pq.empty()) {
+    auto [d, u] = pq.top();
+    pq.pop();
+    if (d > dist[u]) {
+        continue;
+    }
+    for (auto [v, w] : g[u]) {
+        if (dist[u] + w < dist[v]) {
+            dist[v] = dist[u] + w;
+            pq.push({dist[v], v});
+        }
+    }
+}`,
         complexity: 'O(m log n)'
       },
       {
@@ -436,7 +609,16 @@ export const kTrainingCampNotes: Record<string, TrainingCampNote> = {
       {
         title: 'IDA* 迭代加深',
         idea: '以「當前深度 + 估價 h」為界，逐步放大深度上限做 DFS。h 必須是「不高估」的可採納啟發，否則得不到最優解。',
-        code: 'bool dfs(int g, int limit) {\n    int h = heuristic();\n    if (g + h > limit) return false; // 超界剪枝\n    if (isGoal()) return true;\n    // 枚舉下一步...\n}'
+        code: `bool dfs(int g, int limit) {
+    int h = heuristic();
+    if (g + h > limit) {
+        return false; // 超界剪枝
+    }
+    if (isGoal()) {
+        return true;
+    }
+    // 枚舉下一步...
+}`
       }
     ],
     pitfalls: [
@@ -457,7 +639,16 @@ export const kTrainingCampNotes: Record<string, TrainingCampNote> = {
       {
         title: '樹形 DP',
         idea: 'f[u][0/1] 常表示「u 選/不選」的子樹最優解，DFS 回溯時用子節點的值更新父節點。轉移在遞迴返回時進行。',
-        code: 'void dfs(int u, int fa) {\n    f[u][1] = a[u];\n    for (int v : g[u]) if (v != fa) {\n        dfs(v, u);\n        f[u][0] += max(f[v][0], f[v][1]);\n        f[u][1] += f[v][0];\n    }\n}',
+        code: `void dfs(int u, int fa) {
+    f[u][1] = a[u];
+    for (int v : g[u]) {
+        if (v != fa) {
+            dfs(v, u);
+            f[u][0] += max(f[v][0], f[v][1]);
+            f[u][1] += f[v][0];
+        }
+    }
+}`,
         complexity: 'O(n)'
       },
       {
@@ -484,7 +675,11 @@ export const kTrainingCampNotes: Record<string, TrainingCampNote> = {
       {
         title: '分塊的通用套路',
         idea: '把序列分成約 √n 個塊，整塊打標記、散塊暴力。區間操作拆成「兩端散塊 + 中間整塊」，單次 O(√n)。',
-        code: 'int blk = sqrt(n);\nint bl(int i) { return i / blk; }\n// 區間 [l,r]：bl(l)==bl(r) 則暴力，否則兩端暴力 + 中間整塊打標記',
+        code: `int blk = sqrt(n);
+int bl(int i) {
+    return i / blk;
+}
+// 區間 [l,r]：bl(l)==bl(r) 則暴力，否則兩端暴力 + 中間整塊打標記`,
         complexity: 'O(√n) 每次操作'
       }
     ],
@@ -585,7 +780,22 @@ export const kTrainingCampNotes: Record<string, TrainingCampNote> = {
       {
         title: '主席樹求區間第 k 小',
         idea: '對每個前綴建一棵權值線段樹（可持久化共享節點）。查詢 [l,r] 時用 root[r] 與 root[l-1] 相減，在樹上二分定位第 k 小。',
-        code: '// 新版本只複製修改路徑\nint update(int pre, int l, int r, int pos) {\n    int cur = ++tot; tr[cur] = tr[pre]; tr[cur].cnt++;\n    if (l == r) return cur;\n    int mid = (l + r) >> 1;\n    if (pos <= mid) tr[cur].ls = update(tr[pre].ls, l, mid, pos);\n    else tr[cur].rs = update(tr[pre].rs, mid+1, r, pos);\n    return cur;\n}',
+        code: `// 新版本只複製修改路徑
+int update(int pre, int l, int r, int pos) {
+    int cur = ++tot;
+    tr[cur] = tr[pre];
+    tr[cur].cnt++;
+    if (l == r) {
+        return cur;
+    }
+    int mid = (l + r) >> 1;
+    if (pos <= mid) {
+        tr[cur].ls = update(tr[pre].ls, l, mid, pos);
+    } else {
+        tr[cur].rs = update(tr[pre].rs, mid + 1, r, pos);
+    }
+    return cur;
+}`,
         complexity: '每次修改/查詢 O(log n)'
       }
     ],
@@ -632,7 +842,11 @@ export const kTrainingCampNotes: Record<string, TrainingCampNote> = {
       {
         title: '多重背包的二進位拆分',
         idea: '把「某物品有 k 件」拆成 1,2,4,…,剩餘 的若干「捆」，每捆當一件做 01 背包，把 O(nWk) 降到 O(nW log k)。',
-        code: 'for (int k = 1; cnt > 0; k <<= 1) {\n    int use = min(k, cnt); cnt -= use;\n    // 以 (use*w, use*v) 做一次 01 背包\n}',
+        code: `for (int k = 1; cnt > 0; k <<= 1) {
+    int use = min(k, cnt);
+    cnt -= use;
+    // 以 (use*w, use*v) 做一次 01 背包
+}`,
         complexity: 'O(nW log k)'
       },
       {
@@ -659,7 +873,22 @@ export const kTrainingCampNotes: Record<string, TrainingCampNote> = {
       {
         title: '數位 DP 記憶化框架',
         idea: '按高位到低位 DFS，帶「是否貼上界 limit」與「是否有前導零」兩個標記。非 limit 且非前導零的狀態可記憶化重複使用。',
-        code: 'int dfs(int pos, int state, bool limit, bool lead) {\n    if (pos < 0) return /* 統計 */;\n    if (!limit && !lead && f[pos][state] != -1) return f[pos][state];\n    int up = limit ? digit[pos] : 9, res = 0;\n    for (int d = 0; d <= up; ++d)\n        res += dfs(pos - 1, next(state, d), limit && d == up, lead && d == 0);\n    if (!limit && !lead) f[pos][state] = res;\n    return res;\n}'
+        code: `int dfs(int pos, int state, bool limit, bool lead) {
+    if (pos < 0) {
+        return /* 統計 */;
+    }
+    if (!limit && !lead && f[pos][state] != -1) {
+        return f[pos][state];
+    }
+    int up = limit ? digit[pos] : 9, res = 0;
+    for (int d = 0; d <= up; ++d) {
+        res += dfs(pos - 1, next(state, d), limit && d == up, lead && d == 0);
+    }
+    if (!limit && !lead) {
+        f[pos][state] = res;
+    }
+    return res;
+}`
       },
       {
         title: '斜率優化',

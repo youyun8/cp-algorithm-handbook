@@ -67,9 +67,13 @@ int p = 1 << 20;   // 2^20 = 1048576`
             title: 'if 條件語句',
             summary:
               '條件為真才執行區塊。多分支用 else if 串接，順序由上而下第一個成立者生效，因此範圍窄的條件要寫在前面。',
-            code: `if (x > 0) cout << "positive";
-else if (x == 0) cout << "zero";
-else cout << "negative";`
+            code: `if (x > 0) {
+    cout << "positive";
+} else if (x == 0) {
+    cout << "zero";
+} else {
+    cout << "negative";
+}`
           },
           {
             title: 'switch 條件語句',
@@ -90,7 +94,9 @@ else cout << "negative";`
           {
             title: 'for 語句',
             summary: '次數已知時的首選：初始化、條件、遞增三段一目了然，迴圈變數作用域也乾淨。',
-            code: `for (int i = 0; i < n; ++i) sum += a[i];`
+            code: `for (int i = 0; i < n; ++i) {
+    sum += a[i];
+}`
           },
           {
             title: 'while 語句',
@@ -104,7 +110,9 @@ else cout << "negative";`
             title: 'do while 語句',
             summary: '至少執行一次再判斷，適合「先做一輪再檢查」的流程，例如產生下一個排列後檢查。',
             code: `int x;
-do { x = next(); } while (x != target);`
+do {
+    x = next();
+} while (x != target);`
           }
         ]
       },
@@ -125,9 +133,11 @@ int a[MAXN];              // 全域，自動為 0
             summary:
               '以列優先（row-major）連續存放，a[i][j] 的位址是 i*列寬+j。遍歷時外層走 i、內層走 j 才符合快取局部性，速度較快。',
             code: `int g[1005][1005];
-for (int i = 0; i < n; ++i)
-    for (int j = 0; j < m; ++j)
-        cin >> g[i][j];`
+for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < m; ++j) {
+        cin >> g[i][j];
+    }
+}`
           }
         ]
       },
@@ -202,9 +212,11 @@ struct Node { int v; Node* next; };`
             summary:
               '以基本運算次數對 n 的成長階數表示。實務基準：約 10^8 次運算 ≈ 1 秒。反推可用複雜度：n≤20 可 2^n；n≤5000 可 O(n^2)；n≤10^5 需 O(n log n)；n≤10^7 幾乎只能 O(n)。',
             code: `// O(n^2)：巢狀迴圈
-for (int i = 0; i < n; ++i)
-    for (int j = 0; j < n; ++j)
-        work();`,
+for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < n; ++j) {
+        work();
+    }
+}`,
             complexity: '以 10^8 ops/s 估時限'
           },
           {
@@ -256,7 +268,9 @@ void g(const vector<int>& v) { /* 只讀，不複製 */ }`
             summary:
               '三要素缺一不可：終止條件、每層要做的事、如何縮小問題。缺終止條件會無限遞迴，縮小方向錯會爆棧。',
             code: `long long fib(int n) {
-    if (n <= 1) return n;          // 終止條件
+    if (n <= 1) {
+        return n;          // 終止條件
+    }
     return fib(n - 1) + fib(n - 2); // 縮小規模
 }`,
             complexity: '樸素 O(2^n)，記憶化後 O(n)'
@@ -268,8 +282,12 @@ void g(const vector<int>& v) { /* 只讀，不複製 */ }`
             code: `// 用陣列記憶化，把指數降為線性
 long long f[100]; bool vis[100];
 long long fib(int n) {
-    if (n <= 1) return n;
-    if (vis[n]) return f[n];
+    if (n <= 1) {
+        return n;
+    }
+    if (vis[n]) {
+        return f[n];
+    }
     vis[n] = true;
     return f[n] = fib(n - 1) + fib(n - 2);
 }`
@@ -304,7 +322,9 @@ long long fib(int n) {
             title: '插入',
             summary: '在位置 pos 插入元素，需把 pos 之後全部往後搬一格，再放入新值。',
             code: `void insert(int a[], int& n, int pos, int x) {
-    for (int i = n; i > pos; --i) a[i] = a[i - 1];
+    for (int i = n; i > pos; --i) {
+        a[i] = a[i - 1];
+    }
     a[pos] = x; ++n;
 }`,
             complexity: 'O(n)'
@@ -313,7 +333,9 @@ long long fib(int n) {
             title: '刪除',
             summary: '刪掉位置 pos，需把之後元素往前搬一格覆蓋。',
             code: `void erase(int a[], int& n, int pos) {
-    for (int i = pos; i < n - 1; ++i) a[i] = a[i + 1];
+    for (int i = pos; i < n - 1; ++i) {
+        a[i] = a[i + 1];
+    }
     --n;
 }`,
             complexity: 'O(n)'
@@ -335,7 +357,11 @@ void insertAfter(Node* p, int x) {
 }
 // 刪除 p 的後繼
 void eraseAfter(Node* p) {
-    Node* q = p->next; if (q) { p->next = q->next; delete q; }
+    Node* q = p->next;
+    if (q) {
+        p->next = q->next;
+        delete q;
+    }
 }`,
             complexity: '插入/刪除 O(1)'
           },
@@ -369,7 +395,10 @@ void eraseAfter(Node* p) {
           {
             title: '出棧',
             summary: 'pop() 移除棧頂但不回傳值，需先用 top() 取值。',
-            code: `if (!st.empty()) { int t = st.top(); st.pop(); }`
+            code: `if (!st.empty()) {
+    int t = st.top();
+    st.pop();
+}`
           },
           {
             title: '取棧頂元素',
@@ -408,7 +437,7 @@ int y = q[head]; head = (head + 1) % N; // 出隊`
             summary: 'introsort，平均 O(n log n)。第三參數傳比較器，回傳 true 表示「前者該排在前」。',
             code: `sort(a, a + n);                         // 升冪
 sort(a, a + n, greater<int>());          // 降冪
-sort(v.begin(), v.end(), [](auto x, auto y){ return x.w < y.w; });`,
+sort(v.begin(), v.end(), [](auto x, auto y) { return x.w < y.w; });`,
             complexity: 'O(n log n)'
           },
           {
@@ -417,7 +446,9 @@ sort(v.begin(), v.end(), [](auto x, auto y){ return x.w < y.w; });`,
             code: `vector<int> v;
 v.push_back(3);
 v.pop_back();
-for (int x : v) cout << x;`
+for (int x : v) {
+    cout << x;
+}`
           },
           {
             title: 'stack（棧）',
@@ -504,7 +535,9 @@ child[u].push_back(v);   // v 是 u 的孩子`
             title: '先序遍歷',
             summary: '根 → 左 → 右。先處理根再遞迴子樹，常用於「複製樹」「序列化」。',
             code: `void pre(Node* r) {
-    if (!r) return;
+    if (!r) {
+        return;
+    }
     visit(r); pre(r->l); pre(r->r);
 }`,
             complexity: 'O(n)'
@@ -513,7 +546,9 @@ child[u].push_back(v);   // v 是 u 的孩子`
             title: '中序遍歷',
             summary: '左 → 根 → 右。對二叉搜索樹而言，中序輸出恰為遞增序列，可用來驗證 BST 合法性。',
             code: `void in(Node* r) {
-    if (!r) return;
+    if (!r) {
+        return;
+    }
     in(r->l); visit(r); in(r->r);
 }`,
             complexity: 'O(n)'
@@ -522,7 +557,9 @@ child[u].push_back(v);   // v 是 u 的孩子`
             title: '後序遍歷',
             summary: '左 → 右 → 根。先處理完子樹再處理根，適合「釋放樹」「自底向上計算子樹資訊」。',
             code: `void post(Node* r) {
-    if (!r) return;
+    if (!r) {
+        return;
+    }
     post(r->l); post(r->r); visit(r);
 }`,
             complexity: 'O(n)'
@@ -534,8 +571,12 @@ child[u].push_back(v);   // v 是 u 的孩子`
 while (!q.empty()) {
     Node* u = q.front(); q.pop();
     visit(u);
-    if (u->l) q.push(u->l);
-    if (u->r) q.push(u->r);
+    if (u->l) {
+        q.push(u->l);
+    }
+    if (u->r) {
+        q.push(u->r);
+    }
 }`,
             complexity: 'O(n)'
           }
@@ -546,7 +587,9 @@ while (!q.empty()) {
         summary:
           '給定一組權值，構造帶權路徑長度（WPL）最小的二叉樹。做法是貪心：每次取兩個最小權值合併，用小根堆維護，是最優前綴編碼的基礎。',
         code: `priority_queue<long long, vector<long long>, greater<>> pq;
-for (auto w : weights) pq.push(w);
+for (auto w : weights) {
+    pq.push(w);
+}
 long long cost = 0;
 while (pq.size() > 1) {
     long long a = pq.top(); pq.pop();
@@ -580,7 +623,9 @@ while (pq.size() > 1) {
             title: '查找',
             summary: '從根出發，比根小往左、比根大往右，直到命中或走到空。',
             code: `Node* find(Node* r, int x) {
-    while (r && r->val != x) r = x < r->val ? r->l : r->r;
+    while (r && r->val != x) {
+        r = x < r->val ? r->l : r->r;
+    }
     return r;
 }`,
             complexity: '平均 O(log n)，最壞 O(n)'
@@ -589,9 +634,14 @@ while (pq.size() > 1) {
             title: '插入',
             summary: '按查找路徑走到空位置，掛上新節點。',
             code: `Node* insert(Node* r, int x) {
-    if (!r) return new Node{x, nullptr, nullptr};
-    if (x < r->val) r->l = insert(r->l, x);
-    else r->r = insert(r->r, x);
+    if (!r) {
+        return new Node{x, nullptr, nullptr};
+    }
+    if (x < r->val) {
+        r->l = insert(r->l, x);
+    } else {
+        r->r = insert(r->r, x);
+    }
     return r;
 }`,
             complexity: '平均 O(log n)'
@@ -605,13 +655,24 @@ while (pq.size() > 1) {
             summary:
               '三種情況：葉節點直接刪；只有一個孩子用孩子頂替；有兩個孩子用右子樹最小值（中序後繼）替換值，再遞迴刪那個後繼。',
             code: `Node* del(Node* r, int x) {
-    if (!r) return r;
-    if (x < r->val) r->l = del(r->l, x);
-    else if (x > r->val) r->r = del(r->r, x);
-    else {
-        if (!r->l) return r->r;
-        if (!r->r) return r->l;
-        Node* s = r->r; while (s->l) s = s->l; // 後繼
+    if (!r) {
+        return r;
+    }
+    if (x < r->val) {
+        r->l = del(r->l, x);
+    } else if (x > r->val) {
+        r->r = del(r->r, x);
+    } else {
+        if (!r->l) {
+            return r->r;
+        }
+        if (!r->r) {
+            return r->l;
+        }
+        Node* s = r->r;
+        while (s->l) {  // 後繼
+            s = s->l;
+        }
         r->val = s->val; r->r = del(r->r, s->val);
     }
     return r;
@@ -659,7 +720,7 @@ vector<Edge> edges;`
           {
             title: '鄰接表',
             summary: '每個點存一串出邊，空間 O(n+m)，遍歷鄰居高效。競程最泛用，直接用 vector 最直觀。',
-            code: `vector<pair<int,int>> g[N];  // {鄰點, 權重}
+            code: `vector<pair<int, int>> g[N];  // {鄰點, 權重}
 g[u].push_back({v, w});
 g[v].push_back({u, w});      // 無向圖雙向`,
             complexity: '空間 O(n+m)'
@@ -672,7 +733,9 @@ g[v].push_back({u, w});      // 無向圖雙向`,
 void addEdge(int u, int v) {
     to[ecnt] = v; nxt[ecnt] = head[u]; head[u] = ecnt++;
 }
-for (int e = head[u]; ~e; e = nxt[e]) { int v = to[e]; /* ... */ }`
+for (int e = head[u]; ~e; e = nxt[e]) {
+    int v = to[e]; /* ... */
+}`
           },
           {
             title: '圖的存儲技巧',
@@ -692,8 +755,10 @@ for (int e = head[u]; ~e; e = nxt[e]) { int v = to[e]; /* ... */ }`
             code: `queue<int> q; q.push(s); dist[s] = 0;
 while (!q.empty()) {
     int u = q.front(); q.pop();
-    for (auto [v, w] : g[u]) if (dist[v] == -1) {
-        dist[v] = dist[u] + 1; q.push(v);
+    for (auto [v, w] : g[u]) {
+        if (dist[v] == -1) {
+            dist[v] = dist[u] + 1; q.push(v);
+        }
     }
 }`,
             complexity: 'O(n+m)'
@@ -703,7 +768,11 @@ while (!q.empty()) {
             summary: '沿一條路走到底再回溯，天然遞迴。用於連通塊計數、拓撲、找環、樹形 DP 的骨架。',
             code: `void dfs(int u) {
     vis[u] = true;
-    for (auto [v, w] : g[u]) if (!vis[v]) dfs(v);
+    for (auto [v, w] : g[u]) {
+        if (!vis[v]) {
+            dfs(v);
+        }
+    }
 }`,
             complexity: 'O(n+m)'
           }
@@ -737,9 +806,13 @@ while (!q.empty()) {
             summary:
               '常見骨架是「按某關鍵字排序，再一次掃描做選擇」。正確性通常用交換論證：證明把任意逆序對交換不會讓答案變差。沒證明就用很危險，先想反例或改 DP。',
             code: `// 區間排程：按結束時間排序，能接就接
-sort(a, a + n, [](auto& x, auto& y){ return x.end < y.end; });
+sort(a, a + n, [](auto& x, auto& y) { return x.end < y.end; });
 int cnt = 0, last = -INF;
-for (auto& it : a) if (it.start >= last) { ++cnt; last = it.end; }`,
+for (auto& it : a) {
+    if (it.start >= last) {
+        ++cnt; last = it.end;
+    }
+}`,
             complexity: 'O(n log n)'
           },
           {
@@ -763,15 +836,24 @@ for (auto& it : a) if (it.start >= last) { ++cnt; last = it.end; }`,
             summary:
               '對半分、各自排序、再線性合併兩個有序段。穩定且最壞仍 O(n log n)，需 O(n) 額外空間；合併時可順帶統計逆序對。',
             code: `void merge_sort(int l, int r) {
-    if (l >= r) return;
+    if (l >= r) {
+        return;
+    }
     int m = (l + r) / 2;
     merge_sort(l, m); merge_sort(m + 1, r);
     int i = l, j = m + 1, k = 0;
-    while (i <= m && j <= r)
+    while (i <= m && j <= r) {
         tmp[k++] = a[i] <= a[j] ? a[i++] : a[j++];
-    while (i <= m) tmp[k++] = a[i++];
-    while (j <= r) tmp[k++] = a[j++];
-    for (int t = 0; t < k; ++t) a[l + t] = tmp[t];
+    }
+    while (i <= m) {
+        tmp[k++] = a[i++];
+    }
+    while (j <= r) {
+        tmp[k++] = a[j++];
+    }
+    for (int t = 0; t < k; ++t) {
+        a[l + t] = tmp[t];
+    }
 }`,
             complexity: 'O(n log n)'
           },
@@ -780,12 +862,20 @@ for (auto& it : a) if (it.start >= last) { ++cnt; last = it.end; }`,
             summary:
               '選 pivot，將小於的丟左、大於的丟右，遞迴兩側。平均 O(n log n)，但對有序輸入不隨機化會退化 O(n^2)。其 partition 可延伸出 O(n) 平均的 QuickSelect 求第 k 小。',
             code: `void quick_sort(int l, int r) {
-    if (l >= r) return;
+    if (l >= r) {
+        return;
+    }
     int i = l, j = r, p = a[l + rand() % (r - l + 1)];
     while (i <= j) {
-        while (a[i] < p) ++i;
-        while (a[j] > p) --j;
-        if (i <= j) swap(a[i++], a[j--]);
+        while (a[i] < p) {
+            ++i;
+        }
+        while (a[j] > p) {
+            --j;
+        }
+        if (i <= j) {
+            swap(a[i++], a[j--]);
+        }
     }
     quick_sort(l, j); quick_sort(i, r);
 }`,
@@ -802,10 +892,12 @@ for (auto& it : a) if (it.start >= last) { ++cnt; last = it.end; }`,
             summary:
               's[i]=a[1..i] 之和，區間和 a[l..r]=s[r]−s[l−1] 為 O(1)。二維以容斥求子矩陣和。適用「陣列不變、多次查區間和」。',
             code: `// 一維
-for (int i = 1; i <= n; ++i) s[i] = s[i - 1] + a[i];
+for (int i = 1; i <= n; ++i) {
+    s[i] = s[i - 1] + a[i];
+}
 int sum = s[r] - s[l - 1];
 // 二維子矩陣和
-int S = p[x2][y2] - p[x1-1][y2] - p[x2][y1-1] + p[x1-1][y1-1];`,
+int S = p[x2][y2] - p[x1 - 1][y2] - p[x2][y1 - 1] + p[x1 - 1][y1 - 1];`,
             complexity: '預處理 O(n)，查詢 O(1)'
           },
           {
@@ -813,7 +905,9 @@ int S = p[x2][y2] - p[x1-1][y2] - p[x2][y1-1] + p[x1-1][y1-1];`,
             summary:
               '前綴和的逆運算：對區間 [l,r] 同加 v，只需 d[l]+=v、d[r+1]−=v，最後求前綴和還原。把「多次區間加、最後查值」變 O(n)。',
             code: `d[l] += v; d[r + 1] -= v;          // 多次區間加
-for (int i = 1; i <= n; ++i) a[i] = a[i-1] + d[i]; // 還原`,
+for (int i = 1; i <= n; ++i) {  // 還原
+    a[i] = a[i - 1] + d[i];
+}`,
             complexity: '每次區間加 O(1)'
           }
         ]
@@ -830,7 +924,9 @@ for (int i = 1; i <= n; ++i) a[i] = a[i-1] + d[i]; // 還原`,
 int i = 0, j = n - 1;
 while (i < j) {
     int s = a[i] + a[j];
-    if (s == target) break;
+    if (s == target) {
+        break;
+    }
     s < target ? ++i : --j;
 }`,
             complexity: 'O(n)'
@@ -842,7 +938,9 @@ while (i < j) {
             code: `int l = 0; long long sum = 0, best = 0;
 for (int r = 0; r < n; ++r) {
     sum += a[r];
-    while (sum > K) sum -= a[l++];   // 收縮到合法
+    while (sum > K) {  // 收縮到合法
+        sum -= a[l++];
+    }
     best = max(best, (long long)(r - l + 1));
 }`,
             complexity: 'O(n)'
@@ -876,7 +974,10 @@ x ^= (1 << k);            // 翻轉第 k 位`
               'x−1 會把最低位的 1 變 0、其後的 0 變 1，故 x&(x−1) 恰好抹掉最低位的 1。反覆執行可 O(popcount) 數「1 的個數」；判 2 的冪則是 x>0 且 x&(x−1)==0。',
             code: `int popcount(int x) {
     int c = 0;
-    while (x) { x &= x - 1; ++c; }
+    while (x) {
+        x &= x - 1;
+        ++c;
+    }
     return c;
 }
 bool isPow2 = x > 0 && (x & (x - 1)) == 0;`,
@@ -893,9 +994,14 @@ bool isPow2 = x > 0 && (x & (x - 1)) == 0;`,
             summary:
               '判單一數只需試除到 √n；質因數分解也是試除到 √n，每找到一個因子就除盡，最後剩下的（>1）也是一個質因子。',
             code: `bool isPrime(long long n) {
-    if (n < 2) return false;
-    for (long long i = 2; i * i <= n; ++i)
-        if (n % i == 0) return false;
+    if (n < 2) {
+        return false;
+    }
+    for (long long i = 2; i * i <= n; ++i) {
+        if (n % i == 0) {
+            return false;
+        }
+    }
     return true;
 }`,
             complexity: 'O(√n)'
@@ -907,11 +1013,17 @@ bool isPow2 = x > 0 && (x & (x - 1)) == 0;`,
             code: `// 歐拉線性篩
 vector<int> primes; bool comp[N];
 for (int i = 2; i < N; ++i) {
-    if (!comp[i]) primes.push_back(i);
+    if (!comp[i]) {
+        primes.push_back(i);
+    }
     for (int p : primes) {
-        if (1LL * i * p >= N) break;
+        if (1LL * i * p >= N) {
+            break;
+        }
         comp[i * p] = true;
-        if (i % p == 0) break;   // 只被最小質因子篩
+        if (i % p == 0) {  // 只被最小質因子篩
+            break;
+        }
     }
 }`,
             complexity: '埃氏 O(n log log n)，歐拉 O(n)'
@@ -951,7 +1063,9 @@ long long lcm(long long a, long long b) {
             code: `long long qpow(long long a, long long b, long long mod) {
     long long r = 1; a %= mod;
     while (b) {
-        if (b & 1) r = r * a % mod;
+        if (b & 1) {
+            r = r * a % mod;
+        }
         a = a * a % mod; b >>= 1;
     }
     return r;
@@ -988,7 +1102,9 @@ long long lcm(long long a, long long b) {
             summary: '把輸入字串逆序存進 int 陣列，s 的最後一個字元（個位）放到 A[0]，方便對齊與進位。',
             code: `vector<int> toNum(const string& s) {
     vector<int> a;
-    for (int i = s.size() - 1; i >= 0; --i) a.push_back(s[i] - '0');
+    for (int i = s.size() - 1; i >= 0; --i) {
+        a.push_back(s[i] - '0');
+    }
     return a;
 }`
           },
@@ -998,8 +1114,12 @@ long long lcm(long long a, long long b) {
             code: `vector<int> add(vector<int>& A, vector<int>& B) {
     vector<int> C; int carry = 0;
     for (int i = 0; i < A.size() || i < B.size() || carry; ++i) {
-        if (i < A.size()) carry += A[i];
-        if (i < B.size()) carry += B[i];
+        if (i < A.size()) {
+            carry += A[i];
+        }
+        if (i < B.size()) {
+            carry += B[i];
+        }
         C.push_back(carry % 10); carry /= 10;
     }
     return C;
@@ -1016,9 +1136,14 @@ long long lcm(long long a, long long b) {
             title: '比較大小',
             summary: '先比長度，長者大；等長則從高位往低位逐位比較，決定誰減誰與結果符號。',
             code: `bool geq(vector<int>& A, vector<int>& B) {   // A >= B ?
-    if (A.size() != B.size()) return A.size() > B.size();
-    for (int i = A.size() - 1; i >= 0; --i)
-        if (A[i] != B[i]) return A[i] > B[i];
+    if (A.size() != B.size()) {
+        return A.size() > B.size();
+    }
+    for (int i = A.size() - 1; i >= 0; --i) {
+        if (A[i] != B[i]) {
+            return A[i] > B[i];
+        }
+    }
     return true;
 }`
           },
@@ -1035,7 +1160,9 @@ long long lcm(long long a, long long b) {
         int t = A[i] - borrow - (i < B.size() ? B[i] : 0);
         borrow = t < 0; C.push_back((t + 10) % 10);
     }
-    while (C.size() > 1 && C.back() == 0) C.pop_back();
+    while (C.size() > 1 && C.back() == 0) {
+        C.pop_back();
+    }
     return C;
 }`,
             complexity: 'O(len)'
@@ -1056,10 +1183,14 @@ long long lcm(long long a, long long b) {
             code: `vector<int> mul(vector<int>& A, int b) {
     vector<int> C; int carry = 0;
     for (int i = 0; i < A.size() || carry; ++i) {
-        if (i < A.size()) carry += A[i] * b;
+        if (i < A.size()) {
+            carry += A[i] * b;
+        }
         C.push_back(carry % 10); carry /= 10;
     }
-    while (C.size() > 1 && C.back() == 0) C.pop_back();
+    while (C.size() > 1 && C.back() == 0) {
+        C.pop_back();
+    }
     return C;
 }`,
             complexity: 'O(len)'
@@ -1083,7 +1214,10 @@ long long lcm(long long a, long long b) {
         int cur = rem * 10 + A[i];
         C.push_back(cur / b); rem = cur % b;
     }
-    int k = 0; while (k + 1 < C.size() && C[k] == 0) ++k;
+    int k = 0;
+    while (k + 1 < C.size() && C[k] == 0) {
+        ++k;
+    }
     return vector<int>(C.begin() + k, C.end());
 }`,
             complexity: 'O(len)'
@@ -1123,7 +1257,11 @@ long long lcm(long long a, long long b) {
     int lo = 0, hi = n;
     while (lo < hi) {
         int mid = lo + (hi - lo) / 2;
-        if (a[mid] < x) lo = mid + 1; else hi = mid;
+        if (a[mid] < x) {
+            lo = mid + 1;
+        } else {
+            hi = mid;
+        }
     }
     return lo;
 }`,
@@ -1136,7 +1274,11 @@ long long lcm(long long a, long long b) {
             code: `int lo = 0, hi = MAX;
 while (lo < hi) {
     int mid = lo + (hi - lo) / 2;
-    if (check(mid)) hi = mid; else lo = mid + 1;
+    if (check(mid)) {
+        hi = mid;
+    } else {
+        lo = mid + 1;
+    }
 }
 // lo 即最小可行答案`,
             complexity: 'O(log(range) × check)'
@@ -1156,7 +1298,10 @@ while (lo < hi) {
             title: '回溯法模板',
             summary: '選擇 → 遞迴 → 撤銷 三段式。到達葉層記錄答案。',
             code: `void dfs(int step) {
-    if (step == n) { record(); return; }
+    if (step == n) {
+        record();
+        return;
+    }
     for (int c : choices) {
         make(c);
         dfs(step + 1);
@@ -1228,17 +1373,21 @@ while (lo < hi) {
             title: '01 背包問題',
             summary:
               '每件物品取或不取。f[j] 為容量 j 的最大價值；因為每件只能取一次，容量要「從大到小」遍歷，避免同件被重複取。',
-            code: `for (int i = 0; i < n; ++i)
-    for (int j = W; j >= w[i]; --j)
-        f[j] = max(f[j], f[j - w[i]] + v[i]);`,
+            code: `for (int i = 0; i < n; ++i) {
+    for (int j = W; j >= w[i]; --j) {
+        f[j] = max(f[j], f[j - w[i]] + v[i]);
+    }
+}`,
             complexity: 'O(nW)'
           },
           {
             title: '完全背包問題',
             summary: '每件物品可取無限次。與 01 背包唯一差別是容量「從小到大」遍歷，讓同件能被重複計入。',
-            code: `for (int i = 0; i < n; ++i)
-    for (int j = w[i]; j <= W; ++j)
-        f[j] = max(f[j], f[j - w[i]] + v[i]);`,
+            code: `for (int i = 0; i < n; ++i) {
+    for (int j = w[i]; j <= W; ++j) {
+        f[j] = max(f[j], f[j - w[i]] + v[i]);
+    }
+}`,
             complexity: 'O(nW)'
           }
         ]
@@ -1250,24 +1399,32 @@ while (lo < hi) {
         code: `// LIS：O(n^2) 版本，f[i] 為以 i 結尾的最長上升子序列長度
 for (int i = 0; i < n; ++i) {
     f[i] = 1;
-    for (int j = 0; j < i; ++j)
-        if (a[j] < a[i]) f[i] = max(f[i], f[j] + 1);
+    for (int j = 0; j < i; ++j) {
+        if (a[j] < a[i]) {
+            f[i] = max(f[i], f[j] + 1);
+        }
+    }
 }
 // 最大連續子段和（Kadane）
 long long cur = 0, best = LLONG_MIN;
-for (int i = 0; i < n; ++i) { cur = max((long long)a[i], cur + a[i]); best = max(best, cur); }`,
+for (int i = 0; i < n; ++i) {
+    cur = max((long long)a[i], cur + a[i]);
+    best = max(best, cur);
+}`,
         complexity: 'LIS O(n^2)（可二分優化到 O(n log n)）'
       },
       {
         title: '區間動態規劃',
         summary:
           'f[i][j] 表示區間 [i,j] 的最優解，按「區間長度由小到大」枚舉，內層枚舉分割點 k，確保計算大區間時子區間已就緒。石子合併、括號匹配、迴文皆屬此類。',
-        code: `for (int len = 2; len <= n; ++len)
+        code: `for (int len = 2; len <= n; ++len) {
     for (int i = 1, j = len; j <= n; ++i, ++j) {
         f[i][j] = INF;
-        for (int k = i; k < j; ++k)
+        for (int k = i; k < j; ++k) {
             f[i][j] = min(f[i][j], f[i][k] + f[k + 1][j] + cost(i, j));
-    }`,
+        }
+    }
+}`,
         complexity: 'O(n^3)'
       }
     ]

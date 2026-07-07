@@ -81,7 +81,9 @@ ms.erase(ms.find(2));         // 只刪一個（erase(值) 會刪全部）`,
         code: `map<string, int> cnt;
 cnt["apple"]++;               // 不存在則先插入 0 再 +1
 if (cnt.count("banana")) { /* ... */ }
-for (auto& [k, v] : cnt) cout << k << ' ' << v << '\\n';`,
+for (auto& [k, v] : cnt) {
+    cout << k << ' ' << v << '\\n';
+}`,
         complexity: 'O(log n) 每次操作'
       },
       {
@@ -145,12 +147,26 @@ do { /* 用此排列 */ } while (next_permutation(a, a + n));`,
         summary:
           '維護「不相交集合」的合併與查詢。find 用路徑壓縮、合併用按秩/大小，均攤近 O(α(n))≈O(1)。比較連通性時比的是「根」。',
         code: `int fa[N], sz[N];
-void init(int n){ for(int i=1;i<=n;++i){ fa[i]=i; sz[i]=1; } }
-int find(int x){ return fa[x]==x ? x : fa[x]=find(fa[x]); }
-void uni(int a,int b){
-    a=find(a); b=find(b); if(a==b) return;
-    if(sz[a]<sz[b]) swap(a,b);
-    fa[b]=a; sz[a]+=sz[b];
+void init(int n) {
+    for (int i = 1; i <= n; ++i) {
+        fa[i] = i;
+        sz[i] = 1;
+    }
+}
+int find(int x) {
+    return fa[x] == x ? x : fa[x] = find(fa[x]);
+}
+void uni(int a, int b) {
+    a = find(a);
+    b = find(b);
+    if (a == b) {
+        return;
+    }
+    if (sz[a] < sz[b]) {
+        swap(a, b);
+    }
+    fa[b] = a;
+    sz[a] += sz[b];
 }`,
         complexity: '均攤 O(α(n))'
       },
@@ -168,10 +184,14 @@ void uni(int a,int b){
             summary:
               '對「可重複貢獻」的運算（max/min/gcd）預處理 st[i][k]=區間 [i, i+2^k−1] 的值，O(n log n) 建表。',
             code: `int st[N][20];
-for (int i = 0; i < n; ++i) st[i][0] = a[i];
-for (int k = 1; (1 << k) <= n; ++k)
-    for (int i = 0; i + (1 << k) <= n; ++i)
-        st[i][k] = max(st[i][k-1], st[i + (1 << (k-1))][k-1]);`,
+for (int i = 0; i < n; ++i) {
+    st[i][0] = a[i];
+}
+for (int k = 1; (1 << k) <= n; ++k) {
+    for (int i = 0; i + (1 << k) <= n; ++i) {
+        st[i][k] = max(st[i][k - 1], st[i + (1 << (k - 1))][k - 1]);
+    }
+}`,
             complexity: '建表 O(n log n)'
           },
           {
@@ -200,12 +220,23 @@ for (int k = 1; (1 << k) <= n; ++k)
               '預處理 up[u][k]=u 的 2^k 級祖先與深度，查詢時先對齊深度再一起倍增上跳。線上、好寫，最常用。',
             code: `int up[N][20], dep[N];
 int lca(int u, int v) {
-    if (dep[u] < dep[v]) swap(u, v);
-    for (int k = 19; k >= 0; --k)
-        if (dep[up[u][k]] >= dep[v]) u = up[u][k];
-    if (u == v) return u;
-    for (int k = 19; k >= 0; --k)
-        if (up[u][k] != up[v][k]) { u = up[u][k]; v = up[v][k]; }
+    if (dep[u] < dep[v]) {
+        swap(u, v);
+    }
+    for (int k = 19; k >= 0; --k) {
+        if (dep[up[u][k]] >= dep[v]) {
+            u = up[u][k];
+        }
+    }
+    if (u == v) {
+        return u;
+    }
+    for (int k = 19; k >= 0; --k) {
+        if (up[u][k] != up[v][k]) {
+            u = up[u][k];
+            v = up[v][k];
+        }
+    }
     return up[u][0];
 }`,
             complexity: '預處理 O(n log n)，查詢 O(log n)'
@@ -231,16 +262,29 @@ int lca(int u, int v) {
             title: '一維樹狀數組',
             summary: '支援單點加與前綴和查詢；區間和 = sum(r) − sum(l−1)。',
             code: `int c[N];
-void add(int i, int v){ for(; i<=n; i+=i&-i) c[i]+=v; }
-int sum(int i){ int s=0; for(; i; i-=i&-i) s+=c[i]; return s; }`,
+void add(int i, int v) {
+    for (; i <= n; i += i & -i) {
+        c[i] += v;
+    }
+}
+int sum(int i) {
+    int s = 0;
+    for (; i; i -= i & -i) {
+        s += c[i];
+    }
+    return s;
+}`,
             complexity: 'O(log n) 每次'
           },
           {
             title: '多維樹狀數組',
             summary: '把 lowbit 跳躍套在每一維上，二維即巢狀兩層迴圈，支援單點改、子矩陣和。',
-            code: `void add(int x,int y,int v){
-    for(int i=x;i<=n;i+=i&-i)
-        for(int j=y;j<=m;j+=j&-j) c[i][j]+=v;
+            code: `void add(int x, int y, int v) {
+    for (int i = x; i <= n; i += i & -i) {
+        for (int j = y; j <= m; j += j & -j) {
+            c[i][j] += v;
+        }
+    }
 }`,
             complexity: '二維 O(log n · log m)'
           }
@@ -254,17 +298,28 @@ int sum(int i){ int s=0; for(; i; i-=i&-i) s+=c[i]; return s; }`,
           {
             title: '基本操作',
             summary: '建樹、單點/區間查詢：遞迴到與查詢區間相交的節點，用 pushup 由子節點合併父節點資訊。',
-            code: `int t[4*N];
-void build(int p,int l,int r){
-    if(l==r){ t[p]=a[l]; return; }
-    int m=(l+r)/2; build(2*p,l,m); build(2*p+1,m+1,r);
-    t[p]=t[2*p]+t[2*p+1];
+            code: `int t[4 * N];
+void build(int p, int l, int r) {
+    if (l == r) {
+        t[p] = a[l];
+        return;
+    }
+    int m = (l + r) / 2;
+    build(2 * p, l, m);
+    build(2 * p + 1, m + 1, r);
+    t[p] = t[2 * p] + t[2 * p + 1];
 }
-int query(int p,int l,int r,int ql,int qr){
-    if(ql<=l && r<=qr) return t[p];
-    int m=(l+r)/2, s=0;
-    if(ql<=m) s+=query(2*p,l,m,ql,qr);
-    if(qr>m)  s+=query(2*p+1,m+1,r,ql,qr);
+int query(int p, int l, int r, int ql, int qr) {
+    if (ql <= l && r <= qr) {
+        return t[p];
+    }
+    int m = (l + r) / 2, s = 0;
+    if (ql <= m) {
+        s += query(2 * p, l, m, ql, qr);
+    }
+    if (qr > m) {
+        s += query(2 * p + 1, m + 1, r, ql, qr);
+    }
     return s;
 }`,
             complexity: 'O(log n) 每次'
@@ -273,13 +328,17 @@ int query(int p,int l,int r,int ql,int qr){
             title: '懶操作',
             summary:
               '區間修改時不立刻下推到葉，先在節點打「懶標記」，等需要訪問其子區間時才 pushdown 並清空標記。這是區間改+區間查的關鍵。',
-            code: `long long tag[4*N];
-void pushdown(int p,int l,int r){
-    if(!tag[p]) return;
-    int m=(l+r)/2;
-    t[2*p]+= tag[p]*(m-l+1); tag[2*p]+=tag[p];
-    t[2*p+1]+= tag[p]*(r-m); tag[2*p+1]+=tag[p];
-    tag[p]=0;
+            code: `long long tag[4 * N];
+void pushdown(int p, int l, int r) {
+    if (!tag[p]) {
+        return;
+    }
+    int m = (l + r) / 2;
+    t[2 * p] += tag[p] * (m - l + 1);
+    tag[2 * p] += tag[p];
+    t[2 * p + 1] += tag[p] * (r - m);
+    tag[2 * p + 1] += tag[p];
+    tag[p] = 0;
 }`,
             complexity: 'O(log n) 每次'
           }
@@ -348,8 +407,12 @@ void pushdown(int p,int l,int r){
               '預處理模式串的 next（前綴函數）：next[i] 為前 i 字元的最長相等真前後綴長度。失配時模式指標跳到 next 處、主串指標不回退。',
             code: `vector<int> nxt(m);
 for (int i = 1, j = 0; i < m; ++i) {
-    while (j && p[i] != p[j]) j = nxt[j - 1];
-    if (p[i] == p[j]) ++j;
+    while (j && p[i] != p[j]) {
+        j = nxt[j - 1];
+    }
+    if (p[i] == p[j]) {
+        ++j;
+    }
     nxt[i] = j;
 }
 // 匹配同理：用 nxt 在失配時跳轉主串比對`,
@@ -366,9 +429,15 @@ for (int i = 1, j = 0; i < m; ++i) {
             title: '創建',
             summary: '插入時沿字元下沉，缺節點就新建；可在終點記錄計數或標記。',
             code: `int ch[N][26], cnt[N], tot;
-void insert(const string& s){
-    int u=0;
-    for(char c:s){ int x=c-'a'; if(!ch[u][x]) ch[u][x]=++tot; u=ch[u][x]; }
+void insert(const string& s) {
+    int u = 0;
+    for (char c : s) {
+        int x = c - 'a';
+        if (!ch[u][x]) {
+            ch[u][x] = ++tot;
+        }
+        u = ch[u][x];
+    }
     cnt[u]++;
 }`,
             complexity: 'O(|s|)'
@@ -376,9 +445,15 @@ void insert(const string& s){
           {
             title: '查找',
             summary: '沿字元往下走，走不通即不存在；走到終點看標記判斷是否為完整詞。',
-            code: `bool find(const string& s){
-    int u=0;
-    for(char c:s){ int x=c-'a'; if(!ch[u][x]) return false; u=ch[u][x]; }
+            code: `bool find(const string& s) {
+    int u = 0;
+    for (char c : s) {
+        int x = c - 'a';
+        if (!ch[u][x]) {
+            return false;
+        }
+        u = ch[u][x];
+    }
     return cnt[u] > 0;
 }`,
             complexity: 'O(|s|)'
@@ -401,15 +476,40 @@ void insert(const string& s){
             code: `const unsigned long long B = 131;
 unsigned long long h[N], pw[N];
 // 預處理
-pw[0]=1;
-for(int i=1;i<=n;++i){ h[i]=h[i-1]*B + s[i]; pw[i]=pw[i-1]*B; }
-auto sub=[&](int l,int r){ return h[r]-h[l-1]*pw[r-l+1]; };`,
+pw[0] = 1;
+for (int i = 1; i <= n; ++i) {
+    h[i] = h[i - 1] * B + s[i];
+    pw[i] = pw[i - 1] * B;
+}
+auto sub = [&](int l, int r) {
+    return h[r] - h[l - 1] * pw[r - l + 1];
+};`,
             complexity: '預處理 O(n)，查詢 O(1)'
           },
           {
             title: '雙重哈希防碰撞技巧',
             summary:
-              '用兩組不同的 base/模同時雜湊，兩者都相等才判相等，碰撞機率降到可忽略。或用 unsigned long long 自然溢位配隨機 base 防被 hack。'
+              '用兩組不同的 base/模同時雜湊，兩者都相等才判相等，碰撞機率降到可忽略。或用 unsigned long long 自然溢位配隨機 base 防被 hack。',
+            code: `const long long B1 = 131, B2 = 13331;
+const long long M1 = 1e9 + 7, M2 = 998244353;
+long long h1[N], h2[N], p1[N], p2[N];
+void build(const string& s) {
+    int n = s.size();
+    p1[0] = p2[0] = 1;
+    for (int i = 1; i <= n; ++i) {
+        h1[i] = (h1[i - 1] * B1 + s[i - 1]) % M1;
+        h2[i] = (h2[i - 1] * B2 + s[i - 1]) % M2;
+        p1[i] = p1[i - 1] * B1 % M1;
+        p2[i] = p2[i - 1] * B2 % M2;
+    }
+}
+// 子串 [l, r]（1-indexed）的雜湊對，兩者皆相等才判相等
+pair<long long, long long> get(int l, int r) {
+    long long a = ((h1[r] - h1[l - 1] * p1[r - l + 1]) % M1 + M1) % M1;
+    long long b = ((h2[r] - h2[l - 1] * p2[r - l + 1]) % M2 + M2) % M2;
+    return {a, b};
+}`,
+            complexity: '預處理 O(n)，查詢 O(1)'
           }
         ]
       },
@@ -423,14 +523,24 @@ auto sub=[&](int l,int r){ return h[r]-h[l-1]*pw[r-l+1]; };`,
             summary:
               '維護當前最右回文邊界 r 與其中心 c，對位置 i 先用鏡像點 p[2c−i] 初始化半徑，再嘗試擴張並更新 c、r。',
             code: `string t = "^#";
-for (char c : s) { t += c; t += '#'; }
+for (char c : s) {
+    t += c;
+    t += '#';
+}
 t += '$';
 vector<int> p(t.size());
 int c = 0, r = 0;
 for (int i = 1; i + 1 < (int)t.size(); ++i) {
-    if (i < r) p[i] = min(r - i, p[2 * c - i]);
-    while (t[i + p[i] + 1] == t[i - p[i] - 1]) ++p[i];
-    if (i + p[i] > r) { c = i; r = i + p[i]; }
+    if (i < r) {
+        p[i] = min(r - i, p[2 * c - i]);
+    }
+    while (t[i + p[i] + 1] == t[i - p[i] - 1]) {
+        ++p[i];
+    }
+    if (i + p[i] > r) {
+        c = i;
+        r = i + p[i];
+    }
 }`,
             complexity: 'O(n)'
           }
@@ -494,7 +604,14 @@ for (int i = 1; i + 1 < (int)t.size(); ++i) {
             title: '右旋和左旋',
             summary: '旋轉是所有平衡樹的原子操作，在不破壞 BST 性質下調整結構。「左旋提右子、右旋提左子」。',
             code: `// 右旋：x 的左子 y 上提
-Node* rotR(Node* x){ Node* y=x->l; x->l=y->r; y->r=x; upd(x); upd(y); return y; }`
+Node* rotR(Node* x) {
+    Node* y = x->l;
+    x->l = y->r;
+    y->r = x;
+    upd(x);
+    upd(y);
+    return y;
+}`
           },
           {
             title: '插入',
@@ -563,6 +680,75 @@ Node* rotR(Node* x){ Node* y=x->l; x->l=y->r; y->r=x; upd(x); upd(y); return y; 
             summary: '單次操作最壞 O(n)，但任意連續 m 次操作總計 O(m log n)，即均攤 O(log n)。'
           }
         ]
+      },
+      {
+        title: '用 __gnu_pbds 免手寫平衡樹',
+        summary:
+          'GCC 內建的 `__gnu_pbds::tree` 是一棵紅黑樹，加上 `tree_order_statistics_node_update` 策略後，除了 `std::set` 的增刪查外還免費支援「查第 k 小」與「查排名」。多數只需「單點插入／刪除 + 排名查詢」的題目，用它就能取代手寫平衡樹，省下大量除錯時間。',
+        children: [
+          {
+            title: '宣告與基本操作',
+            summary:
+              '引入 `<ext/pb_ds/assoc_container.hpp>` 與 `<ext/pb_ds/tree_policy.hpp>` 兩個標頭並 `using namespace __gnu_pbds;`。模板參數為 `<鍵, 映射值, 比較子, 底層樹, 節點更新策略>`；把映射值設成 `null_type` 就是「只有鍵」的有序集合，`insert`／`erase`／`find` 介面與 `std::set` 完全相同。',
+            code: `#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+using namespace __gnu_pbds;
+
+// <鍵型別, 映射型別, 比較子, 底層樹, 節點更新策略>
+// 映射型別用 null_type 代表「只有鍵」的有序集合（相當於 std::set）
+typedef tree<int, null_type, std::less<int>, rb_tree_tag,
+             tree_order_statistics_node_update>
+    ordered_set;
+
+ordered_set s;
+s.insert(10);
+s.insert(30);
+s.insert(20);
+if (s.find(20) != s.end()) {
+    s.erase(20);
+}`,
+            complexity: '每次操作 O(log n)'
+          },
+          {
+            title: '排名與第 k 小',
+            summary:
+              '`find_by_order(k)` 回傳「第 k 小」（0-indexed）元素的迭代器；`order_of_key(x)` 回傳「嚴格小於 x 的元素個數」，也就是 x 的排名（0-indexed）。兩者都是 O(log n)，正是手寫平衡樹最花時間維護的子樹大小功能。',
+            code: `ordered_set s;
+for (int x : {10, 20, 30, 40}) {
+    s.insert(x);
+}
+
+// 第 k 小（0-indexed）：find_by_order
+int second = *s.find_by_order(1);   // 20
+
+// 排名：order_of_key 回傳「嚴格小於 x 的元素個數」
+int rank30 = s.order_of_key(30);    // 2（10、20 比 30 小）
+int rank35 = s.order_of_key(35);    // 3（10、20、30 比 35 小，即 35 會插在第 3 位）`,
+            complexity: 'O(log n)'
+          },
+          {
+            title: '需要可重複值（multiset）怎麼辦',
+            summary:
+              '預設 `std::less` 會像 `std::set` 一樣去重。想保留重複值，最穩健的做法是改存 `pair<值, 唯一時間戳>`：每個元素因時間戳不同而唯一，查某個值的排名時用 `order_of_key({v, 極小值})`。直接改用 `std::less_equal` 雖能塞入重複值，但會讓 `find` 與 `erase(value)` 失效（比較子不再是嚴格弱序），除非必要不建議。',
+            code: `// 想保留重複值：改存 pair<值, 唯一時間戳>，用 less<pair> 排序
+typedef tree<std::pair<int, int>, null_type,
+             std::less<std::pair<int, int>>, rb_tree_tag,
+             tree_order_statistics_node_update>
+    ordered_multiset;
+
+ordered_multiset s;
+int timestamp = 0;
+auto add = [&](int v) {
+    s.insert({v, timestamp++});   // 時間戳保證每筆唯一，重複值都能保留
+};
+add(20);
+add(20);
+
+// 查值 v 的排名：用 {v, 極小值} 當下界
+int rank = s.order_of_key({20, -1});`,
+            complexity: 'O(log n)'
+          }
+        ]
       }
     ]
   },
@@ -610,9 +796,15 @@ Node* rotR(Node* x){ Node* y=x->l; x->l=y->r; y->r=x; upd(x); upd(y); return y; 
             code: `void tarjan(int u, int fe) {           // fe: 入邊編號
     dfn[u] = low[u] = ++idx;
     for (auto [v, id] : g[u]) {
-        if (!dfn[v]) { tarjan(v, id); low[u] = min(low[u], low[v]);
-            if (low[v] > dfn[u]) isBridge[id] = true; }
-        else if (id != (fe ^ 1)) low[u] = min(low[u], dfn[v]);
+        if (!dfn[v]) {
+            tarjan(v, id);
+            low[u] = min(low[u], low[v]);
+            if (low[v] > dfn[u]) {
+                isBridge[id] = true;
+            }
+        } else if (id != (fe ^ 1)) {
+            low[u] = min(low[u], dfn[v]);
+        }
     }
 }`,
             complexity: 'O(n+m)'
@@ -620,19 +812,57 @@ Node* rotR(Node* x){ Node* y=x->l; x->l=y->r; y->r=x; upd(x); upd(y); return y; 
           {
             title: '無向圖的割點',
             summary:
-              '非根節點 u 是割點當且僅當存在子 v 使 low[v] ≥ dfn[u]（等號差別）；根節點是割點當且僅當它有 ≥2 個 DFS 子樹。'
+              '非根節點 u 是割點當且僅當存在子 v 使 low[v] ≥ dfn[u]（等號差別）；根節點是割點當且僅當它有 ≥2 個 DFS 子樹。',
+            code: `int idx;
+int dfn[N], low[N];
+bool cut[N];
+void tarjan(int u, int root) {
+    dfn[u] = low[u] = ++idx;
+    int child = 0;
+    for (int v : g[u]) {
+        if (!dfn[v]) {
+            ++child;
+            tarjan(v, root);
+            low[u] = min(low[u], low[v]);
+            if (u != root && low[v] >= dfn[u]) {
+                cut[u] = true;
+            }
+        } else {
+            low[u] = min(low[u], dfn[v]);
+        }
+    }
+    if (u == root && child >= 2) {
+        cut[u] = true;
+    }
+}`,
+            complexity: 'O(n+m)'
           },
           {
             title: '有向圖的強連通分量',
             summary:
               '用堆疊存當前路徑，回溯時若 dfn[u]==low[u]，則從堆疊彈出直到 u，這批點構成一個 SCC。low 只用「仍在堆疊中」的點更新。',
-            code: `void tarjan(int u){
-    dfn[u]=low[u]=++idx; stk.push(u); inS[u]=true;
-    for(int v:g[u]){
-        if(!dfn[v]){ tarjan(v); low[u]=min(low[u],low[v]); }
-        else if(inS[v]) low[u]=min(low[u],dfn[v]);
+            code: `void tarjan(int u) {
+    dfn[u] = low[u] = ++idx;
+    stk.push(u);
+    inS[u] = true;
+    for (int v : g[u]) {
+        if (!dfn[v]) {
+            tarjan(v);
+            low[u] = min(low[u], low[v]);
+        } else if (inS[v]) {
+            low[u] = min(low[u], dfn[v]);
+        }
     }
-    if(dfn[u]==low[u]){ int x; do{ x=stk.top(); stk.pop(); inS[x]=false; comp[x]=scc; }while(x!=u); ++scc; }
+    if (dfn[u] == low[u]) {
+        int x;
+        do {
+            x = stk.top();
+            stk.pop();
+            inS[x] = false;
+            comp[x] = scc;
+        } while (x != u);
+        ++scc;
+    }
 }`,
             complexity: 'O(n+m)'
           }
@@ -651,8 +881,8 @@ Node* rotR(Node* x){ Node* y=x->l; x->l=y->r; y->r=x; upd(x); upd(y); return y; 
             title: 'Hierholzer 演算法',
             summary:
               'DFS 走邊，走過即刪；回溯時把節點壓入答案棧，最後反轉得歐拉路。用「當前弧」避免重複掃已刪邊，O(n+m)。',
-            code: `void dfs(int u){
-    while(head[u] < (int)g[u].size()){
+            code: `void dfs(int u) {
+    while (head[u] < (int)g[u].size()) {
         int v = g[u][head[u]++];         // 當前弧優化
         dfs(v);
     }
@@ -670,12 +900,20 @@ Node* rotR(Node* x){ Node* y=x->l; x->l=y->r; y->r=x; upd(x); upd(y); return y; 
           {
             title: '二分圖染色判定',
             summary: '用 BFS/DFS 兩色交替染色，若遇到相鄰同色即非二分圖。',
-            code: `bool bfs(int s){
-    queue<int> q; q.push(s); col[s]=0;
-    while(!q.empty()){ int u=q.front(); q.pop();
-        for(int v:g[u]){
-            if(col[v]==-1){ col[v]=col[u]^1; q.push(v); }
-            else if(col[v]==col[u]) return false;
+            code: `bool bfs(int s) {
+    queue<int> q;
+    q.push(s);
+    col[s] = 0;
+    while (!q.empty()) {
+        int u = q.front();
+        q.pop();
+        for (int v : g[u]) {
+            if (col[v] == -1) {
+                col[v] = col[u] ^ 1;
+                q.push(v);
+            } else if (col[v] == col[u]) {
+                return false;
+            }
         }
     }
     return true;
@@ -725,22 +963,39 @@ Node* rotR(Node* x){ Node* y=x->l; x->l=y->r; y->r=x; upd(x); upd(y); return y; 
             title: 'Prim 算法',
             summary:
               '從一點出發，每次把「連向已選集合的最短邊」的新點加入。用堆優化後 O(m log n)，適合稠密圖（樸素 O(n^2) 版對稠密更省）。',
-            code: `priority_queue<pair<int,int>, vector<pair<int,int>>, greater<>> pq;
-pq.push({0, s}); long long mst = 0;
-while(!pq.empty()){
-    auto [d,u]=pq.top(); pq.pop();
-    if(vis[u]) continue; vis[u]=true; mst+=d;
-    for(auto [v,w]:g[u]) if(!vis[v]) pq.push({w,v});
+            code: `priority_queue<pair<int, int>, vector<pair<int, int>>, greater<>> pq;
+pq.push({0, s});
+long long mst = 0;
+while (!pq.empty()) {
+    auto [d, u] = pq.top();
+    pq.pop();
+    if (vis[u]) {
+        continue;
+    }
+    vis[u] = true;
+    mst += d;
+    for (auto [v, w] : g[u]) {
+        if (!vis[v]) {
+            pq.push({w, v});
+        }
+    }
 }`,
             complexity: 'O(m log n)'
           },
           {
             title: 'Kruskal 算法',
             summary: '所有邊按權升序，用並查集依序加入不成環的邊，直到選滿 n−1 條。適合稀疏圖，最常用。',
-            code: `sort(edges.begin(), edges.end(), [](auto&a,auto&b){return a.w<b.w;});
-long long mst=0; int cnt=0;
-for(auto&e:edges){
-    if(find(e.u)!=find(e.v)){ uni(e.u,e.v); mst+=e.w; if(++cnt==n-1) break; }
+            code: `sort(edges.begin(), edges.end(), [](auto& a, auto& b) { return a.w < b.w; });
+long long mst = 0;
+int cnt = 0;
+for (auto& e : edges) {
+    if (find(e.u) != find(e.v)) {
+        uni(e.u, e.v);
+        mst += e.w;
+        if (++cnt == n - 1) {
+            break;
+        }
+    }
 }`,
             complexity: 'O(m log m)'
           }
@@ -754,12 +1009,22 @@ for(auto&e:edges){
             title: 'Dijkstra 算法',
             summary:
               '單源、非負權。每次取當前最短的未定點擴展鄰居（貪心），堆優化 O(m log n)。出堆時若距離已過期就跳過。不能處理負權。',
-            code: `priority_queue<pair<long long,int>, vector<pair<long long,int>>, greater<>> pq;
-fill(dist, dist+n+1, LLONG_MAX); dist[s]=0; pq.push({0,s});
-while(!pq.empty()){
-    auto [d,u]=pq.top(); pq.pop();
-    if(d>dist[u]) continue;
-    for(auto [v,w]:g[u]) if(d+w<dist[v]){ dist[v]=d+w; pq.push({dist[v],v}); }
+            code: `priority_queue<pair<long long, int>, vector<pair<long long, int>>, greater<>> pq;
+fill(dist, dist + n + 1, LLONG_MAX);
+dist[s] = 0;
+pq.push({0, s});
+while (!pq.empty()) {
+    auto [d, u] = pq.top();
+    pq.pop();
+    if (d > dist[u]) {
+        continue;
+    }
+    for (auto [v, w] : g[u]) {
+        if (d + w < dist[v]) {
+            dist[v] = d + w;
+            pq.push({dist[v], v});
+        }
+    }
 }`,
             complexity: 'O(m log n)'
           },
@@ -767,37 +1032,57 @@ while(!pq.empty()){
             title: 'Floyd 算法',
             summary:
               '全源最短路，DP：以 k 為中轉點鬆弛所有 (i,j)。三重迴圈最外層必須是中轉點 k。O(n^3)，適合 n≤400 或求傳遞閉包。',
-            code: `for(int k=1;k<=n;++k)
-    for(int i=1;i<=n;++i)
-        for(int j=1;j<=n;++j)
-            d[i][j]=min(d[i][j], d[i][k]+d[k][j]);`,
+            code: `for (int k = 1; k <= n; ++k) {
+    for (int i = 1; i <= n; ++i) {
+        for (int j = 1; j <= n; ++j) {
+            d[i][j] = min(d[i][j], d[i][k] + d[k][j]);
+        }
+    }
+}`,
             complexity: 'O(n^3)'
           },
           {
             title: 'Bellman-Ford 算法',
             summary:
               '單源、可含負權。對所有邊做 n−1 輪鬆弛（最短路至多 n−1 條邊）；若第 n 輪還能鬆弛則存在負環。O(nm)，穩健但慢。',
-            code: `fill(dist, dist+n+1, LLONG_MAX); dist[s]=0;
-for(int i=1;i<n;++i)
-    for(auto&e:edges)
-        if(dist[e.u]!=LLONG_MAX && dist[e.u]+e.w<dist[e.v])
-            dist[e.v]=dist[e.u]+e.w;
-bool neg=false;                        // 再鬆弛一輪判負環
-for(auto&e:edges)
-    if(dist[e.u]!=LLONG_MAX && dist[e.u]+e.w<dist[e.v]) neg=true;`,
+            code: `fill(dist, dist + n + 1, LLONG_MAX);
+dist[s] = 0;
+for (int i = 1; i < n; ++i) {
+    for (auto& e : edges) {
+        if (dist[e.u] != LLONG_MAX && dist[e.u] + e.w < dist[e.v]) {
+            dist[e.v] = dist[e.u] + e.w;
+        }
+    }
+}
+bool neg = false;                        // 再鬆弛一輪判負環
+for (auto& e : edges) {
+    if (dist[e.u] != LLONG_MAX && dist[e.u] + e.w < dist[e.v]) {
+        neg = true;
+    }
+}`,
             complexity: 'O(nm)'
           },
           {
             title: 'SPFA 算法',
             summary:
               'Bellman-Ford 的佇列優化：只有距離被更新的點才重新入隊鬆弛鄰居。平均很快，但特殊構造圖會退化 O(nm)，稠密圖或卡常題慎用。判負環看某點入隊次數是否 ≥ n。',
-            code: `queue<int> q; fill(dist,dist+n+1,LLONG_MAX);
-dist[s]=0; q.push(s); inq[s]=true;
-while(!q.empty()){
-    int u=q.front(); q.pop(); inq[u]=false;
-    for(auto [v,w]:g[u]) if(dist[u]+w<dist[v]){
-        dist[v]=dist[u]+w;
-        if(!inq[v]){ q.push(v); inq[v]=true; }
+            code: `queue<int> q;
+fill(dist, dist + n + 1, LLONG_MAX);
+dist[s] = 0;
+q.push(s);
+inq[s] = true;
+while (!q.empty()) {
+    int u = q.front();
+    q.pop();
+    inq[u] = false;
+    for (auto [v, w] : g[u]) {
+        if (dist[u] + w < dist[v]) {
+            dist[v] = dist[u] + w;
+            if (!inq[v]) {
+                q.push(v);
+                inq[v] = true;
+            }
+        }
     }
 }`,
             complexity: '平均 O(km)，最壞 O(nm)'
@@ -809,11 +1094,21 @@ while(!q.empty()){
         summary:
           'DAG 上把所有點排成線性序，使每條邊都從前指向後。Kahn 法用入度為 0 的佇列逐步剝離；排不滿 n 個即存在環。是 DAG 上 DP 的前置。',
         code: `queue<int> q;
-for(int i=1;i<=n;++i) if(indeg[i]==0) q.push(i);
+for (int i = 1; i <= n; ++i) {
+    if (indeg[i] == 0) {
+        q.push(i);
+    }
+}
 vector<int> order;
-while(!q.empty()){
-    int u=q.front(); q.pop(); order.push_back(u);
-    for(int v:g[u]) if(--indeg[v]==0) q.push(v);
+while (!q.empty()) {
+    int u = q.front();
+    q.pop();
+    order.push_back(u);
+    for (int v : g[u]) {
+        if (--indeg[v] == 0) {
+            q.push(v);
+        }
+    }
 }
 // order.size()<n 表示有環`,
         complexity: 'O(n+m)'
@@ -822,6 +1117,25 @@ while(!q.empty()){
         title: '關鍵路徑',
         summary:
           'AOE 網（邊表工序耗時）中從起點到終點的最長路，決定專案最短總工期。求每事件最早/最晚發生時間，兩者相等的活動即關鍵活動；先拓撲排序再正/反向 DP。',
+        code: `// ve[u]=事件最早發生時間, vl[u]=最晚發生時間
+// order 為拓撲序；g[u] 存 (v, w)
+void critical_path(int n) {
+    for (int u : order) {
+        for (auto [v, w] : g[u]) {
+            ve[v] = max(ve[v], ve[u] + w);
+        }
+    }
+    for (int i = 0; i < n; ++i) {
+        vl[i] = ve[n - 1];
+    }
+    for (int i = n - 1; i >= 0; --i) {
+        int u = order[i];
+        for (auto [v, w] : g[u]) {
+            vl[u] = min(vl[u], vl[v] - w);
+        }
+    }
+    // 對邊 (u, v, w)：ve[u] == vl[v] - w 即為關鍵活動
+}`,
         complexity: 'O(n+m)'
       }
     ]
@@ -869,17 +1183,49 @@ while(!q.empty()){
             title: 'A* 算法',
             summary:
               '以 f=g+h（已走代價+估計剩餘）為優先級的優先佇列搜索。h 可採納時首次取出目標即最優解。h 越接近真實、剪枝越強。',
-            code: `priority_queue<pair<int,State>, vector<...>, greater<>> pq;  // 以 f=g+h 排序
-// 取出 f 最小的狀態擴展，直到目標`
+            code: `// Node = {f = g + h, g, state}；小根堆依 f 排序
+struct Node {
+    int f, g, state;
+    bool operator>(const Node& o) const {
+        return f > o.f;
+    }
+};
+int astar(int start, int goal) {
+    priority_queue<Node, vector<Node>, greater<Node>> pq;
+    pq.push({heuristic(start), 0, start});
+    while (!pq.empty()) {
+        Node cur = pq.top();
+        pq.pop();
+        if (cur.state == goal) {
+            return cur.g;
+        }
+        if (cur.g > dist[cur.state]) {
+            continue;
+        }
+        for (auto [nxt, w] : g[cur.state]) {
+            int ng = cur.g + w;
+            if (ng < dist[nxt]) {
+                dist[nxt] = ng;
+                pq.push({ng + heuristic(nxt), ng, nxt});
+            }
+        }
+    }
+    return -1;
+}`
           },
           {
             title: 'IDA* 算法',
             summary:
               '迭代加深 + 估價：以「g+h ≤ limit」為界做 DFS，超界即剪枝並回溯；每輪把 limit 放大到本輪最小的超界值。空間 O(深度)，適合狀態多、難以雜湊的問題（如八數碼）。',
-            code: `bool dfs(int g, int limit){
+            code: `bool dfs(int g, int limit) {
     int h = heuristic();
-    if (g + h > limit) { nextLimit = min(nextLimit, g + h); return false; }
-    if (isGoal()) return true;
+    if (g + h > limit) {
+        nextLimit = min(nextLimit, g + h);
+        return false;
+    }
+    if (isGoal()) {
+        return true;
+    }
     // 枚舉下一步，遞迴...
     return false;
 }`
@@ -915,10 +1261,12 @@ while(!q.empty()){
         code: `void dfs(int u, int fa) {
     f[u][1] = a[u];              // 選 u
     f[u][0] = 0;                 // 不選 u
-    for (int v : g[u]) if (v != fa) {
-        dfs(v, u);
-        f[u][0] += max(f[v][0], f[v][1]);
-        f[u][1] += f[v][0];
+    for (int v : g[u]) {
+        if (v != fa) {
+            dfs(v, u);
+            f[u][0] += max(f[v][0], f[v][1]);
+            f[u][1] += f[v][0];
+        }
     }
 }`,
         complexity: 'O(n)'
@@ -928,10 +1276,17 @@ while(!q.empty()){
         summary:
           '用整數的二進位位元表示「集合狀態」，適合 n≤20 的子集問題（旅行商、棋盤覆蓋）。枚舉子集要用 for(int s=m; s; s=(s-1)&m) 才是 O(3^n)。',
         code: `// 旅行商 TSP：dp[mask][i] = 走過 mask、當前在 i 的最短
-for (int mask = 1; mask < (1 << n); ++mask)
-    for (int i = 0; i < n; ++i) if (mask >> i & 1)
-        for (int j = 0; j < n; ++j) if (!(mask >> j & 1))
-            dp[mask | 1 << j][j] = min(dp[mask | 1 << j][j], dp[mask][i] + d[i][j]);`,
+for (int mask = 1; mask < (1 << n); ++mask) {
+    for (int i = 0; i < n; ++i) {
+        if (mask >> i & 1) {
+            for (int j = 0; j < n; ++j) {
+                if (!(mask >> j & 1)) {
+                    dp[mask | 1 << j][j] = min(dp[mask | 1 << j][j], dp[mask][i] + d[i][j]);
+                }
+            }
+        }
+    }
+}`,
         complexity: 'TSP O(2^n · n^2)'
       },
       {
@@ -953,9 +1308,13 @@ for (int mask = 1; mask < (1 << n); ++mask)
               '轉移是「在滑動視窗內取最值」時，用單調隊列維護候選：隊頭是視窗最優、過期就彈出，隊尾維持單調。把 O(nk) 降到 O(n)。',
             code: `deque<int> dq;                        // 存下標，值單調
 for (int i = 0; i < n; ++i) {
-    while (!dq.empty() && dq.front() < i - k) dq.pop_front();     // 過期
+    while (!dq.empty() && dq.front() < i - k) {      // 過期
+        dq.pop_front();
+    }
     f[i] = a[i] + (dq.empty() ? 0 : f[dq.front()]);
-    while (!dq.empty() && f[dq.back()] >= f[i]) dq.pop_back();    // 維持單調
+    while (!dq.empty() && f[dq.back()] >= f[i]) {    // 維持單調
+        dq.pop_back();
+    }
     dq.push_back(i);
 }`,
             complexity: 'O(n)'
@@ -977,10 +1336,15 @@ for (int i = 0; i < n; ++i) {
             title: '擴展歐幾里得演算法 (ExGCD)',
             summary:
               '在求 gcd 的同時求出 ax+by=gcd(a,b) 的一組整數解。可用來求逆元（gcd=1 時 x 即 a⁻¹）與解線性同餘方程。',
-            code: `long long exgcd(long long a, long long b, long long& x, long long& y){
-    if(!b){ x=1; y=0; return a; }
-    long long g=exgcd(b, a%b, y, x);
-    y -= a/b * x; return g;
+            code: `long long exgcd(long long a, long long b, long long& x, long long& y) {
+    if (!b) {
+        x = 1;
+        y = 0;
+        return a;
+    }
+    long long g = exgcd(b, a % b, y, x);
+    y -= a / b * x;
+    return g;
 }`,
             complexity: 'O(log min(a,b))'
           },
@@ -988,7 +1352,9 @@ for (int i = 0; i < n; ++i) {
             title: '乘法逆元 (費馬小定理與ExGCD求法)',
             summary:
               '模 p 為質數時，由費馬小定理 a⁻¹ ≡ a^(p−2)，用快速冪求；模非質數但與 a 互質時用 ExGCD 求。需要 1..n 全部逆元時可線性遞推。',
-            code: `long long inv(long long a, long long p){ return qpow(a, p - 2, p); } // p 為質數`,
+            code: `long long inv(long long a, long long p) {
+    return qpow(a, p - 2, p);
+} // p 為質數`,
             complexity: 'O(log p)'
           }
         ]
@@ -997,6 +1363,20 @@ for (int i = 0; i < n; ++i) {
         title: '中國剩餘定理 (CRT)',
         summary:
           '解一組模兩兩互質的同餘方程 x≡a_i (mod m_i)。令 M=∏m_i，x=Σ a_i·M_i·(M_i⁻¹ mod m_i) mod M，其中 M_i=M/m_i。模數不互質時用擴展 CRT 逐步合併。',
+        code: `// exgcd 求 a 對 m 的逆元；m[] 兩兩互質
+long long crt(int k, long long a[], long long m[]) {
+    long long M = 1, ans = 0;
+    for (int i = 0; i < k; ++i) {
+        M *= m[i];
+    }
+    for (int i = 0; i < k; ++i) {
+        long long Mi = M / m[i];
+        long long x, y;
+        exgcd(Mi, m[i], x, y);  // Mi * x ≡ 1 (mod m[i])
+        ans = (ans + a[i] % M * Mi % M * (x % m[i]) % M) % M;
+    }
+    return (ans % M + M) % M;
+}`,
         complexity: 'O(k log M)'
       },
       {
@@ -1008,13 +1388,21 @@ for (int i = 0; i < n; ++i) {
             summary:
               'C(n,k)=n!/(k!(n−k)!)。模 p 下預處理階乘與階乘逆元後可 O(1) 查詢任意 C(n,k)。',
             code: `long long fac[N], ifac[N];
-void init(int n, long long p){
-    fac[0]=1; for(int i=1;i<=n;++i) fac[i]=fac[i-1]*i%p;
-    ifac[n]=qpow(fac[n], p-2, p);
-    for(int i=n;i;--i) ifac[i-1]=ifac[i]*i%p;
+void init(int n, long long p) {
+    fac[0] = 1;
+    for (int i = 1; i <= n; ++i) {
+        fac[i] = fac[i - 1] * i % p;
+    }
+    ifac[n] = qpow(fac[n], p - 2, p);
+    for (int i = n; i; --i) {
+        ifac[i - 1] = ifac[i] * i % p;
+    }
 }
-long long C(int n,int k,long long p){
-    if(k<0||k>n) return 0; return fac[n]*ifac[k]%p*ifac[n-k]%p;
+long long C(int n, int k, long long p) {
+    if (k < 0 || k > n) {
+        return 0;
+    }
+    return fac[n] * ifac[k] % p * ifac[n - k] % p;
 }`,
             complexity: '預處理 O(n)，查詢 O(1)'
           },
@@ -1022,6 +1410,13 @@ long long C(int n,int k,long long p){
             title: 'Lucas 定理',
             summary:
               'n、k 很大而模 p 為較小質數時，把 n、k 寫成 p 進位，C(n,k) mod p = ∏ C(n_i, k_i) mod p，遞迴計算。',
+            code: `// C(n, k) 為上一節模 p 下的組合數（p 為質數）
+long long lucas(long long n, long long k, long long p) {
+    if (k == 0) {
+        return 1;
+    }
+    return lucas(n / p, k / p, p) * C(n % p, k % p, p) % p;
+}`,
             complexity: 'O(p + log_p n)'
           }
         ]
@@ -1033,11 +1428,17 @@ long long C(int n,int k,long long p){
           {
             title: '矩陣乘法基礎',
             summary: 'C[i][j]=Σ A[i][k]·B[k][j]，注意過程取模與 long long 防溢位。',
-            code: `Mat operator*(const Mat& A, const Mat& B){
+            code: `Mat operator*(const Mat& A, const Mat& B) {
     Mat C{};
-    for(int i=0;i<K;++i) for(int k=0;k<K;++k) if(A.a[i][k])
-        for(int j=0;j<K;++j)
-            C.a[i][j]=(C.a[i][j]+A.a[i][k]*B.a[k][j])%MOD;
+    for (int i = 0; i < K; ++i) {
+        for (int k = 0; k < K; ++k) {
+            if (A.a[i][k]) {
+                for (int j = 0; j < K; ++j) {
+                    C.a[i][j] = (C.a[i][j] + A.a[i][k] * B.a[k][j]) % MOD;
+                }
+            }
+        }
+    }
     return C;
 }`
           },
@@ -1057,19 +1458,29 @@ long long C(int n,int k,long long p){
             title: 'Nim 遊戲',
             summary:
               '多堆石子輪流取，取完者勝。結論：各堆石子數的異或和為 0 時先手必敗，否則先手必勝。',
-            code: `int x = 0; for (int s : piles) x ^= s;
+            code: `int x = 0;
+for (int s : piles) {
+    x ^= s;
+}
 bool firstWin = (x != 0);`
           },
           {
             title: 'SG 函數與 Sprague-Grundy 定理',
             summary:
               '單個遊戲狀態的 SG = 其所有後繼 SG 的 mex（最小未出現非負整數）。多個獨立遊戲的和，其 SG = 各子遊戲 SG 的異或；為 0 即必敗態。',
-            code: `int sg(int x){
-    if(vis_computed[x]) return f[x];
+            code: `int sg(int x) {
+    if (vis_computed[x]) {
+        return f[x];
+    }
     set<int> s;
-    for(int nx : moves(x)) s.insert(sg(nx));
-    int m=0; while(s.count(m)) ++m;   // mex
-    return f[x]=m;
+    for (int nx : moves(x)) {
+        s.insert(sg(nx));
+    }
+    int m = 0;
+    while (s.count(m)) {     // mex
+        ++m;
+    }
+    return f[x] = m;
 }`
           }
         ]

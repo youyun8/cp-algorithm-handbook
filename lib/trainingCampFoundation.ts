@@ -30,21 +30,24 @@ export const foundationModules: TrainingCampModule[] = [
         title: '常用的數據類型',
         summary:
           '選型別的唯一準則是「值域」。int 約 ±2.1×10^9，long long 約 ±9.2×10^18，double 有效位數約 15 位。凡是計數、前綴和、乘積可能超過 2×10^9，一律用 long long。',
-        code: `int a = 1;                 // range approx ±2.1e9
-long long b = 1;           // range approx ±9.2e18
-double c = 1.5;            // floating-point, ~15 significant digits
-char ch = 'A';             // 1 byte
-bool flag = true;          // 0 / 1`,
+        code: `// 常用的數據類型: 用清楚的型別表達值域需求。
+int count = 1;                 // about ±2.1e9
+long long total = 1;           // about ±9.2e18, use for sums/products
+double ratio = 1.5;            // floating point, about 15 significant digits
+char letter = 'a';             // one character
+bool ok = true;                // true / false`,
         complexity: 'int 4 bytes、long long 8 bytes'
       },
       {
         title: '玩轉輸入和輸出',
         summary:
           'cin/cout 好寫但預設與 C 的 stdio 同步而較慢。在 main 開頭關閉同步、解除綁定，讀入 10^6 級資料時能快數倍；關閉後不要再混用 scanf/printf。',
-        code: `int main() {
+        code: `// 玩轉輸入和輸出: 關閉同步後就不要混用 scanf/printf。
+int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    int n; cin >> n;
+    int n;
+    cin >> n;                  // standard input
     cout << n << '\\n';    // use '\\n' instead of endl because endl flushes the buffer
     return 0;
 }`,
@@ -54,7 +57,8 @@ bool flag = true;          // 0 / 1`,
         title: '常用的運算符',
         summary:
           '算術（+ - * / %）、關係（< > == !=）、邏輯（&& || !）、位元（& | ^ ~ << >>）四大類。特別注意整數除法會捨去小數、% 對負數的結果符號跟隨被除數。',
-        code: `int q = 7 / 2;     // 3 (truncates toward zero)
+        code: `// 常用的運算符: 現代 C++ 範例，註解標出此段的核心意圖。
+int q = 7 / 2;     // 3 (truncates toward zero)
 int r = 7 % 2;     // 1
 int neg = -7 % 2;  // -1（sign follows the dividend）
 int p = 1 << 20;   // 2^20 = 1048576`
@@ -67,7 +71,8 @@ int p = 1 << 20;   // 2^20 = 1048576`
             title: 'if 條件語句',
             summary:
               '條件為真才執行區塊。多分支用 else if 串接，順序由上而下第一個成立者生效，因此範圍窄的條件要寫在前面。',
-            code: `if (x > 0) {
+            code: `// if 條件語句: 現代 C++ 範例，註解標出此段的核心意圖。
+if (x > 0) {
     cout << "positive";
 } else if (x == 0) {
     cout << "zero";
@@ -79,7 +84,8 @@ int p = 1 << 20;   // 2^20 = 1048576`
             title: 'switch 條件語句',
             summary:
               '對「單一整數/字元等於某些定值」的分派比 if 鏈清楚。每個 case 結尾要 break，否則會貫穿（fall-through）到下一個 case。',
-            code: `switch (op) {
+            code: `// switch 條件語句: 現代 C++ 範例，註解標出此段的核心意圖。
+switch (op) {
     case '+': ans = a + b; break;
     case '-': ans = a - b; break;
     default:  ans = 0;     // all other cases
@@ -94,22 +100,25 @@ int p = 1 << 20;   // 2^20 = 1048576`
           {
             title: 'for 語句',
             summary: '次數已知時的首選：初始化、條件、遞增三段一目了然，迴圈變數作用域也乾淨。',
-            code: `for (int i = 0; i < n; ++i) {
+            code: `// for 語句: 現代 C++ 範例，註解標出此段的核心意圖。
+for (int i = 0; i < n; ++i) {
     sum += a[i];
 }`
           },
           {
             title: 'while 語句',
             summary: '先判斷後執行，適合「不知道要跑幾次、直到某條件成立」的場景，例如二分、雙指標。',
-            code: `while (lo < hi) {
-    int mid = (lo + hi) / 2;
+            code: `// while 語句: 二分時用不溢位的 mid 寫法。
+while (lo < hi) {
+    int mid = lo + (hi - lo) / 2;
     // ...update lo or hi depending on the comparison result
 }`
           },
           {
             title: 'do while 語句',
             summary: '至少執行一次再判斷，適合「先做一輪再檢查」的流程，例如產生下一個排列後檢查。',
-            code: `int x;
+            code: `// do while 語句: 現代 C++ 範例，註解標出此段的核心意圖。
+int x;
 do {
     x = next();
 } while (x != target);`
@@ -124,15 +133,17 @@ do {
           {
             title: '一維數組',
             summary: '下標從 0 起算，a[i] 直接定址。全域陣列會自動歸零，區域陣列則是未定值需自行初始化。',
-            code: `const int kMaxN = 1e6 + 5;
-int a[kMaxN];              // global arrays are zero-initialized automatically
-// local initialization:int b[100] = {0};`
+            code: `// 一維數組: 固定上限用 constexpr，動態長度優先用 vector。
+constexpr int kMaxN = 1'000'000 + 5;
+array<int, kMaxN> a{};     // value-initialized to 0
+vector<int> b(n, 0);       // runtime size, also initialized to 0`
           },
           {
             title: '二維數組',
             summary:
               '以列優先（row-major）連續存放，a[i][j] 的位址是 i*列寬+j。遍歷時外層走 i、內層走 j 才符合快取局部性，速度較快。',
-            code: `int g[1005][1005];
+            code: `// 二維數組: vector 讓大小跟輸入 n,m 一致。
+vector<vector<int>> g(n, vector<int>(m));
 for (int i = 0; i < n; ++i) {
     for (int j = 0; j < m; ++j) {
         cin >> g[i][j];
@@ -149,18 +160,21 @@ for (int i = 0; i < n; ++i) {
             title: 'C 風格的字符串',
             summary:
               '以 \\0 結尾的 char 陣列，長度靠 strlen 掃描得知（O(n)）。搭配 scanf("%s")、strcmp、strcpy 使用，優點是常數小、缺點是易越界。',
-            code: `char s[105];
-scanf("%s", s);           // reads until whitespace, appends '\\0'
-int len = strlen(s);`
+            code: `// C 風格的字符串: 若必須用 char buffer，至少用 array 管理容量。
+array<char, 105> s{};
+cin >> s.data();          // reads until whitespace and appends '\\0'
+int len = strlen(s.data());`
           },
           {
             title: 'C++ string 類型的字符串',
             summary:
               '自動管理長度與記憶體，支援 +、比較、substr、find 等。size() 為 O(1)。大量拼接請用 += 或 reserve，避免反覆重配。',
-            code: `string s; cin >> s;         // reads one token
-getline(cin, s);            // reads entire line
+            code: `// C++ string 類型的字符串: string 自帶長度與記憶體管理。
+string s;
+cin >> s;                   // reads one token
+getline(cin >> ws, s);      // reads a whole line after discarding leading whitespace
 s += 'x';
-if (s.substr(0, 3) == "abc") { /* ... */ }`
+if (s.starts_with("abc")) { /* C++20 prefix check */ }`
           }
         ]
       },
@@ -168,21 +182,22 @@ if (s.substr(0, 3) == "abc") { /* ... */ }`
         title: '結構體的應用',
         summary:
           '把相關欄位打包成一個型別，讓資料有語意。競程常用於「一批帶多個屬性的物件」，再配合 sort 自訂比較排序。',
-        code: `struct Point { int x, y; };
-bool cmp(const Point& a, const Point& b) {
-    return a.x != b.x ? a.x < b.x : a.y < b.y;
-}
-Point p[100];
-sort(p, p + n, cmp);`
+        code: `// 結構體的應用: 用 vector + lambda 讓資料數量跟輸入同步。
+struct Point { int x, y; };
+vector<Point> points(n);
+ranges::sort(points, [](const Point& a, const Point& b) {
+    return pair{a.x, a.y} < pair{b.x, b.y};
+});`
       },
       {
         title: '指針的應用',
         summary:
           '指標存的是「記憶體位址」。競程主要用於手寫鏈表/樹節點、以及理解陣列與函式參數的傳遞本質。& 取位址、* 解參考。',
-        code: `int x = 10;
+        code: `// 指針的應用: 競程節點常用裸指標，空指標一律用 nullptr。
+int x = 10;
 int* p = &x;      // p stores the address of x
 *p = 20;          // dereferencing p modifies the original variable
-struct Node { int v; Node* next; };`
+struct Node { int v; Node* next = nullptr; };`
       }
     ]
   },
@@ -211,7 +226,8 @@ struct Node { int v; Node* next; };`
             title: '時間複雜度',
             summary:
               '以基本運算次數對 n 的成長階數表示。實務基準：約 10^8 次運算 ≈ 1 秒。反推可用複雜度：n≤20 可 2^n；n≤5000 可 O(n^2)；n≤10^5 需 O(n log n)；n≤10^7 幾乎只能 O(n)。',
-            code: `// O(n^2): nested loops
+            code: `// 時間複雜度: 現代 C++ 範例，註解標出此段的核心意圖。
+// O(n^2): nested loops
 for (int i = 0; i < n; ++i) {
     for (int j = 0; j < n; ++j) {
         work();
@@ -235,27 +251,33 @@ for (int i = 0; i < n; ++i) {
             title: '標準函數',
             summary:
               '善用標準庫省時間：<algorithm> 的 sort/max/min/swap/lower_bound、<cmath> 的 sqrt/abs、<numeric> 的 accumulate/gcd。',
-            code: `int m = max(a, b);
-int g = __gcd(a, b);
-sort(v.begin(), v.end());`
+            code: `// 標準函數: 優先使用標準庫名稱，避免非標準擴充。
+int m = max(a, b);
+int g = gcd(a, b);          // <numeric>, replaces non-standard __gcd
+ranges::sort(v);            // C++20 range-based sort`
           },
           {
             title: '傳值參數',
             summary: '把實參「複製」一份進函式，函式內修改不影響外部。複製大物件（如 vector）成本高。',
-            code: `void f(int x) { x = 100; }  // external value unchanged because it is passed by value`
+            code: `// 傳值參數: 現代 C++ 範例，註解標出此段的核心意圖。
+void f(int x) { x = 100; }  // external value unchanged because it is passed by value`
           },
           {
             title: '引用參數',
             summary:
               '用 & 讓形參成為實參的別名，函式內修改會反映到外部；傳大物件時加 const& 可避免複製又防止誤改。',
-            code: `void f(int& x) { x = 100; }         // modifies the external value because it is passed by reference
+            code: `// 引用參數: 現代 C++ 範例，註解標出此段的核心意圖。
+void f(int& x) { x = 100; }         // modifies the external value because it is passed by reference
 void g(const vector<int>& v) { /* read-only: avoids copying the entire vector */ }`
           },
           {
             title: '數組參數',
             summary:
               '陣列傳入時退化成指標，函式內拿不到長度，必須另外傳 n。因為傳的是位址，函式內對元素的修改會作用到原陣列。',
-            code: `void f(int a[], int n) { a[0] = 42; }  // original array is mutated because arrays decay to pointers`
+            code: `// 數組參數: span 保留長度資訊，比裸陣列參數安全。
+void f(span<int> a) {
+    a[0] = 42;              // mutates the original contiguous range
+}`
           }
         ]
       },
@@ -267,7 +289,8 @@ void g(const vector<int>& v) { /* read-only: avoids copying the entire vector */
             title: '遞歸函數',
             summary:
               '三要素缺一不可：終止條件、每層要做的事、如何縮小問題。缺終止條件會無限遞迴，縮小方向錯會爆棧。',
-            code: `long long fib(int n) {
+            code: `// 遞歸函數: 現代 C++ 範例，註解標出此段的核心意圖。
+long long fib(int n) {
     if (n <= 1) {
         return n;          // base case: stops infinite recursion
     }
@@ -279,17 +302,18 @@ void g(const vector<int>& v) { /* read-only: avoids copying the entire vector */
             title: '遞歸的原理',
             summary:
               '每次呼叫在系統堆疊壓入一層「活動記錄」，返回時彈出。深度過大（如 10^6 層）會堆疊溢位；樸素遞迴常重複計算相同子問題，看到重疊子問題就該想記憶化或改迭代。',
-            code: `// memoization turns exponential time into linear
-long long f[100]; bool vis[100];
+            code: `// 遞歸的原理: 記憶化把指數重算壓成線性。
+array<long long, 100> memo{};
+array<bool, 100> seen{};
 long long fib(int n) {
     if (n <= 1) {
         return n;
     }
-    if (vis[n]) {
-        return f[n];
+    if (seen[n]) {
+        return memo[n];
     }
-    vis[n] = true;
-    return f[n] = fib(n - 1) + fib(n - 2);
+    seen[n] = true;
+    return memo[n] = fib(n - 1) + fib(n - 2);
 }`
           }
         ]
@@ -321,22 +345,18 @@ long long fib(int n) {
           {
             title: '插入',
             summary: '在位置 pos 插入元素，需把 pos 之後全部往後搬一格，再放入新值。',
-            code: `void insert(int a[], int& n, int pos, int x) {
-    for (int i = n; i > pos; --i) {
-        a[i] = a[i - 1];
-    }
-    a[pos] = x; ++n;
+            code: `// 插入: vector::insert 直接表達「在 pos 前插入」。
+void insert(vector<int>& a, int pos, int x) {
+    a.insert(a.begin() + pos, x);
 }`,
             complexity: 'O(n)'
           },
           {
             title: '刪除',
             summary: '刪掉位置 pos，需把之後元素往前搬一格覆蓋。',
-            code: `void erase(int a[], int& n, int pos) {
-    for (int i = pos; i < n - 1; ++i) {
-        a[i] = a[i + 1];
-    }
-    --n;
+            code: `// 刪除: vector::erase 會自動搬移後續元素。
+void erase(vector<int>& a, int pos) {
+    a.erase(a.begin() + pos);
 }`,
             complexity: 'O(n)'
           }
@@ -350,13 +370,14 @@ long long fib(int n) {
           {
             title: '單鏈表',
             summary: '每個節點存值與指向下一節點的 next。用哨兵（dummy）頭節點可統一邊界處理。',
-            code: `struct Node { int val; Node* next; };
+            code: `// 單鏈表: 改接 next 即可 O(1) 插入或刪除後繼。
+struct Node { int val; Node* next = nullptr; };
 // insert x after node p
-void insertAfter(Node* p, int x) {
+void insert_after(Node* p, int x) {
     p->next = new Node{x, p->next};
 }
 // erase successor of p
-void eraseAfter(Node* p) {
+void erase_after(Node* p) {
     Node* q = p->next;
     if (q) {
         p->next = q->next;
@@ -368,7 +389,12 @@ void eraseAfter(Node* p) {
           {
             title: '雙向鏈表',
             summary: '節點多一個 prev 指標，可 O(1) 前後移動與雙向刪除，代價是多維護一組指標。對應 STL 的 std::list。',
-            code: `struct Node { int val; Node *prev, *next; };`
+            code: `// 雙向鏈表: prev/next 都初始化為 nullptr，避免野指標。
+struct Node {
+    int val{};
+    Node* prev = nullptr;
+    Node* next = nullptr;
+};`
           },
           {
             title: '循環鏈表',
@@ -378,7 +404,9 @@ void eraseAfter(Node* p) {
             title: '靜態鏈表',
             summary:
               '用陣列下標當「指標」模擬鏈表：val[i] 存值、nxt[i] 存下一個下標。省去動態配置、常數小，是競程常用寫法。',
-            code: `int val[kN], nxt[kN], head, cnt;`
+            code: `// 靜態鏈表: 用陣列下標模擬指標，適合競程節點池。
+vector<int> val(kMaxN), nxt(kMaxN);
+int head = -1, cnt = 0;`
           }
         ]
       },
@@ -390,12 +418,14 @@ void eraseAfter(Node* p) {
           {
             title: '入棧',
             summary: '把元素壓到棧頂，push 為 O(1)。',
-            code: `stack<int> st; st.push(1);`
+            code: `// 入棧: 現代 C++ 範例，註解標出此段的核心意圖。
+stack<int> st; st.push(1);`
           },
           {
             title: '出棧',
             summary: 'pop() 移除棧頂但不回傳值，需先用 top() 取值。',
-            code: `if (!st.empty()) {
+            code: `// 出棧: 現代 C++ 範例，註解標出此段的核心意圖。
+if (!st.empty()) {
     int t = st.top();
     st.pop();
 }`
@@ -403,7 +433,8 @@ void eraseAfter(Node* p) {
           {
             title: '取棧頂元素',
             summary: 'top() 讀取棧頂而不移除，O(1)。',
-            code: `int t = st.top();`
+            code: `// 取棧頂元素: 現代 C++ 範例，註解標出此段的核心意圖。
+int t = st.top();`
           }
         ]
       },
@@ -414,7 +445,9 @@ void eraseAfter(Node* p) {
           {
             title: '順序隊列',
             summary: '用陣列 + 頭尾指標（front/rear）實作，入隊移動 rear、出隊移動 front。純線性陣列會「假溢位」浪費前段空間。',
-            code: `int q[kN], head = 0, tail = 0;
+            code: `// 順序隊列: vector 當底層儲存，head/tail 是半開區間 [head, tail)。
+vector<int> q(kMaxN);
+int head = 0, tail = 0;
 q[tail++] = x;        // enqueue
 int y = q[head++];    // dequeue`
           },
@@ -422,9 +455,11 @@ int y = q[head++];    // dequeue`
             title: '循環隊列',
             summary:
               '把陣列首尾相接，下標對容量取模，解決假溢位。判空與判滿要留一格或另存 size 來區分。',
-            code: `int q[kN], head = 0, tail = 0;
-q[tail] = x; tail = (tail + 1) % kN;   // enqueue
-int y = q[head]; head = (head + 1) % kN; // dequeue`
+            code: `// 循環隊列: 取模讓尾端回到陣列開頭。
+array<int, kMaxN> q{};
+int head = 0, tail = 0;
+q[tail] = x; tail = (tail + 1) % kMaxN;   // enqueue
+int y = q[head]; head = (head + 1) % kMaxN; // dequeue`
           }
         ]
       },
@@ -435,15 +470,19 @@ int y = q[head]; head = (head + 1) % kN; // dequeue`
           {
             title: 'sort()',
             summary: 'introsort，平均 O(n log n)。第三參數傳比較器，回傳 true 表示「前者該排在前」。',
-            code: `sort(a, a + n);                         // ascending
-sort(a, a + n, greater<int>());          // descending
-sort(v.begin(), v.end(), [](auto x, auto y) { return x.w < y.w; });`,
+            code: `// sort(): ranges::sort 可直接接容器，少寫 begin/end。
+ranges::sort(v);                         // ascending
+ranges::sort(v, greater<>{});             // descending
+struct Item { int w; };
+vector<Item> items;
+ranges::sort(items, {}, &Item::w);         // sort by member w`,
             complexity: 'O(n log n)'
           },
           {
             title: 'vector（向量）',
             summary: '動態陣列，尾端增刪均攤 O(1)、隨機存取 O(1)。競程最泛用的容器。',
-            code: `vector<int> v;
+            code: `// vector（向量）: 動態陣列，尾端增刪均攤 O(1)。
+vector<int> v;
 v.push_back(3);
 v.pop_back();
 for (int x : v) {
@@ -453,17 +492,20 @@ for (int x : v) {
           {
             title: 'stack（棧）',
             summary: 'LIFO 介面封裝，底層預設用 deque。只有 push/pop/top/empty/size。',
-            code: `stack<int> st; st.push(1); st.pop();`
+            code: `// stack（棧）: 現代 C++ 範例，註解標出此段的核心意圖。
+stack<int> st; st.push(1); st.pop();`
           },
           {
             title: 'queue（隊列）',
             summary: 'FIFO 介面，push 進尾、pop 出頭、front 讀頭。BFS 標配。',
-            code: `queue<int> q; q.push(1); q.front(); q.pop();`
+            code: `// queue（隊列）: 現代 C++ 範例，註解標出此段的核心意圖。
+queue<int> q; q.push(1); q.front(); q.pop();`
           },
           {
             title: 'list（雙向鏈表）',
             summary: '雙向鏈表，任意位置 O(1) 增刪但不支援隨機存取。需要迭代器穩定或頻繁中間增刪時用。',
-            code: `list<int> lst; lst.push_front(1); lst.push_back(2);`
+            code: `// list（雙向鏈表）: 現代 C++ 範例，註解標出此段的核心意圖。
+list<int> lst; lst.push_front(1); lst.push_back(2);`
           }
         ]
       }
@@ -494,7 +536,8 @@ for (int x : v) {
           {
             title: '樹的存儲',
             summary: '一般樹用「孩子表示法」：每個節點存一個子節點清單（vector）。有根樹另存父節點便於向上跳。',
-            code: `vector<int> child[kN];
+            code: `// 樹的存儲: 每個節點保留自己的孩子清單。
+vector<vector<int>> child(n + 1);
 child[u].push_back(v);   // v is a child of u`
           },
           {
@@ -521,8 +564,13 @@ child[u].push_back(v);   // v is a child of u`
           {
             title: '二叉樹的存儲結構',
             summary: '指標式（左右孩子指標）最通用；完全二叉樹用陣列。競程常用陣列模擬避免動態配置。',
-            code: `struct Node { int val; Node *l, *r; };
-// or array-based representation:int lc[kN], rc[kN], val[kN];`
+            code: `// 二叉樹的存儲結構: 指標版適合遞迴，陣列版適合節點池。
+struct Node {
+    int val{};
+    Node* left = nullptr;
+    Node* right = nullptr;
+};
+vector<int> lc(kMaxN), rc(kMaxN), val(kMaxN); // array-based representation`
           }
         ]
       },
@@ -534,48 +582,58 @@ child[u].push_back(v);   // v is a child of u`
           {
             title: '先序遍歷',
             summary: '根 → 左 → 右。先處理根再遞迴子樹，常用於「複製樹」「序列化」。',
-            code: `void pre(Node* r) {
+            code: `// 先序遍歷: 現代 C++ 範例，註解標出此段的核心意圖。
+void pre(Node* r) {
     if (!r) {
         return;
     }
-    visit(r); pre(r->l); pre(r->r);
+    visit(r);
+    pre(r->left);
+    pre(r->right);
 }`,
             complexity: 'O(n)'
           },
           {
             title: '中序遍歷',
             summary: '左 → 根 → 右。對二叉搜索樹而言，中序輸出恰為遞增序列，可用來驗證 BST 合法性。',
-            code: `void in(Node* r) {
+            code: `// 中序遍歷: 現代 C++ 範例，註解標出此段的核心意圖。
+void in(Node* r) {
     if (!r) {
         return;
     }
-    in(r->l); visit(r); in(r->r);
+    in(r->left);
+    visit(r);
+    in(r->right);
 }`,
             complexity: 'O(n)'
           },
           {
             title: '後序遍歷',
             summary: '左 → 右 → 根。先處理完子樹再處理根，適合「釋放樹」「自底向上計算子樹資訊」。',
-            code: `void post(Node* r) {
+            code: `// 後序遍歷: 現代 C++ 範例，註解標出此段的核心意圖。
+void post(Node* r) {
     if (!r) {
         return;
     }
-    post(r->l); post(r->r); visit(r);
+    post(r->left);
+    post(r->right);
+    visit(r);
 }`,
             complexity: 'O(n)'
           },
           {
             title: '層次遍歷',
             summary: '逐層由左到右，用佇列做 BFS：出隊一個就把它的左右孩子入隊。',
-            code: `queue<Node*> q; q.push(root);
+            code: `// 層次遍歷: 現代 C++ 範例，註解標出此段的核心意圖。
+queue<Node*> q; q.push(root);
 while (!q.empty()) {
     Node* u = q.front(); q.pop();
     visit(u);
-    if (u->l) {
-        q.push(u->l);
+    if (u->left) {
+        q.push(u->left);
     }
-    if (u->r) {
-        q.push(u->r);
+    if (u->right) {
+        q.push(u->right);
     }
 }`,
             complexity: 'O(n)'
@@ -586,7 +644,8 @@ while (!q.empty()) {
         title: '哈夫曼樹',
         summary:
           '給定一組權值，構造帶權路徑長度（WPL）最小的二叉樹。做法是貪心：每次取兩個最小權值合併，用小根堆維護，是最優前綴編碼的基礎。',
-        code: `priority_queue<long long, vector<long long>, greater<>> pq;
+        code: `// 哈夫曼樹: 現代 C++ 範例，註解標出此段的核心意圖。
+priority_queue<long long, vector<long long>, greater<>> pq;
 for (auto w : weights) {
     pq.push(w);
 }
@@ -622,9 +681,10 @@ while (pq.size() > 1) {
           {
             title: '查找',
             summary: '從根出發，比根小往左、比根大往右，直到命中或走到空。',
-            code: `Node* find(Node* r, int x) {
+            code: `// 查找: 現代 C++ 範例，註解標出此段的核心意圖。
+Node* find(Node* r, int x) {
     while (r && r->val != x) {
-        r = x < r->val ? r->l : r->r;
+        r = x < r->val ? r->left : r->right;
     }
     return r;
 }`,
@@ -633,14 +693,15 @@ while (pq.size() > 1) {
           {
             title: '插入',
             summary: '按查找路徑走到空位置，掛上新節點。',
-            code: `Node* insert(Node* r, int x) {
+            code: `// 插入: 現代 C++ 範例，註解標出此段的核心意圖。
+Node* insert(Node* r, int x) {
     if (!r) {
         return new Node{x, nullptr, nullptr};
     }
     if (x < r->val) {
-        r->l = insert(r->l, x);
+        r->left = insert(r->left, x);
     } else {
-        r->r = insert(r->r, x);
+        r->right = insert(r->right, x);
     }
     return r;
 }`,
@@ -654,7 +715,8 @@ while (pq.size() > 1) {
             title: '刪除',
             summary:
               '三種情況：葉節點直接刪；只有一個孩子用孩子頂替；有兩個孩子用右子樹最小值（中序後繼）替換值，再遞迴刪那個後繼。',
-            code: `Node* del(Node* r, int x) {
+            code: `// 刪除: 現代 C++ 範例，註解標出此段的核心意圖。
+Node* del(Node* r, int x) {
     if (!r) {
         return r;
     }
@@ -663,17 +725,18 @@ while (pq.size() > 1) {
     } else if (x > r->val) {
         r->r = del(r->r, x);
     } else {
-        if (!r->l) {
-            return r->r;
+        if (!r->left) {
+            return r->right;
         }
-        if (!r->r) {
-            return r->l;
+        if (!r->right) {
+            return r->left;
         }
-        Node* s = r->r;
-        while (s->l) {  // inorder successor
-            s = s->l;
+        Node* s = r->right;
+        while (s->left) {  // inorder successor
+            s = s->left;
         }
-        r->val = s->val; r->r = del(r->r, s->val);
+        r->val = s->val;
+        r->right = del(r->right, s->val);
     }
     return r;
 }`,
@@ -707,20 +770,23 @@ while (pq.size() > 1) {
           {
             title: '鄰接矩陣',
             summary: 'g[u][v] 記錄 u→v 的邊或權。查任一邊 O(1)，但空間 O(n^2)，n 上千就 MLE。適合稠密圖與 Floyd。',
-            code: `int g[kN][kN];       // g[u][v] = edge weight; use kInf when there is no edge
+            code: `// 鄰接矩陣: vector 依節點數配置，初值代表沒有邊。
+vector<vector<int>> g(n + 1, vector<int>(n + 1, kInf));
 g[u][v] = w;`,
             complexity: '空間 O(n^2)'
           },
           {
             title: '邊集數組',
             summary: '直接存所有邊 (u, v, w)。本身不利於查鄰居，但 Kruskal、Bellman-Ford 這類「遍歷所有邊」的算法很合用。',
-            code: `struct Edge { int u, v, w; };
+            code: `// 邊集數組: Kruskal/Bellman-Ford 會直接掃所有邊。
+struct Edge { int u, v, w; };
 vector<Edge> edges;`
           },
           {
             title: '鄰接表',
             summary: '每個點存一串出邊，空間 O(n+m)，遍歷鄰居高效。競程最泛用，直接用 vector 最直觀。',
-            code: `vector<pair<int, int>> g[kN];  // {neighbor, weight}
+            code: `// 鄰接表: 稀疏圖首選，空間 O(n+m)。
+vector<vector<pair<int, int>>> g(n + 1);  // {neighbor, weight}
 g[u].push_back({v, w});
 g[v].push_back({u, w});      // undirected graph: add edges in both directions`,
             complexity: '空間 O(n+m)'
@@ -729,9 +795,11 @@ g[v].push_back({u, w});      // undirected graph: add edges in both directions`,
             title: '鏈式前向星',
             summary:
               '用陣列模擬鄰接表：head[u] 指向 u 的第一條邊，每條邊存 to 與 next。常數比 vector 小、無動態配置，卡常時使用。',
-            code: `int head[kN], to[kM], nxt[kM], ecnt;
-void addEdge(int u, int v) {
-    to[ecnt] = v; nxt[ecnt] = head[u]; head[u] = ecnt++;
+            code: `// 鏈式前向星: 用連續陣列存邊，常數小且無配置碎片。
+vector<int> head(n + 1, -1), to(kMaxM), nxt(kMaxM);
+int edge_count = 0;
+void add_edge(int u, int v) {
+    to[edge_count] = v; nxt[edge_count] = head[u]; head[u] = edge_count++;
 }
 for (int e = head[u]; ~e; e = nxt[e]) {
     int v = to[e]; /* ... */
@@ -752,12 +820,17 @@ for (int e = head[u]; ~e; e = nxt[e]) {
             title: '廣度優先遍歷',
             summary:
               '從起點逐層外擴，用佇列實作。在「無權圖」中，第一次訪問到某點的層數就是最短步數。務必在「入隊時」標記已訪問，否則會重複入隊。',
-            code: `queue<int> q; q.push(s); dist[s] = 0;
+            code: `// 廣度優先遍歷: 入隊時標記距離，避免同一點重複入隊。
+queue<int> q;
+q.push(s);
+dist[s] = 0;
 while (!q.empty()) {
-    int u = q.front(); q.pop();
+    int u = q.front();
+    q.pop();
     for (auto [v, w] : g[u]) {
         if (dist[v] == -1) {
-            dist[v] = dist[u] + 1; q.push(v);
+            dist[v] = dist[u] + 1;
+            q.push(v);
         }
     }
 }`,
@@ -766,10 +839,11 @@ while (!q.empty()) {
           {
             title: '深度優先遍歷',
             summary: '沿一條路走到底再回溯，天然遞迴。用於連通塊計數、拓撲、找環、樹形 DP 的骨架。',
-            code: `void dfs(int u) {
-    vis[u] = true;
+            code: `// 深度優先遍歷: 現代 C++ 範例，註解標出此段的核心意圖。
+void dfs(int u) {
+    visited[u] = true;
     for (auto [v, w] : g[u]) {
-        if (!vis[v]) {
+        if (!visited[v]) {
             dfs(v);
         }
     }
@@ -805,10 +879,11 @@ while (!q.empty()) {
             title: '貪心算法秘籍',
             summary:
               '常見骨架是「按某關鍵字排序，再一次掃描做選擇」。正確性通常用交換論證：證明把任意逆序對交換不會讓答案變差。沒證明就用很危險，先想反例或改 DP。',
-            code: `// interval scheduling: sort by end time and greedily pick compatible intervals
-sort(a, a + n, [](auto& x, auto& y) { return x.end < y.end; });
+            code: `// 貪心算法秘籍: 現代 C++ 範例，註解標出此段的核心意圖。
+// interval scheduling: sort by end time and greedily pick compatible intervals
+ranges::sort(a, {}, &Interval::end);
 int cnt = 0, last = -kInf;
-for (auto& it : a) {
+for (const auto& it : a) {
     if (it.start >= last) {
         ++cnt; last = it.end;
     }
@@ -835,12 +910,14 @@ for (auto& it : a) {
             title: '合併排序',
             summary:
               '對半分、各自排序、再線性合併兩個有序段。穩定且最壞仍 O(n log n)，需 O(n) 額外空間；合併時可順帶統計逆序對。',
-            code: `void mergeSort(int l, int r) {
+            code: `// 合併排序: 現代 C++ 範例，註解標出此段的核心意圖。
+void merge_sort(int l, int r) {
     if (l >= r) {
         return;
     }
-    int m = (l + r) / 2;
-    mergeSort(l, m); mergeSort(m + 1, r);
+    int m = l + (r - l) / 2;
+    merge_sort(l, m);
+    merge_sort(m + 1, r);
     int i = l, j = m + 1, k = 0;
     while (i <= m && j <= r) {
         tmp[k++] = a[i] <= a[j] ? a[i++] : a[j++];
@@ -861,11 +938,14 @@ for (auto& it : a) {
             title: '快速排序',
             summary:
               '選 pivot，將小於的丟左、大於的丟右，遞迴兩側。平均 O(n log n)，但對有序輸入不隨機化會退化 O(n^2)。其 partition 可延伸出 O(n) 平均的 QuickSelect 求第 k 小。',
-            code: `void quickSort(int l, int r) {
+            code: `// 快速排序: 現代 C++ 範例，註解標出此段的核心意圖。
+void quick_sort(int l, int r) {
     if (l >= r) {
         return;
     }
-    int i = l, j = r, p = a[l + rand() % (r - l + 1)];
+    static mt19937 rng(random_device{}());
+    uniform_int_distribution<int> pick(l, r);
+    int i = l, j = r, p = a[pick(rng)];
     while (i <= j) {
         while (a[i] < p) {
             ++i;
@@ -877,7 +957,8 @@ for (auto& it : a) {
             swap(a[i++], a[j--]);
         }
     }
-    quickSort(l, j); quickSort(i, r);
+    quick_sort(l, j);
+    quick_sort(i, r);
 }`,
             complexity: '平均 O(n log n)，最壞 O(n^2)'
           }
@@ -891,20 +972,22 @@ for (auto& it : a) {
             title: '前綴和與二維前綴和',
             summary:
               's[i]=a[1..i] 之和，區間和 a[l..r]=s[r]−s[l−1] 為 O(1)。二維以容斥求子矩陣和。適用「陣列不變、多次查區間和」。',
-            code: `// 1D prefix sum
+            code: `// 前綴和與二維前綴和: 現代 C++ 範例，註解標出此段的核心意圖。
+// 1D prefix sum
 for (int i = 1; i <= n; ++i) {
     s[i] = s[i - 1] + a[i];
 }
 int sum = s[r] - s[l - 1];
 // 2D submatrix sum
-int S = p[x2][y2] - p[x1 - 1][y2] - p[x2][y1 - 1] + p[x1 - 1][y1 - 1];`,
+int submatrix_sum = p[x2][y2] - p[x1 - 1][y2] - p[x2][y1 - 1] + p[x1 - 1][y1 - 1];`,
             complexity: '預處理 O(n)，查詢 O(1)'
           },
           {
             title: '差分與二維差分',
             summary:
               '前綴和的逆運算：對區間 [l,r] 同加 v，只需 d[l]+=v、d[r+1]−=v，最後求前綴和還原。把「多次區間加、最後查值」變 O(n)。',
-            code: `d[l] += v; d[r + 1] -= v;          // accumulate range additions lazily
+            code: `// 差分與二維差分: 現代 C++ 範例，註解標出此段的核心意圖。
+d[l] += v; d[r + 1] -= v;          // accumulate range additions lazily
 for (int i = 1; i <= n; ++i) {  // restore final values by taking prefix sums
     a[i] = a[i - 1] + d[i];
 }`,
@@ -920,7 +1003,8 @@ for (int i = 1; i <= n; ++i) {  // restore final values by taking prefix sums
             title: '雙指針算法 (同向與對向)',
             summary:
               '對向指標從兩端向中間逼近（如有序陣列找兩數之和）；同向指標一快一慢（如原地去重、判迴文）。關鍵是想清楚「移動哪一根、何時移」。',
-            code: `// two-sum on a sorted array
+            code: `// 雙指針算法 (同向與對向): 現代 C++ 範例，註解標出此段的核心意圖。
+// two-sum on a sorted array
 int i = 0, j = n - 1;
 while (i < j) {
     int s = a[i] + a[j];
@@ -935,13 +1019,14 @@ while (i < j) {
             title: '滑動窗口基礎',
             summary:
               '右指標擴張納入新元素、左指標在條件被破壞時收縮，維持一個合法區間。適用「最長/最短滿足某條件的連續子段」。',
-            code: `int l = 0; long long sum = 0, best = 0;
+            code: `// 滑動窗口基礎: 現代 C++ 範例，註解標出此段的核心意圖。
+int l = 0; long long sum = 0, best = 0;
 for (int r = 0; r < n; ++r) {
     sum += a[r];
-    while (sum > K) {  // shrink window until it satisfies the constraint
+    while (sum > limit) {  // shrink window until it satisfies the constraint
         sum -= a[l++];
     }
-    best = max(best, (long long)(r - l + 1));
+    best = max(best, static_cast<long long>(r - l + 1));
 }`,
             complexity: 'O(n)'
           }
@@ -962,7 +1047,8 @@ for (int r = 0; r < n; ++r) {
             title: '常用位運算操作與奇偶判斷',
             summary:
               '&（且）、|（或）、^（異或）、~（取反）、<</>>（移位）。奇偶用 x&1；乘/除 2 的冪用移位；取第 k 位用 (x>>k)&1；置位用 x|(1<<k)。',
-            code: `bool odd = x & 1;
+            code: `// 常用位運算操作與奇偶判斷: 現代 C++ 範例，註解標出此段的核心意圖。
+bool odd = x & 1;
 int kth = (x >> k) & 1;   // k-th bit
 x |= (1 << k);            // set the k-th bit to 1
 x &= ~(1 << k);           // clear the k-th bit to 0
@@ -972,15 +1058,9 @@ x ^= (1 << k);            // flip the k-th bit`
             title: 'x & (x-1) 的巧妙應用',
             summary:
               'x−1 會把最低位的 1 變 0、其後的 0 變 1，故 x&(x−1) 恰好抹掉最低位的 1。反覆執行可 O(popcount) 數「1 的個數」；判 2 的冪則是 x>0 且 x&(x−1)==0。',
-            code: `int popCount(int x) {
-    int c = 0;
-    while (x) {
-        x &= x - 1;
-        ++c;
-    }
-    return c;
-}
-bool isPow2 = x > 0 && (x & (x - 1)) == 0;`,
+            code: `// x & (x-1) 的巧妙應用: C++20 <bit> 有現成工具。
+int ones = popcount(static_cast<unsigned>(x));
+bool is_power_of_two = x > 0 && has_single_bit(static_cast<unsigned>(x));`,
             complexity: 'O(位數中 1 的個數)'
           }
         ]
@@ -993,11 +1073,12 @@ bool isPow2 = x > 0 && (x & (x - 1)) == 0;`,
             title: '質數判定與分解',
             summary:
               '判單一數只需試除到 √n；質因數分解也是試除到 √n，每找到一個因子就除盡，最後剩下的（>1）也是一個質因子。',
-            code: `bool isPrime(long long n) {
+            code: `// 質數判定與分解: 現代 C++ 範例，註解標出此段的核心意圖。
+bool is_prime(long long n) {
     if (n < 2) {
         return false;
     }
-    for (long long i = 2; i * i <= n; ++i) {
+    for (long long i = 2; i <= n / i; ++i) {
         if (n % i == 0) {
             return false;
         }
@@ -1010,14 +1091,16 @@ bool isPow2 = x > 0 && (x & (x - 1)) == 0;`,
             title: '埃氏篩與歐拉線性篩',
             summary:
               '埃氏篩：從每個質數起把其倍數標記為合數，O(n log log n)。歐拉篩讓每個合數只被其「最小質因子」篩一次，達到嚴格 O(n)。',
-            code: `// Euler linear sieve
-vector<int> primes; bool comp[kN];
-for (int i = 2; i < kN; ++i) {
+            code: `// 埃氏篩與歐拉線性篩: 現代 C++ 範例，註解標出此段的核心意圖。
+// Euler linear sieve
+vector<int> primes;
+vector<bool> comp(kMaxN);
+for (int i = 2; i < kMaxN; ++i) {
     if (!comp[i]) {
         primes.push_back(i);
     }
     for (int p : primes) {
-        if (1LL * i * p >= kN) {
+        if (static_cast<long long>(i) * p >= kMaxN) {
             break;
         }
         comp[i * p] = true;
@@ -1038,8 +1121,9 @@ for (int i = 2; i < kN; ++i) {
             title: '歐幾里得算法 (輾轉相除法)',
             summary:
               '基於 gcd(a,b)=gcd(b, a mod b)，輾轉取餘直到 0。lcm(a,b)=a/gcd*b（先除再乘防溢位）。',
-            code: `long long gcd(long long a, long long b) {
-    return b ? gcd(b, a % b) : a;
+            code: `// 歐幾里得算法 (輾轉相除法): 現代 C++ 範例，註解標出此段的核心意圖。
+long long gcd(long long a, long long b) {
+    return std::gcd(a, b);    // <numeric>
 }
 long long lcm(long long a, long long b) {
     return a / gcd(a, b) * b;
@@ -1060,13 +1144,16 @@ long long lcm(long long a, long long b) {
           {
             title: '整數快速冪算法',
             summary: '把指數看成二進位，逐位平方底數，遇到為 1 的位就乘進答案。',
-            code: `long long qpow(long long a, long long b, long long mod) {
-    long long r = 1; a %= mod;
+            code: `// 整數快速冪算法: 現代 C++ 範例，註解標出此段的核心意圖。
+long long mod_pow(long long a, long long b, long long mod) {
+    long long r = 1;
+    a %= mod;
     while (b) {
         if (b & 1) {
             r = r * a % mod;
         }
-        a = a * a % mod; b >>= 1;
+        a = a * a % mod;
+        b >>= 1;
     }
     return r;
 }`,
@@ -1099,11 +1186,13 @@ long long lcm(long long a, long long b) {
         children: [
           {
             title: '接收和存儲數據',
-            summary: '把輸入字串逆序存進 int 陣列，s 的最後一個字元（個位）放到 A[0]，方便對齊與進位。',
-            code: `vector<int> toNum(const string& s) {
+            summary: '把輸入字串逆序存進 int 陣列，s 的最後一個字元（個位）放到 a[0]，方便對齊與進位。',
+            code: `// 接收和存儲數據: reverse iterator 直接由低位到高位掃描。
+vector<int> to_num(const string& s) {
     vector<int> a;
-    for (int i = s.size() - 1; i >= 0; --i) {
-        a.push_back(s[i] - '0');
+    a.reserve(s.size());
+    for (char ch : views::reverse(s)) {
+        a.push_back(ch - '0');  // lowest digit first
     }
     return a;
 }`
@@ -1111,16 +1200,19 @@ long long lcm(long long a, long long b) {
           {
             title: '處理進制',
             summary: '低位對齊逐位相加，carry = 和 /10 進位、和 %10 留下；任一位或進位還在就繼續。',
-            code: `vector<int> add(vector<int>& a, vector<int>& b) {
-    vector<int> c; int carry = 0;
-    for (int i = 0; i < a.size() || i < b.size() || carry; ++i) {
+            code: `// 處理進制: 以 const reference 避免複製兩個大數。
+vector<int> add(const vector<int>& a, const vector<int>& b) {
+    vector<int> c;
+    int carry = 0;
+    for (size_t i = 0; i < a.size() || i < b.size() || carry; ++i) {
         if (i < a.size()) {
             carry += a[i];
         }
         if (i < b.size()) {
             carry += b[i];
         }
-        c.push_back(carry % 10); carry /= 10;
+        c.push_back(carry % 10);
+        carry /= 10;
     }
     return c;
 }`,
@@ -1135,11 +1227,12 @@ long long lcm(long long a, long long b) {
           {
             title: '比較大小',
             summary: '先比長度，長者大；等長則從高位往低位逐位比較，決定誰減誰與結果符號。',
-            code: `bool geq(vector<int>& a, vector<int>& b) {   // is a greater than or equal to b?
+            code: `// 比較大小: 先比位數，再從最高位往回比。
+bool geq(const vector<int>& a, const vector<int>& b) {
     if (a.size() != b.size()) {
         return a.size() > b.size();
     }
-    for (int i = a.size() - 1; i >= 0; --i) {
+    for (int i = static_cast<int>(a.size()) - 1; i >= 0; --i) {
         if (a[i] != b[i]) {
             return a[i] > b[i];
         }
@@ -1154,11 +1247,14 @@ long long lcm(long long a, long long b) {
           {
             title: '處理借位',
             summary: '逐位相減，不夠減就向高位借 10；算完去掉多餘前導零（但保留單個 0）。',
-            code: `vector<int> sub(vector<int>& a, vector<int>& b) {   // requires a >= b to avoid negative results
-    vector<int> c; int borrow = 0;
-    for (int i = 0; i < a.size(); ++i) {
+            code: `// 處理借位: 要先保證 a >= b，最後移除多餘前導零。
+vector<int> sub(const vector<int>& a, const vector<int>& b) {
+    vector<int> c;
+    int borrow = 0;
+    for (size_t i = 0; i < a.size(); ++i) {
         int t = a[i] - borrow - (i < b.size() ? b[i] : 0);
-        borrow = t < 0; c.push_back((t + 10) % 10);
+        borrow = t < 0;
+        c.push_back((t + 10) % 10);
     }
     while (c.size() > 1 && c.back() == 0) {
         c.pop_back();
@@ -1180,11 +1276,13 @@ long long lcm(long long a, long long b) {
           {
             title: '處理進制',
             summary: '每位乘 b 加進位，%10 留下、/10 進位；進位可能超過一位，用迴圈把剩餘進位攤到高位。',
-            code: `vector<int> mul(vector<int>& a, int b) {
-    vector<int> c; int carry = 0;
-    for (int i = 0; i < a.size() || carry; ++i) {
+            code: `// 處理進制: carry 可能很大，用 long long 保存中間值。
+vector<int> mul(const vector<int>& a, int b) {
+    vector<int> c;
+    long long carry = 0;
+    for (size_t i = 0; i < a.size() || carry; ++i) {
         if (i < a.size()) {
-            carry += a[i] * b;
+            carry += static_cast<long long>(a[i]) * b;
         }
         c.push_back(carry % 10); carry /= 10;
     }
@@ -1208,13 +1306,16 @@ long long lcm(long long a, long long b) {
           {
             title: '按位相除',
             summary: '從高位到低位：cur = 餘數*10 + 當前位，商位 = cur/b，餘數 = cur%b；最後去前導零。',
-            code: `vector<int> div(vector<int>& a, int b, int& rem) { // high digit stored at front
-    vector<int> c; rem = 0;
-    for (int i = 0; i < a.size(); ++i) {
-        int cur = rem * 10 + a[i];
-        c.push_back(cur / b); rem = cur % b;
+            code: `// 按位相除: a 以高位在前存放，餘數一路往低位傳。
+vector<int> div(const vector<int>& a, int b, int& rem) {
+    vector<int> c;
+    rem = 0;
+    for (int digit : a) {
+        int cur = rem * 10 + digit;
+        c.push_back(cur / b);
+        rem = cur % b;
     }
-    int k = 0;
+    size_t k = 0;
     while (k + 1 < c.size() && c[k] == 0) {
         ++k;
     }
@@ -1253,8 +1354,9 @@ long long lcm(long long a, long long b) {
             title: '二分查找',
             summary:
               '在有序陣列找目標或其邊界。用左閉右開或閉區間都行，重點是 mid 取法與 lo/hi 更新要配套，避免 mid==lo 不前進而死循環。',
-            code: `int lower(int a[], int n, int x) {   // first position with value >= x
-    int lo = 0, hi = n;
+            code: `// 二分查找: span 讓函式同時接受 vector/array 的連續區間。
+int lower(span<const int> a, int x) {   // first position with value >= x
+    int lo = 0, hi = static_cast<int>(a.size());
     while (lo < hi) {
         int mid = lo + (hi - lo) / 2;
         if (a[mid] < x) {
@@ -1271,7 +1373,8 @@ long long lcm(long long a, long long b) {
             title: '二分答案',
             summary:
               '當「答案越大越容易/越難滿足」具單調性時，二分答案值、用 check() 驗證，把最優化問題轉成判定問題。check 常是「複製後改幾行」。',
-            code: `int lo = 0, hi = kMax;
+            code: `// 二分答案: 現代 C++ 範例，註解標出此段的核心意圖。
+int lo = 0, hi = kMax;
 while (lo < hi) {
     int mid = lo + (hi - lo) / 2;
     if (check(mid)) {
@@ -1297,15 +1400,16 @@ while (lo < hi) {
           {
             title: '回溯法模板',
             summary: '選擇 → 遞迴 → 撤銷 三段式。到達葉層記錄答案。',
-            code: `void dfs(int step) {
+            code: `// 回溯法模板: 現代 C++ 範例，註解標出此段的核心意圖。
+void dfs(int step) {
     if (step == n) {
         record();
         return;
     }
     for (int c : choices) {
-        make(c);
+        make_choice(c);
         dfs(step + 1);
-        undo(c);          // backtrack: undo the choice so the next branch starts clean
+        undo_choice(c);          // backtrack: undo the choice so the next branch starts clean
     }
 }`
           }
@@ -1373,7 +1477,8 @@ while (lo < hi) {
             title: '01 背包問題',
             summary:
               '每件物品取或不取。f[j] 為容量 j 的最大價值；因為每件只能取一次，容量要「從大到小」遍歷，避免同件被重複取。',
-            code: `for (int i = 0; i < n; ++i) {
+            code: `// 01 背包問題: 現代 C++ 範例，註解標出此段的核心意圖。
+for (int i = 0; i < n; ++i) {
     for (int j = capacity; j >= w[i]; --j) {
         f[j] = max(f[j], f[j - w[i]] + v[i]);
     }
@@ -1383,7 +1488,8 @@ while (lo < hi) {
           {
             title: '完全背包問題',
             summary: '每件物品可取無限次。與 01 背包唯一差別是容量「從小到大」遍歷，讓同件能被重複計入。',
-            code: `for (int i = 0; i < n; ++i) {
+            code: `// 完全背包問題: 現代 C++ 範例，註解標出此段的核心意圖。
+for (int i = 0; i < n; ++i) {
     for (int j = w[i]; j <= capacity; ++j) {
         f[j] = max(f[j], f[j - w[i]] + v[i]);
     }
@@ -1396,7 +1502,8 @@ while (lo < hi) {
         title: '線性動態規劃',
         summary:
           '狀態沿一維序列推進的一大類 DP，包含最長上升子序列（LIS）、最長公共子序列（LCS）、最大連續子段和等經典模型。',
-        code: `// O(n^2) LIS: f[i] = length of longest increasing subsequence ending at i
+        code: `// 線性動態規劃: 現代 C++ 範例，註解標出此段的核心意圖。
+// O(n^2) LIS: f[i] = length of longest increasing subsequence ending at i
 for (int i = 0; i < n; ++i) {
     f[i] = 1;
     for (int j = 0; j < i; ++j) {
@@ -1406,9 +1513,9 @@ for (int i = 0; i < n; ++i) {
     }
 }
 // maximum subarray sum (Kadane algorithm)
-long long cur = 0, best = LLONG_MIN;
+long long cur = 0, best = numeric_limits<long long>::min();
 for (int i = 0; i < n; ++i) {
-    cur = max((long long)a[i], cur + a[i]);
+    cur = max(static_cast<long long>(a[i]), cur + a[i]);
     best = max(best, cur);
 }`,
         complexity: 'LIS O(n^2)（可二分優化到 O(n log n)）'
@@ -1417,7 +1524,8 @@ for (int i = 0; i < n; ++i) {
         title: '區間動態規劃',
         summary:
           'f[i][j] 表示區間 [i,j] 的最優解，按「區間長度由小到大」枚舉，內層枚舉分割點 k，確保計算大區間時子區間已就緒。石子合併、括號匹配、迴文皆屬此類。',
-        code: `for (int len = 2; len <= n; ++len) {
+        code: `// 區間動態規劃: 現代 C++ 範例，註解標出此段的核心意圖。
+for (int len = 2; len <= n; ++len) {
     for (int i = 1, j = len; j <= n; ++i, ++j) {
         f[i][j] = kInf;
         for (int k = i; k < j; ++k) {

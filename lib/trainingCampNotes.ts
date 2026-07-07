@@ -24,7 +24,8 @@ export const kTrainingCampNotes: Record<string, TrainingCampNote> = {
       {
         title: '關閉同步、加速 cin/cout',
         idea: '預設的 cin/cout 會與 C 的 stdio 同步，讀入 10^6 級別資料時會明顯變慢。在 main 開頭關閉同步並解除 cin/cout 綁定即可。關閉後不要再混用 scanf/printf。',
-        code: `int main() {
+        code: `// 關閉同步、加速 cin/cout: 現代 C++ 範例，註解標出此段的核心意圖。
+int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     int n;
@@ -36,9 +37,10 @@ export const kTrainingCampNotes: Record<string, TrainingCampNote> = {
       {
         title: '選對整數型別',
         idea: 'int 約到 2.1×10^9，任何可能超過的乘法或前綴和都要用 long long。判斷準則：把最大輸入代入運算式，只要中間值可能超過 2×10^9 就升型。',
-        code: `long long sum = 0;
+        code: `// 選對整數型別: 乘法前先轉型，避免 int 中間值先溢位。
+long long sum = 0;
 for (int i = 0; i < n; ++i) {
-    sum += (long long)a[i] * b[i];
+    sum += static_cast<long long>(a[i]) * b[i];
 }`
       }
     ],
@@ -65,7 +67,8 @@ for (int i = 0; i < n; ++i) {
       {
         title: '遞迴三要素',
         idea: '寫遞迴先確定：終止條件、每層要做的事、如何縮小問題。缺少終止條件會無限遞迴，縮小方向錯誤會堆疊溢位。',
-        code: `long long fib(int n) {
+        code: `// 遞迴三要素: 現代 C++ 範例，註解標出此段的核心意圖。
+long long fib(int n) {
     if (n <= 1) {
         return n; // 終止條件
     }
@@ -92,12 +95,13 @@ for (int i = 0; i < n; ++i) {
       {
         title: '單鏈表的插入與刪除',
         idea: '鏈表的價值在於 O(1) 改接指標。刪除節點要先找到「前驅」，再讓前驅指向下一個；插入則相反。務必處理頭節點與空表的邊界。',
-        code: `struct Node {
+        code: `// 單鏈表的插入與刪除: 現代 C++ 範例，註解標出此段的核心意圖。
+struct Node {
     int val;
     Node* next;
 };
 // 在 p 之後插入 x
-void insertAfter(Node* p, int x) {
+void insert_after(Node* p, int x) {
     Node* q = new Node{x, p->next};
     p->next = q;
 }`,
@@ -106,7 +110,8 @@ void insertAfter(Node* p, int x) {
       {
         title: '用 STL 容器代替手寫',
         idea: '賽場上大多數情境用 vector、stack、queue 就夠，省下手寫指標的除錯時間。需要兩端操作時用 deque。',
-        code: `stack<int> st;
+        code: `// 用 STL 容器代替手寫: 現代 C++ 範例，註解標出此段的核心意圖。
+stack<int> st;
 st.push(1);
 if (!st.empty()) {
     int t = st.top();
@@ -132,7 +137,8 @@ if (!st.empty()) {
       {
         title: '前中後序遞迴遍歷',
         idea: '三種深度遍歷只差「處理當前節點」的位置：前序在遞迴左右子樹之前，中序在之間，後序在之後。層序則改用佇列做 BFS。',
-        code: `void inorder(Node* r) {
+        code: `// 前中後序遞迴遍歷: 現代 C++ 範例，註解標出此段的核心意圖。
+void inorder(Node* r) {
     if (!r) {
         return;
     }
@@ -166,7 +172,8 @@ if (!st.empty()) {
       {
         title: '鄰接表存圖',
         idea: '稀疏圖（邊數遠小於點數平方）一律用鄰接表，空間 O(n+m)。vector<int> g[N] 最直觀；追求極致常數才用鏈式前向星。',
-        code: `vector<int> g[N];
+        code: `// 鄰接表存圖: 現代 C++ 範例，註解標出此段的核心意圖。
+vector<int> g[kMaxN];
 g[u].push_back(v);
 g[v].push_back(u); // 無向圖雙向加邊`,
         complexity: '空間 O(n+m)'
@@ -174,7 +181,8 @@ g[v].push_back(u); // 無向圖雙向加邊`,
       {
         title: 'BFS 求最短步數',
         idea: '無權圖最短路用 BFS：起點入隊並標記，逐層擴展，第一次訪問到的層數就是最短步數。用 visited 避免重複入隊。',
-        code: `queue<int> q;
+        code: `// BFS 求最短步數: 現代 C++ 範例，註解標出此段的核心意圖。
+queue<int> q;
 q.push(s);
 dist[s] = 0;
 while (!q.empty()) {
@@ -208,8 +216,9 @@ while (!q.empty()) {
       {
         title: '貪心：先排序再掃描',
         idea: '多數貪心的骨架是「按某個關鍵字排序，再一次掃描做選擇」。難點在證明排序關鍵字正確——通常用交換論證：證明交換任意逆序對不會變差。',
-        code: `sort(a, a + n, [](auto& x, auto& y) { return x.end < y.end; });
-int cnt = 0, last = -INF;
+        code: `// 貪心：先排序再掃描: 現代 C++ 範例，註解標出此段的核心意圖。
+sort(a, a + n, [](auto& x, auto& y) { return x.end < y.end; });
+int cnt = 0, last = -kInf;
 for (auto& it : a) {
     if (it.start >= last) {
         ++cnt;
@@ -242,20 +251,21 @@ for (auto& it : a) {
       {
         title: '高精度加法',
         idea: '低位對齊，逐位相加並處理進位。逆序存儲讓「個位在下標 0」，進位自然向高位傳播。',
-        code: `vector<int> add(vector<int>& A, vector<int>& B) {
-    vector<int> C;
+        code: `// 高精度加法: const reference 避免複製兩個大數。
+vector<int> add(const vector<int>& a, const vector<int>& b) {
+    vector<int> c;
     int carry = 0;
-    for (int i = 0; i < A.size() || i < B.size() || carry; ++i) {
-        if (i < A.size()) {
-            carry += A[i];
+    for (size_t i = 0; i < a.size() || i < b.size() || carry; ++i) {
+        if (i < a.size()) {
+            carry += a[i];
         }
-        if (i < B.size()) {
-            carry += B[i];
+        if (i < b.size()) {
+            carry += b[i];
         }
-        C.push_back(carry % 10);
+        c.push_back(carry % 10);
         carry /= 10;
     }
-    return C;
+    return c;
 }`,
         complexity: 'O(len)'
       },
@@ -283,7 +293,8 @@ for (auto& it : a) {
       {
         title: '二分答案',
         idea: '當「答案越大越容易/越難滿足」具單調性時，二分答案值再用 check 驗證，把最優化問題轉成判定問題。',
-        code: `int lo = 0, hi = MAX;
+        code: `// 二分答案: 現代 C++ 範例，註解標出此段的核心意圖。
+int lo = 0, hi = kMaxAnswer;
 while (lo < hi) {
     int mid = lo + (hi - lo) / 2;
     if (check(mid)) {
@@ -298,15 +309,16 @@ while (lo < hi) {
       {
         title: 'DFS 回溯模板',
         idea: '在每一層做選擇、遞迴、撤銷選擇（回溯）。撤銷是關鍵，否則狀態會污染其他分支。',
-        code: `void dfs(int step) {
+        code: `// DFS 回溯模板: 現代 C++ 範例，註解標出此段的核心意圖。
+void dfs(int step) {
     if (step == n) {
         record();
         return;
     }
     for (int c : choices) {
-        make(c);
+        make_choice(c);
         dfs(step + 1);
-        undo(c); // 回溯
+        undo_choice(c); // 回溯
     }
 }`
       }
@@ -329,8 +341,9 @@ while (lo < hi) {
       {
         title: '01 背包（滾動一維）',
         idea: 'f[j] 表示容量 j 的最大價值。因為每件物品只能取一次，容量要「從大到小」遍歷，才不會重複取同一件。',
-        code: `for (int i = 0; i < n; ++i) {
-    for (int j = W; j >= w[i]; --j) {
+        code: `// 01 背包（滾動一維）: 現代 C++ 範例，註解標出此段的核心意圖。
+for (int i = 0; i < n; ++i) {
+    for (int j = capacity; j >= w[i]; --j) {
         f[j] = max(f[j], f[j - w[i]] + v[i]);
     }
 }`,
@@ -339,7 +352,8 @@ while (lo < hi) {
       {
         title: '區間 DP',
         idea: 'f[i][j] 表示區間 [i,j] 的最優解，按區間長度從小到大枚舉，內層枚舉分割點 k。',
-        code: `for (int len = 2; len <= n; ++len) {
+        code: `// 區間 DP: 現代 C++ 範例，註解標出此段的核心意圖。
+for (int len = 2; len <= n; ++len) {
     for (int i = 1, j = len; j <= n; ++i, ++j) {
         for (int k = i; k < j; ++k) {
             f[i][j] = min(f[i][j], f[i][k] + f[k + 1][j] + cost(i, j));
@@ -352,7 +366,7 @@ while (lo < hi) {
     pitfalls: [
       '01 背包一維寫法必須逆序枚舉容量；完全背包才是正序，兩者只差這一點。',
       '狀態定義要「無後效性」——當前狀態只依賴已算好的子狀態。',
-      '別忘了初始化邊界，尤其是 f[0] 與「無法到達」狀態設成 ±INF。'
+      '別忘了初始化邊界，尤其是 f[0] 與「無法到達」狀態設成 ±kInf。'
     ],
     tips: [
       '01 背包與完全背包只差「遍歷方向」：01 逆序、完全正序，先寫對再優化。',
@@ -367,15 +381,17 @@ while (lo < hi) {
       {
         title: 'priority_queue 定製比較',
         idea: '預設是大根堆。要小根堆可用 greater，或存負值。自訂結構體則傳比較器，注意「比較器語意與 sort 相反」——回傳 true 表示優先級更低。',
-        code: `priority_queue<int, vector<int>, greater<int>> minHeap;
-minHeap.push(3);
-minHeap.push(1);
-int mn = minHeap.top(); // 1`
+        code: `// priority_queue 定製比較: greater<> 建立小根堆。
+priority_queue<int, vector<int>, greater<>> min_heap;
+min_heap.push(3);
+min_heap.push(1);
+int mn = min_heap.top(); // 1`
       },
       {
         title: 'set 有序性與二分',
         idea: 'set 內部有序，lower_bound/upper_bound 是成員函數（O(log n)），別用 std::lower_bound（對 set 會退化成 O(n)）。',
-        code: `set<int> s = {1, 4, 9};
+        code: `// set 有序性與二分: 現代 C++ 範例，註解標出此段的核心意圖。
+set<int> s = {1, 4, 9};
 auto it = s.lower_bound(5); // 指向 9`
       }
     ],
@@ -397,18 +413,20 @@ auto it = s.lower_bound(5); // 指向 9`
       {
         title: '並查集（路徑壓縮 + 按秩合併）',
         idea: 'find 時把路徑上所有點直接掛到根下（路徑壓縮），合併時把小樹掛大樹下，均攤幾乎 O(1)。',
-        code: `int find(int x) {
-    return fa[x] == x ? x : fa[x] = find(fa[x]);
+        code: `// 並查集（路徑壓縮 + 按秩合併）: 現代 C++ 範例，註解標出此段的核心意圖。
+int find(int x) {
+    return parent[x] == x ? x : parent[x] = find(parent[x]);
 }
 void uni(int a, int b) {
-    fa[find(a)] = find(b);
+    parent[find(a)] = find(b);
 }`,
         complexity: '均攤 O(α(n))'
       },
       {
         title: '樹狀陣列（單點改、前綴查）',
         idea: '用 lowbit(x)=x&-x 跳躍維護前綴和，單點修改與前綴查詢都是 O(log n)，常數比線段樹小很多。',
-        code: `void add(int i, int v) {
+        code: `// 樹狀陣列（單點改、前綴查）: 現代 C++ 範例，註解標出此段的核心意圖。
+void add(int i, int v) {
     for (; i <= n; i += i & -i) {
         c[i] += v;
     }
@@ -446,7 +464,8 @@ int sum(int i) {
       {
         title: 'KMP 的 next 陣列',
         idea: 'next[i] 表示模式串前 i 個字元的最長公共前後綴長度。匹配失配時用它跳轉，避免主串指標回退，達成 O(n+m)。',
-        code: `vector<int> nxt(m);
+        code: `// KMP 的 next 陣列: 現代 C++ 範例，註解標出此段的核心意圖。
+vector<int> nxt(m);
 for (int i = 1, j = 0; i < m; ++i) {
     while (j && p[i] != p[j]) {
         j = nxt[j - 1];
@@ -461,11 +480,12 @@ for (int i = 1, j = 0; i < m; ++i) {
       {
         title: 'Trie 插入與查詢',
         idea: '每個節點有若干子指標（如 26 個字母）。插入沿字元下沉、缺節點就建；查詢沿字元走，走不通即不存在。',
-        code: `int ch[N][26], cnt = 0;
+        code: `// Trie 插入與查詢: 用 'a' 而不是魔術數字 97。
+int ch[kMaxN][26], cnt = 0;
 void insert(const string& s) {
     int u = 0;
     for (char c : s) {
-        int x = c - 97;
+        int x = c - 'a';
         if (!ch[u][x]) {
             ch[u][x] = ++cnt;
         }
@@ -493,8 +513,9 @@ void insert(const string& s) {
       {
         title: '旋轉是所有平衡樹的原子操作',
         idea: '左旋/右旋在不破壞 BST 性質的前提下調整樹高。所有平衡樹（AVL、Treap、Splay）都靠旋轉來維持或恢復平衡。',
-        code: `// 右旋：x 的左子 y 上提
-Node* rotateRight(Node* x) {
+        code: `// 旋轉是所有平衡樹的原子操作: 現代 C++ 範例，註解標出此段的核心意圖。
+// 右旋：x 的左子 y 上提
+Node* rotate_right(Node* x) {
     Node* y = x->l;
     x->l = y->r;
     y->r = x;
@@ -513,7 +534,7 @@ Node* rotateRight(Node* x) {
       'Splay 每次訪問後都要 splay 到根，否則失去均攤複雜度保證。'
     ],
     tips: [
-      'Treap 的隨機優先級可用 `rand()` 或 `chrono` 種子，比賽中 `srand(time(0))` 即可。',
+      'Treap 的隨機優先級建議用 `std::mt19937` 搭配 `std::random_device` 或固定 seed，避免 `rand()` 的低品質亂數。',
       '旋轉操作只要記住「左旋提右子、右旋提左子」，判斷誰當新根就好。',
       '普通平衡樹題目，若無區間反轉等特殊操作，直接用 `std::set`（只需增刪查）或 GCC 內建的 `__gnu_pbds::tree`（還要排名／第 k 小）省下大量除錯時間；後者的完整用法見「平衡樹」講次的「用 __gnu_pbds 免手寫平衡樹」一節。'
     ]
@@ -525,19 +546,20 @@ Node* rotateRight(Node* x) {
       {
         title: 'Tarjan 求強連通分量',
         idea: '維護 dfn（訪問時間）與 low（能回溯到的最早祖先）。用堆疊存當前路徑，當 dfn[u]==low[u] 時彈出堆疊得到一個 SCC。',
-        code: `void tarjan(int u) {
-    dfn[u] = low[u] = ++idx;
+        code: `// Tarjan 求強連通分量: 現代 C++ 範例，註解標出此段的核心意圖。
+void tarjan(int u) {
+    discovery_time[u] = low[u] = ++timer;
     stk.push(u);
-    inStk[u] = true;
+    in_stack[u] = true;
     for (int v : g[u]) {
-        if (!dfn[v]) {
+        if (!discovery_time[v]) {
             tarjan(v);
             low[u] = min(low[u], low[v]);
-        } else if (inStk[v]) {
-            low[u] = min(low[u], dfn[v]);
+        } else if (in_stack[v]) {
+            low[u] = min(low[u], discovery_time[v]);
         }
     }
-    if (dfn[u] == low[u]) {
+    if (discovery_time[u] == low[u]) {
         /* 彈棧成一個 SCC */
     }
 }`,
@@ -562,7 +584,8 @@ Node* rotateRight(Node* x) {
       {
         title: '堆優化 Dijkstra',
         idea: '每次取當前最短的未定點擴展。用小根堆維護候選距離，適用「非負權」圖。取出時若距離過期就跳過。',
-        code: `priority_queue<pair<int, int>, vector<pair<int, int>>, greater<>> pq;
+        code: `// 堆優化 Dijkstra: 現代 C++ 範例，註解標出此段的核心意圖。
+priority_queue<pair<int, int>, vector<pair<int, int>>, greater<>> pq;
 pq.push({0, s});
 dist[s] = 0;
 while (!pq.empty()) {
@@ -609,12 +632,13 @@ while (!pq.empty()) {
       {
         title: 'IDA* 迭代加深',
         idea: '以「當前深度 + 估價 h」為界，逐步放大深度上限做 DFS。h 必須是「不高估」的可採納啟發，否則得不到最優解。',
-        code: `bool dfs(int g, int limit) {
+        code: `// IDA* 迭代加深: 現代 C++ 範例，註解標出此段的核心意圖。
+bool dfs(int g, int limit) {
     int h = heuristic();
     if (g + h > limit) {
         return false; // 超界剪枝
     }
-    if (isGoal()) {
+    if (is_goal()) {
         return true;
     }
     // 枚舉下一步...
@@ -639,10 +663,11 @@ while (!pq.empty()) {
       {
         title: '樹形 DP',
         idea: 'f[u][0/1] 常表示「u 選/不選」的子樹最優解，DFS 回溯時用子節點的值更新父節點。轉移在遞迴返回時進行。',
-        code: `void dfs(int u, int fa) {
+        code: `// 樹形 DP: 現代 C++ 範例，註解標出此段的核心意圖。
+void dfs(int u, int parent) {
     f[u][1] = a[u];
     for (int v : g[u]) {
-        if (v != fa) {
+        if (v != parent) {
             dfs(v, u);
             f[u][0] += max(f[v][0], f[v][1]);
             f[u][1] += f[v][0];
@@ -675,9 +700,10 @@ while (!pq.empty()) {
       {
         title: '分塊的通用套路',
         idea: '把序列分成約 √n 個塊，整塊打標記、散塊暴力。區間操作拆成「兩端散塊 + 中間整塊」，單次 O(√n)。',
-        code: `int blk = sqrt(n);
+        code: `// 分塊的通用套路: 顯式轉型 sqrt 結果，並避免 n 很小時塊長為 0。
+int block_size = max(1, static_cast<int>(sqrt(n)));
 int bl(int i) {
-    return i / blk;
+    return i / block_size;
 }
 // 區間 [l,r]：bl(l)==bl(r) 則暴力，否則兩端暴力 + 中間整塊打標記`,
         complexity: 'O(√n) 每次操作'
@@ -780,9 +806,10 @@ int bl(int i) {
       {
         title: '主席樹求區間第 k 小',
         idea: '對每個前綴建一棵權值線段樹（可持久化共享節點）。查詢 [l,r] 時用 root[r] 與 root[l-1] 相減，在樹上二分定位第 k 小。',
-        code: `// 新版本只複製修改路徑
+        code: `// 主席樹求區間第 k 小: 現代 C++ 範例，註解標出此段的核心意圖。
+// 新版本只複製修改路徑
 int update(int pre, int l, int r, int pos) {
-    int cur = ++tot;
+    int cur = ++total_nodes;
     tr[cur] = tr[pre];
     tr[cur].cnt++;
     if (l == r) {
@@ -842,7 +869,8 @@ int update(int pre, int l, int r, int pos) {
       {
         title: '多重背包的二進位拆分',
         idea: '把「某物品有 k 件」拆成 1,2,4,…,剩餘 的若干「捆」，每捆當一件做 01 背包，把 O(nWk) 降到 O(nW log k)。',
-        code: `for (int k = 1; cnt > 0; k <<= 1) {
+        code: `// 多重背包的二進位拆分: 現代 C++ 範例，註解標出此段的核心意圖。
+for (int k = 1; cnt > 0; k <<= 1) {
     int use = min(k, cnt);
     cnt -= use;
     // 以 (use*w, use*v) 做一次 01 背包
@@ -873,7 +901,8 @@ int update(int pre, int l, int r, int pos) {
       {
         title: '數位 DP 記憶化框架',
         idea: '按高位到低位 DFS，帶「是否貼上界 limit」與「是否有前導零」兩個標記。非 limit 且非前導零的狀態可記憶化重複使用。',
-        code: `int dfs(int pos, int state, bool limit, bool lead) {
+        code: `// 數位 DP 記憶化框架: 現代 C++ 範例，註解標出此段的核心意圖。
+int dfs(int pos, int state, bool limit, bool lead) {
     if (pos < 0) {
         return /* 統計 */;
     }

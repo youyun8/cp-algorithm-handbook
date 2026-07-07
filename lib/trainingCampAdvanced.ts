@@ -32,13 +32,14 @@ export const advancedModules: TrainingCampModule[] = [
           {
             title: '預處理',
             summary: '決定塊大小（約 √n）、算出每個下標所屬塊、預處理每塊的彙總資訊（和、最值等）。',
-            code: `int blk, bel[kN], L[kM], R[kM];
+            code: `// 預處理: 塊長取 sqrt(n)，再計算每個位置所屬塊。
+int block_size, block_id[kMaxN], left_bound[kMaxM], right_bound[kMaxM];
 void build() {
-    blk = sqrt(n);
+    block_size = max(1, static_cast<int>(sqrt(n)));
     for (int i = 1; i <= n; ++i) {
-        bel[i] = (i - 1) / blk + 1;
+        block_id[i] = (i - 1) / block_size + 1;
     }
-    // L[b], R[b] store the left/right boundaries of each block
+    // left_bound[b], right_bound[b] store the left/right boundaries of each block
 }`
           },
           {
@@ -61,7 +62,8 @@ void build() {
           {
             title: '跳躍表的結構體定義',
             summary: '每個節點有隨機層數，第 k 層的 forward 指標跳過約 2^k 個元素。',
-            code: `struct Node { int val; vector<Node*> forward; };`
+            code: `// 跳躍表的結構體定義: 現代 C++ 範例，註解標出此段的核心意圖。
+struct Node { int val; vector<Node*> forward; };`
           },
           {
             title: '查找',
@@ -88,8 +90,9 @@ void build() {
           {
             title: '基礎莫隊',
             summary: '查詢按 (bel[l], r) 排序後，move 指標 add/del 元素維護當前答案。',
-            code: `sort(qs, qs + q, [](auto& a, auto& b) {
-    return bel[a.l] != bel[b.l] ? a.l < b.l : (bel[a.l] & 1 ? a.r < b.r : a.r > b.r);
+            code: `// 基礎莫隊: 現代 C++ 範例，註解標出此段的核心意圖。
+sort(qs, qs + q, [](auto& a, auto& b) {
+    return block_id[a.l] != block_id[b.l] ? a.l < b.l : (block_id[a.l] & 1 ? a.r < b.r : a.r > b.r);
 });
 int l = 1, r = 0;
 for (auto& q : qs) {
@@ -130,7 +133,8 @@ for (auto& q : qs) {
             title: '處理多維偏序問題 (三維偏序)',
             summary:
               '第一維排序、第二維在 CDQ 分治中用「左半按第二維、右半按第二維歸併」處理、第三維用樹狀陣列統計。總複雜度 O(n log^2 n)。',
-            code: `// a[] is sorted by the first dimension x (deduplicated per group with counts)
+            code: `// 處理多維偏序問題 (三維偏序): 現代 C++ 範例，註解標出此段的核心意圖。
+// a[] is sorted by the first dimension x (deduplicated per group with counts)
 // for [l, r]: recurse on both halves, then count cross-subarray contributions from left to right
 void cdq(int l, int r) {
     if (l == r) {
@@ -139,8 +143,8 @@ void cdq(int l, int r) {
     int mid = (l + r) >> 1;
     cdq(l, mid);
     cdq(mid + 1, r);
-    sort(a + l, a + mid + 1, cmpY);
-    sort(a + mid + 1, a + r + 1, cmpY);
+    sort(a + l, a + mid + 1, compare_y);
+    sort(a + mid + 1, a + r + 1, compare_y);
     int i = l;
     for (int j = mid + 1; j <= r; ++j) {
         while (i <= mid && a[i].y <= a[j].y) {
@@ -185,13 +189,14 @@ void cdq(int l, int r) {
           {
             title: '創建字典樹',
             summary: '把所有模式串插入 Trie，終點記錄該串資訊（如編號或計數）。',
-            code: `int ch[kN][26], cnt[kN], tot;
+            code: `// 創建字典樹: 現代 C++ 範例，註解標出此段的核心意圖。
+int ch[kMaxN][26], cnt[kMaxN], total_nodes;
 void insert(const string& s) {
     int u = 0;
     for (char c : s) {
         int x = c - 'a';
         if (!ch[u][x]) {
-            ch[u][x] = ++tot;
+            ch[u][x] = ++total_nodes;
         }
         u = ch[u][x];
     }
@@ -202,7 +207,8 @@ void insert(const string& s) {
             title: '創建 AC 自動機',
             summary:
               'BFS 建 fail：fail[u] 指向「u 對應字串的最長真後綴」所在節點；不存在的轉移直接指向 fail 的對應轉移（路徑壓縮），使匹配時無需回跳。',
-            code: `queue<int> q;
+            code: `// 創建 AC 自動機: 現代 C++ 範例，註解標出此段的核心意圖。
+queue<int> q;
 for (int c = 0; c < 26; ++c) {
     if (ch[0][c]) {
         q.push(ch[0][c]);
@@ -240,11 +246,12 @@ while (!q.empty()) {
             title: '基數排序',
             summary:
               '倍增建 SA 時，每一輪都要把後綴依 `(rk[i], rk[i + w])` 這組「雙關鍵字」重新排序。若用 `std::sort` 比較排序，每輪是 O(n log n)，總計 O(n log² n)。改用兩趟穩定計數排序（先按次關鍵字 `rk[i + w]`，再按主關鍵字 `rk[i]`），因為關鍵字值域只有 O(n)，每輪可壓到 O(n)，總體變成 O(n log n)。關鍵在於第二趟必須「穩定」——次關鍵字相同的順序要保留，所以逆序掃描已按次關鍵字排好的 `id[]`。',
-            code: `int n, m;               // n: string length; m: current value range size (initially the alphabet size)
-int sa[kN], rk[kN], id[kN], cnt[kN];
+            code: `// 基數排序: 現代 C++ 範例，註解標出此段的核心意圖。
+int n, m;               // n: string length; m: current value range size (initially the alphabet size)
+int sa[kMaxN], rk[kMaxN], id[kMaxN], cnt[kMaxN];
 
 // One doubling round: given ranks for length w, compute sa[] for length 2w
-void radixSort(int w) {
+void radix_sort(int w) {
     int p = 0;
     // secondary key: rk[i + w]. Positions beyond n get the smallest secondary key, prepended first
     for (int i = n; i > n - w; --i) {
@@ -280,7 +287,8 @@ void radixSort(int w) {
             title: '後綴數組的應用',
             summary:
               'height 用 h[i]≥h[i−1]−1 的性質 O(n) 求得。之後：不同子串個數 = n(n+1)/2 − Σheight；兩後綴 LCP = height 區間最小值（RMQ）；可求最長重複子串等。',
-            code: `// linear height computation using rank[] / sa[]
+            code: `// 後綴數組的應用: 現代 C++ 範例，註解標出此段的核心意圖。
+// linear height computation using rank[] / sa[]
 for (int i = 1, k = 0; i <= n; ++i) {
     if (k) {
         --k;
@@ -355,29 +363,30 @@ for (int i = 1, k = 0; i <= n; ++i) {
             title: '預處理',
             summary:
               '兩次 DFS：第一次求子樹大小、深度、父、重兒子（子樹最大者）；第二次按「優先走重兒子」給每點連續的 dfs 序與所在鏈頂 top。',
-            code: `int sz[kN], dep[kN], fa[kN], son[kN], top[kN], dfn[kN], idx;
+            code: `// 預處理: 現代 C++ 範例，註解標出此段的核心意圖。
+int sz[kMaxN], depth[kMaxN], parent[kMaxN], heavy_child[kMaxN], top[kMaxN], discovery_time[kMaxN], timer;
 void dfs1(int u, int f) {
     sz[u] = 1;
     for (int v : g[u]) {
         if (v != f) {
-            fa[v] = f;
-            dep[v] = dep[u] + 1;
+            parent[v] = f;
+            depth[v] = depth[u] + 1;
             dfs1(v, u);
             sz[u] += sz[v];
-            if (sz[v] > sz[son[u]]) {
-                son[u] = v;
+            if (sz[v] > sz[heavy_child[u]]) {
+                heavy_child[u] = v;
             }
         }
     }
 }
 void dfs2(int u, int t) {
     top[u] = t;
-    dfn[u] = ++idx;
-    if (son[u]) {
-        dfs2(son[u], t);
+    discovery_time[u] = ++timer;
+    if (heavy_child[u]) {
+        dfs2(heavy_child[u], t);
     }
     for (int v : g[u]) {
-        if (v != fa[u] && v != son[u]) {
+        if (v != parent[u] && v != heavy_child[u]) {
             dfs2(v, v);
         }
     }
@@ -386,14 +395,15 @@ void dfs2(int u, int t) {
           {
             title: '求解最近公共祖先',
             summary: '兩點不斷把「鏈頂較深」的一方跳到其鏈頂的父節點，直到同鏈，較淺者即 LCA。O(log n)。',
-            code: `int lca(int u, int v) {
+            code: `// 求解最近公共祖先: 現代 C++ 範例，註解標出此段的核心意圖。
+int lca(int u, int v) {
     while (top[u] != top[v]) {
-        if (dep[top[u]] < dep[top[v]]) {
+        if (depth[top[u]] < depth[top[v]]) {
             swap(u, v);
         }
-        u = fa[top[u]];
+        u = parent[top[u]];
     }
-    return dep[u] < dep[v] ? u : v;
+    return depth[u] < depth[v] ? u : v;
 }`,
             complexity: 'O(log n)'
           },
@@ -413,17 +423,18 @@ void dfs2(int u, int t) {
           {
             title: '樹的重心',
             summary: '刪去後最大子樹最小的點。以它為根，每棵子樹大小 ≤ n/2，保證分治層數 O(log n)。',
-            code: `void findCent(int u, int fa, int tot, int& c, int& best) {
+            code: `// 樹的重心: 現代 C++ 範例，註解標出此段的核心意圖。
+void find_centroid(int u, int parent, int total_nodes, int& c, int& best) {
     int mx = 0, s = 1;
     for (int v : g[u]) {
-        if (v != fa && !del[v]) {
-            findCent(v, u, tot, c, best);
+        if (v != parent && !del[v]) {
+            find_centroid(v, u, total_nodes, c, best);
             s += sz[v];
             mx = max(mx, sz[v]);
         }
     }
     sz[u] = s;
-    mx = max(mx, tot - s);
+    mx = max(mx, total_nodes - s);
     if (mx < best) {
         best = mx;
         c = u;
@@ -485,18 +496,19 @@ void dfs2(int u, int t) {
           {
             title: '創建 KD 樹',
             summary: '每層按一個維度（輪流或方差最大者）取中位數切分，左右遞迴建子樹。',
-            code: `struct Point {
-    int x[K];
+            code: `// 創建 KD 樹: 現代 C++ 範例，註解標出此段的核心意圖。
+struct Point {
+    int x[kDimension];
 };
-Point p[kN];
-int lc[kN], rc[kN];
+Point p[kMaxN];
+int lc[kMaxN], rc[kMaxN];
 // return the root of the subtree built from [l, r), stored at array index mid
 int build(int l, int r, int depth) {
     if (l >= r) {
         return 0;
     }
     int mid = (l + r) >> 1;
-    int dim = depth % kDim;
+    int dim = depth % kDimension;
     nth_element(p + l, p + mid, p + r, [dim](const Point& a, const Point& b) {
         return a.x[dim] < b.x[dim];
     });
@@ -527,7 +539,8 @@ int build(int l, int r, int depth) {
             title: '基本操作',
             summary:
               '合併：取兩根中較優者為新根，遞迴合併其右子與另一堆，再依左偏性質必要時交換左右並更新 dist。插入=與單點堆合併；刪頂=合併左右子。',
-            code: `int merge(int a, int b) {
+            code: `// 基本操作: 現代 C++ 範例，註解標出此段的核心意圖。
+int merge(int a, int b) {
     if (!a || !b) {
         return a | b;
     }
@@ -558,11 +571,12 @@ int build(int l, int r, int depth) {
             title: 'LCT 的基本操作',
             summary:
               'access(x) 把根到 x 打通成一條實鏈，是一切操作的基礎；makeroot 靠翻轉標記換根；link/cut 改虛實邊。每步 splay 前後的 pushup/pushdown 極易漏。',
-            code: `void access(int x) {
-    for (int y = 0; x; y = x, x = fa[x]) {
+            code: `// LCT 的基本操作: 現代 C++ 範例，註解標出此段的核心意圖。
+void access(int x) {
+    for (int y = 0; x; y = x, x = parent[x]) {
         splay(x);
         rc[x] = y;
-        pushup(x);
+        push_up(x);
     }
 }`,
             complexity: '均攤 O(log n)'
@@ -615,8 +629,9 @@ int build(int l, int r, int depth) {
           {
             title: '版本共享與新建路徑',
             summary: '新版本沿修改路徑複製節點、其餘指標指向舊節點，故單次修改僅 O(log n) 新節點。節點池要開 n·log(值域) 級，開小會 RE。',
-            code: `int update(int pre, int l, int r, int pos) {
-    int cur = ++tot;
+            code: `// 版本共享與新建路徑: 現代 C++ 範例，註解標出此段的核心意圖。
+int update(int pre, int l, int r, int pos) {
+    int cur = ++total_nodes;
     ls[cur] = ls[pre];
     rs[cur] = rs[pre];
     sum[cur] = sum[pre] + 1;
@@ -637,7 +652,8 @@ int build(int l, int r, int depth) {
             title: '區間第 k 小',
             summary:
               '對每個前綴建一棵權值線段樹（可持久化共享）。查詢 [l,r] 時用 root[r] 與 root[l−1] 的節點計數相減，在樹上二分定位第 k 小。值域大要先離散化。',
-            code: `int kth(int u, int v, int l, int r, int k) {   // v=root[r], u=root[l-1]
+            code: `// 區間第 k 小: 現代 C++ 範例，註解標出此段的核心意圖。
+int kth(int u, int v, int l, int r, int k) {   // v=root[r], u=root[l-1]
     if (l == r) {
         return l;
     }
@@ -660,14 +676,15 @@ int build(int l, int r, int depth) {
             title: '最大異或和',
             summary:
               '建可持久化 01-Trie（每位存子樹計數），查詢時貪心地優先往「與目標當前位相反」的分支走，並用版本差分限制下標範圍。',
-            code: `int ch[kN * 24][2], cnt[kN * 24], tot;
-// insert val based on version pre (from bit kBit down to 0)
+            code: `// 最大異或和: 現代 C++ 範例，註解標出此段的核心意圖。
+int ch[kMaxN * 24][2], cnt[kMaxN * 24], total_nodes;
+// insert val based on version pre (from bit kMaxBit down to 0)
 int insert(int pre, int val) {
-    int cur = ++tot, root = cur;
-    for (int b = kBit; b >= 0; --b) {
+    int cur = ++total_nodes, root = cur;
+    for (int b = kMaxBit; b >= 0; --b) {
         int x = val >> b & 1;
         ch[cur][x ^ 1] = ch[pre][x ^ 1];
-        ch[cur][x] = ++tot;
+        ch[cur][x] = ++total_nodes;
         cur = ch[cur][x];
         pre = ch[pre][x];
         cnt[cur] = cnt[pre] + 1;
@@ -677,7 +694,7 @@ int insert(int pre, int val) {
 // query the maximum xor with val over version interval (l, r]
 int query(int l, int r, int val) {
     int res = 0;
-    for (int b = kBit; b >= 0; --b) {
+    for (int b = kMaxBit; b >= 0; --b) {
         int x = val >> b & 1;
         if (cnt[ch[r][x ^ 1]] - cnt[ch[l][x ^ 1]] > 0) {
             res |= 1 << b;
@@ -725,7 +742,8 @@ int query(int l, int r, int val) {
         title: 'Dinic 算法',
         summary:
           '主流最大流：先 BFS 分層建層次圖，再 DFS 沿「層次遞增」的邊多路增廣，反覆直到無法分層。配當前弧優化避免重掃滿邊。二分圖匹配上跑得極快。',
-        code: `int level[kN], cur[kN];
+        code: `// Dinic 算法: 現代 C++ 範例，註解標出此段的核心意圖。
+int level[kMaxN], cur[kMaxN];
 bool bfs(int s, int t) {
     fill(level, level + n, -1);
     queue<int> q;
@@ -784,10 +802,11 @@ int dfs(int u, int t, int f) {
             title: '匈牙利算法',
             summary:
               '對左部每點嘗試找增廣路：若對面點未匹配、或其現匹配能讓出，就完成匹配。實作短，複雜度 O(VE)。',
-            code: `bool find(int u) {
+            code: `// 匈牙利算法: 現代 C++ 範例，註解標出此段的核心意圖。
+bool find(int u) {
     for (int v : g[u]) {
-        if (!vis[v]) {
-            vis[v] = true;
+        if (!visited[v]) {
+            visited[v] = true;
             if (match[v] == -1 || find(match[v])) {
                 match[v] = u;
                 return true;
@@ -798,7 +817,7 @@ int dfs(int u, int t, int f) {
 }
 int res = 0;
 for (int u = 0; u < nl; ++u) {
-    fill(vis, vis + nr, false);
+    fill(visited, visited + nr, false);
     res += find(u);
 }`,
             complexity: 'O(VE)'
@@ -891,7 +910,8 @@ for (int u = 0; u < nl; ++u) {
             title: '多重背包問題',
             summary:
               '每種物品有限量 k 件。二進位拆分成 1,2,4,…,剩餘 的若干「捆」，每捆當一件做 01 背包，把 O(nWk) 降到 O(nW log k)；更進一步可用單調隊列 O(nW)。',
-            code: `for (int k = 1; cnt > 0; k <<= 1) {
+            code: `// 多重背包問題: 現代 C++ 範例，註解標出此段的核心意圖。
+for (int k = 1; cnt > 0; k <<= 1) {
     int use = min(k, cnt);
     cnt -= use;
     for (int j = capacity; j >= use * w; --j) {
@@ -904,7 +924,8 @@ for (int u = 0; u < nl; ++u) {
             title: '分組背包問題',
             summary:
               '物品分組、每組至多選一件。迴圈順序必須「組在最外層、容量在中層、組內物品在最內層」，否則同組會被選多個。',
-            code: `for (int g = 0; g < group_cnt; ++g) {
+            code: `// 分組背包問題: 現代 C++ 範例，註解標出此段的核心意圖。
+for (int g = 0; g < group_count; ++g) {
     for (int j = capacity; j >= 0; --j) {
         for (auto& it : group[g]) {
             if (j >= it.w) {
@@ -936,9 +957,10 @@ for (int u = 0; u < nl; ++u) {
             title: '不定根樹形 DP',
             summary:
               '即換根 DP：先一次 DFS 求「以固定根」的答案，再一次 DFS 從父到子 O(1) 調整，得到「以每個點為根」的答案。',
-            code: `void dfs2(int u, int fa) {
+            code: `// 不定根樹形 DP: 現代 C++ 範例，註解標出此段的核心意圖。
+void dfs2(int u, int parent) {
     for (int v : g[u]) {
-        if (v != fa) {
+        if (v != parent) {
             // reroot: remove child v's contribution from u, then attach u under v
             g_ans[v] = adjust(g_ans[u], u, v);
             dfs2(v, u);
@@ -975,7 +997,8 @@ for (int u = 0; u < nl; ++u) {
         title: '數位 DP',
         summary:
           '統計 [0, N] 中滿足某數位性質的數量。按位從高到低 DFS，帶「是否貼上界 limit」與「是否前導零 lead」兩旗標；非 limit 且非 lead 的狀態可記憶化重用。',
-        code: `int dfs(int pos, int state, bool limit, bool lead) {
+        code: `// 數位 DP: 現代 C++ 範例，註解標出此段的核心意圖。
+int dfs(int pos, int state, bool limit, bool lead) {
     if (pos < 0) {
         return /* count valid numbers */ 1;
     }
@@ -1003,11 +1026,12 @@ for (int u = 0; u < nl; ++u) {
         title: '斜率優化',
         summary:
           '把轉移式整理成 y=kx+b 的直線形式（把只含 j 的項當座標點、含 i 的項當斜率），用單調隊列維護下凸/上凸殼，均攤 O(1) 取最優決策，把 O(n^2) 降到 O(n)。橫座標與斜率不單調時改用二分或李超線段樹。',
-        code: `// Example: f[i] = min(f[j] + cost(j, i)). After reformulating into slope form...
-// use monotone deque q[] to maintain lower hull; X()/Y() are decision-point coordinates
-int q[kN], head, tail;
+        code: `// 斜率優化: 現代 C++ 範例，註解標出此段的核心意圖。
+// Example: f[i] = min(f[j] + cost(j, i)). After reformulating into slope form...
+// use monotone deque q[] to maintain lower hull; x_value()/y_value() are decision-point coordinates
+int q[kMaxN], head, tail;
 double slope(int a, int b) {
-    return (double)(Y(b) - Y(a)) / (X(b) - X(a));
+    return static_cast<double>(y_value(b) - y_value(a)) / (x_value(b) - x_value(a));
 }
 void solve(int n) {
     head = tail = 0;
@@ -1018,8 +1042,10 @@ void solve(int n) {
         }
         int j = q[head];
         f[i] = f[j] + cost(j, i);
-        while (head + 1 < tail &&
-               slope(q[tail - 2], q[tail - 1]) >= slope(q[tail - 1], i)) {
+        while (head + 1 < tail) {
+            if (slope(q[tail - 2], q[tail - 1]) < slope(q[tail - 1], i)) {
+                break;
+            }
             --tail;
         }
         q[tail++] = i;

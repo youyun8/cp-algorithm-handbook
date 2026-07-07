@@ -36,8 +36,8 @@ int f = dq.front(), b = dq.back();`,
         title: 'priority_queue（優先隊列）',
         summary:
           '二元堆，堆頂為極值。預設是大根堆；要小根堆用 greater 或存負值。自訂比較器語意與 sort 相反：回傳 true 表示「優先級較低」。',
-        code: `priority_queue<int> maxHeap;                       // 大根堆
-priority_queue<int, vector<int>, greater<>> minHeap; // 小根堆
+        code: `priority_queue<int> maxHeap;                       // max-heap
+priority_queue<int, vector<int>, greater<>> minHeap; // min-heap
 minHeap.push(3); minHeap.push(1);
 int mn = minHeap.top(); minHeap.pop();`,
         complexity: 'push/pop O(log n)，top O(1)'
@@ -50,16 +50,16 @@ int mn = minHeap.top(); minHeap.pop();`,
           {
             title: '定義與初始化',
             summary: '以固定長度宣告，可由整數或字串初始化。',
-            code: `bitset<1000> b;          // 全 0
-bitset<8> c(0b1010);     // 由整數
-bitset<8> d("1100");     // 由字串`
+            code: `bitset<1000> b;          // all zeros
+bitset<8> c(0b1010);     // from integer
+bitset<8> d("1100");     // from string`
           },
           {
             title: '基本操作',
             summary: 'set/reset/flip 單位或全體，count() 數 1，test(i) 查位，並支援 & | ^ << >> 做集合運算，常數極小。',
             code: `b.set(3); b.reset(0); b.flip();
 int ones = b.count();
-bitset<1000> inter = x & y;   // 集合交`
+bitset<1000> inter = x & y;   // set intersection`
           }
         ]
       },
@@ -69,9 +69,9 @@ bitset<1000> inter = x & y;   // 集合交`
           '紅黑樹實作的有序集合，增刪查皆 O(log n)。set 去重、multiset 允許重複。務必用「成員函數」lower_bound/upper_bound（O(log n)），別用 std::lower_bound（對 set 退化 O(n)）。',
         code: `set<int> s = {1, 4, 9};
 s.insert(5);
-auto it = s.lower_bound(5);   // 指向 >=5 的第一個
+auto it = s.lower_bound(5);   // first element that is >= 5
 multiset<int> ms; ms.insert(2); ms.insert(2);
-ms.erase(ms.find(2));         // 只刪一個（erase(值) 會刪全部）`,
+ms.erase(ms.find(2));         // erase only one; erase(key) would remove all duplicates`,
         complexity: 'O(log n) 每次操作'
       },
       {
@@ -79,7 +79,7 @@ ms.erase(ms.find(2));         // 只刪一個（erase(值) 會刪全部）`,
         summary:
           '有序鍵值對，按鍵排序，增刪查 O(log n)。map[k] 存取不存在的鍵會「自動插入」預設值，只想查詢請用 count/find。追求速度且不需有序時改 unordered_map（平均 O(1)）。',
         code: `map<string, int> cnt;
-cnt["apple"]++;               // 不存在則先插入 0 再 +1
+cnt["apple"]++;               // inserts 0 then increments if the key was absent
 if (cnt.count("banana")) { /* ... */ }
 for (auto& [k, v] : cnt) {
     cout << k << ' ' << v << '\\n';
@@ -93,13 +93,13 @@ for (auto& [k, v] : cnt) {
           {
             title: 'fill()',
             summary: '把一段區間填成同一值；memset 只適合 0/−1（按 byte 填）。',
-            code: `fill(a, a + n, INF);
-memset(a, 0, sizeof a);      // 僅 0 或 -1`
+            code: `fill(a, a + n, kInf);
+memset(a, 0, sizeof a);      // only safe for 0 or -1 because memset sets each byte`
           },
           {
             title: 'nth_element()',
             summary: '把第 k 小放到定位，且左邊皆不大於它、右邊皆不小於它，平均 O(n)——不必整段排序即取第 k 小。',
-            code: `nth_element(a, a + k, a + n);   // a[k] 就位
+            code: `nth_element(a, a + k, a + n);   // a[k] is now in its final position
 int kth = a[k];`,
             complexity: '平均 O(n)'
           },
@@ -115,7 +115,7 @@ int cnt = upper_bound(a, a + n, x) - lower_bound(a, a + n, x);`,
             title: 'next_permutation()、prev_permutation()',
             summary: '就地產生字典序的下一個/上一個排列，回傳是否還有下一個。配 do-while 可枚舉全排列。',
             code: `sort(a, a + n);
-do { /* 用此排列 */ } while (next_permutation(a, a + n));`,
+do { /* use this permutation */ } while (next_permutation(a, a + n));`,
             complexity: '每次 O(n)'
           }
         ]
@@ -146,7 +146,7 @@ do { /* 用此排列 */ } while (next_permutation(a, a + n));`,
         title: '並查集',
         summary:
           '維護「不相交集合」的合併與查詢。find 用路徑壓縮、合併用按秩/大小，均攤近 O(α(n))≈O(1)。比較連通性時比的是「根」。',
-        code: `int fa[N], sz[N];
+        code: `int fa[kN], sz[kN];
 void init(int n) {
     for (int i = 1; i <= n; ++i) {
         fa[i] = i;
@@ -183,7 +183,7 @@ void uni(int a, int b) {
             title: '稀疏表',
             summary:
               '對「可重複貢獻」的運算（max/min/gcd）預處理 st[i][k]=區間 [i, i+2^k−1] 的值，O(n log n) 建表。',
-            code: `int st[N][20];
+            code: `int st[kN][20];
 for (int i = 0; i < n; ++i) {
     st[i][0] = a[i];
 }
@@ -218,7 +218,7 @@ for (int k = 1; (1 << k) <= n; ++k) {
             title: '樹上倍增法',
             summary:
               '預處理 up[u][k]=u 的 2^k 級祖先與深度，查詢時先對齊深度再一起倍增上跳。線上、好寫，最常用。',
-            code: `int up[N][20], dep[N];
+            code: `int up[kN][20], dep[kN];
 int lca(int u, int v) {
     if (dep[u] < dep[v]) {
         swap(u, v);
@@ -261,7 +261,7 @@ int lca(int u, int v) {
           {
             title: '一維樹狀數組',
             summary: '支援單點加與前綴和查詢；區間和 = sum(r) − sum(l−1)。',
-            code: `int c[N];
+            code: `int c[kN];
 void add(int i, int v) {
     for (; i <= n; i += i & -i) {
         c[i] += v;
@@ -298,7 +298,7 @@ int sum(int i) {
           {
             title: '基本操作',
             summary: '建樹、單點/區間查詢：遞迴到與查詢區間相交的節點，用 pushup 由子節點合併父節點資訊。',
-            code: `int t[4 * N];
+            code: `int t[4 * kN];
 void build(int p, int l, int r) {
     if (l == r) {
         t[p] = a[l];
@@ -328,7 +328,7 @@ int query(int p, int l, int r, int ql, int qr) {
             title: '懶操作',
             summary:
               '區間修改時不立刻下推到葉，先在節點打「懶標記」，等需要訪問其子區間時才 pushdown 並清空標記。這是區間改+區間查的關鍵。',
-            code: `long long tag[4 * N];
+            code: `long long tag[4 * kN];
 void pushdown(int p, int l, int r) {
     if (!tag[p]) {
         return;
@@ -415,7 +415,7 @@ for (int i = 1, j = 0; i < m; ++i) {
     }
     nxt[i] = j;
 }
-// 匹配同理：用 nxt 在失配時跳轉主串比對`,
+// matching works the same: use nxt to skip ahead when a mismatch occurs`,
             complexity: 'O(n+m)'
           }
         ]
@@ -428,7 +428,7 @@ for (int i = 1, j = 0; i < m; ++i) {
           {
             title: '創建',
             summary: '插入時沿字元下沉，缺節點就新建；可在終點記錄計數或標記。',
-            code: `int ch[N][26], cnt[N], tot;
+            code: `int ch[kN][26], cnt[kN], tot;
 void insert(const string& s) {
     int u = 0;
     for (char c : s) {
@@ -473,13 +473,13 @@ void insert(const string& s) {
             title: 'Rabin-Karp 演算法',
             summary:
               '把字串看成 base 進位數，預處理前綴雜湊與 base 冪，子串 [l,r] 雜湊 = h[r]−h[l−1]·base^(r−l+1)，O(1) 取得。',
-            code: `const unsigned long long B = 131;
-unsigned long long h[N], pw[N];
-// 預處理
+            code: `const unsigned long long kBase = 131;
+unsigned long long h[kN], pw[kN];
+// preprocess the prefix function
 pw[0] = 1;
 for (int i = 1; i <= n; ++i) {
-    h[i] = h[i - 1] * B + s[i];
-    pw[i] = pw[i - 1] * B;
+    h[i] = h[i - 1] * kBase + s[i];
+    pw[i] = pw[i - 1] * kBase;
 }
 auto sub = [&](int l, int r) {
     return h[r] - h[l - 1] * pw[r - l + 1];
@@ -490,23 +490,23 @@ auto sub = [&](int l, int r) {
             title: '雙重哈希防碰撞技巧',
             summary:
               '用兩組不同的 base/模同時雜湊，兩者都相等才判相等，碰撞機率降到可忽略。或用 unsigned long long 自然溢位配隨機 base 防被 hack。',
-            code: `const long long B1 = 131, B2 = 13331;
-const long long M1 = 1e9 + 7, M2 = 998244353;
-long long h1[N], h2[N], p1[N], p2[N];
+            code: `const long long kBase1 = 131, kBase2 = 13331;
+const long long kMod1 = 1e9 + 7, kMod2 = 998244353;
+long long h1[kN], h2[kN], p1[kN], p2[kN];
 void build(const string& s) {
     int n = s.size();
     p1[0] = p2[0] = 1;
     for (int i = 1; i <= n; ++i) {
-        h1[i] = (h1[i - 1] * B1 + s[i - 1]) % M1;
-        h2[i] = (h2[i - 1] * B2 + s[i - 1]) % M2;
-        p1[i] = p1[i - 1] * B1 % M1;
-        p2[i] = p2[i - 1] * B2 % M2;
+        h1[i] = (h1[i - 1] * kBase1 + s[i - 1]) % kMod1;
+        h2[i] = (h2[i - 1] * kBase2 + s[i - 1]) % kMod2;
+        p1[i] = p1[i - 1] * kBase1 % kMod1;
+        p2[i] = p2[i - 1] * kBase2 % kMod2;
     }
 }
-// 子串 [l, r]（1-indexed）的雜湊對，兩者皆相等才判相等
+// hash pair for substring [l, r] (1-indexed); both halves must match for equality
 pair<long long, long long> get(int l, int r) {
-    long long a = ((h1[r] - h1[l - 1] * p1[r - l + 1]) % M1 + M1) % M1;
-    long long b = ((h2[r] - h2[l - 1] * p2[r - l + 1]) % M2 + M2) % M2;
+    long long a = ((h1[r] - h1[l - 1] * p1[r - l + 1]) % kMod1 + kMod1) % kMod1;
+    long long b = ((h2[r] - h2[l - 1] * p2[r - l + 1]) % kMod2 + kMod2) % kMod2;
     return {a, b};
 }`,
             complexity: '預處理 O(n)，查詢 O(1)'
@@ -603,7 +603,7 @@ for (int i = 1; i + 1 < (int)t.size(); ++i) {
           {
             title: '右旋和左旋',
             summary: '旋轉是所有平衡樹的原子操作，在不破壞 BST 性質下調整結構。「左旋提右子、右旋提左子」。',
-            code: `// 右旋：x 的左子 y 上提
+            code: `// right rotation: promote y, the left child of x
 Node* rotR(Node* x) {
     Node* y = x->l;
     x->l = y->r;
@@ -694,8 +694,8 @@ Node* rotR(Node* x) {
 #include <ext/pb_ds/tree_policy.hpp>
 using namespace __gnu_pbds;
 
-// <鍵型別, 映射型別, 比較子, 底層樹, 節點更新策略>
-// 映射型別用 null_type 代表「只有鍵」的有序集合（相當於 std::set）
+// <key_type, mapped_type, comparator, underlying_tree, node_update>
+// mapped_type = null_type means an ordered set of keys only (equivalent to std::set)
 typedef tree<int, null_type, std::less<int>, rb_tree_tag,
              tree_order_statistics_node_update>
     ordered_set;
@@ -718,19 +718,19 @@ for (int x : {10, 20, 30, 40}) {
     s.insert(x);
 }
 
-// 第 k 小（0-indexed）：find_by_order
+// k-th smallest (0-indexed): find_by_order
 int second = *s.find_by_order(1);   // 20
 
-// 排名：order_of_key 回傳「嚴格小於 x 的元素個數」
-int rank30 = s.order_of_key(30);    // 2（10、20 比 30 小）
-int rank35 = s.order_of_key(35);    // 3（10、20、30 比 35 小，即 35 會插在第 3 位）`,
+// rank: order_of_key returns the number of elements strictly less than x
+int rank30 = s.order_of_key(30);    // 2 (10 and 20 are less than 30)
+int rank35 = s.order_of_key(35);    // 3 (10, 20 and 30 are less than 35, so 35 would be inserted at index 3)`,
             complexity: 'O(log n)'
           },
           {
             title: '需要可重複值（multiset）怎麼辦',
             summary:
               '預設 `std::less` 會像 `std::set` 一樣去重。想保留重複值，最穩健的做法是改存 `pair<值, 唯一時間戳>`：每個元素因時間戳不同而唯一，查某個值的排名時用 `order_of_key({v, 極小值})`。直接改用 `std::less_equal` 雖能塞入重複值，但會讓 `find` 與 `erase(value)` 失效（比較子不再是嚴格弱序），除非必要不建議。',
-            code: `// 想保留重複值：改存 pair<值, 唯一時間戳>，用 less<pair> 排序
+            code: `// to keep duplicates, store pair<value, unique timestamp> sorted with std::less
 typedef tree<std::pair<int, int>, null_type,
              std::less<std::pair<int, int>>, rb_tree_tag,
              tree_order_statistics_node_update>
@@ -739,12 +739,12 @@ typedef tree<std::pair<int, int>, null_type,
 ordered_multiset s;
 int timestamp = 0;
 auto add = [&](int v) {
-    s.insert({v, timestamp++});   // 時間戳保證每筆唯一，重複值都能保留
+    s.insert({v, timestamp++});   // timestamp guarantees uniqueness so duplicate values are preserved
 };
 add(20);
 add(20);
 
-// 查值 v 的排名：用 {v, 極小值} 當下界
+// query rank of value v: use {v, smallest timestamp} as lower bound
 int rank = s.order_of_key({20, -1});`,
             complexity: 'O(log n)'
           }
@@ -793,7 +793,7 @@ int rank = s.order_of_key({20, -1});`,
           {
             title: '無向圖的橋',
             summary: '若 low[v] > dfn[u]（v 是 u 的子），則邊 (u,v) 是橋。注意避開父邊、但允許重邊。',
-            code: `void tarjan(int u, int fe) {           // fe: 入邊編號
+            code: `void tarjan(int u, int fe) {           // fe: id of the incoming edge
     dfn[u] = low[u] = ++idx;
     for (auto [v, id] : g[u]) {
         if (!dfn[v]) {
@@ -814,8 +814,8 @@ int rank = s.order_of_key({20, -1});`,
             summary:
               '非根節點 u 是割點當且僅當存在子 v 使 low[v] ≥ dfn[u]（等號差別）；根節點是割點當且僅當它有 ≥2 個 DFS 子樹。',
             code: `int idx;
-int dfn[N], low[N];
-bool cut[N];
+int dfn[kN], low[kN];
+bool cut[kN];
 void tarjan(int u, int root) {
     dfn[u] = low[u] = ++idx;
     int child = 0;
@@ -883,12 +883,12 @@ void tarjan(int u, int root) {
               'DFS 走邊，走過即刪；回溯時把節點壓入答案棧，最後反轉得歐拉路。用「當前弧」避免重複掃已刪邊，O(n+m)。',
             code: `void dfs(int u) {
     while (head[u] < (int)g[u].size()) {
-        int v = g[u][head[u]++];         // 當前弧優化
+        int v = g[u][head[u]++];         // current arc optimization (skips saturated edges)
         dfs(v);
     }
     order.push_back(u);
 }
-// 反轉 order 即歐拉路徑`,
+// reverse the order to obtain the Eulerian path`,
             complexity: 'O(n+m)'
           }
         ]
@@ -1054,7 +1054,7 @@ for (int i = 1; i < n; ++i) {
         }
     }
 }
-bool neg = false;                        // 再鬆弛一輪判負環
+bool neg = false;                        // one extra relaxation round to detect negative cycles
 for (auto& e : edges) {
     if (dist[e.u] != LLONG_MAX && dist[e.u] + e.w < dist[e.v]) {
         neg = true;
@@ -1110,16 +1110,16 @@ while (!q.empty()) {
         }
     }
 }
-// order.size()<n 表示有環`,
+// order.size() < n means the graph contains a cycle`,
         complexity: 'O(n+m)'
       },
       {
         title: '關鍵路徑',
         summary:
           'AOE 網（邊表工序耗時）中從起點到終點的最長路，決定專案最短總工期。求每事件最早/最晚發生時間，兩者相等的活動即關鍵活動；先拓撲排序再正/反向 DP。',
-        code: `// ve[u]=事件最早發生時間, vl[u]=最晚發生時間
-// order 為拓撲序；g[u] 存 (v, w)
-void critical_path(int n) {
+        code: `// ve[u] = earliest event time, vl[u] = latest event time
+// order is the topological order; g[u] stores (v, w)
+void criticalPath(int n) {
     for (int u : order) {
         for (auto [v, w] : g[u]) {
             ve[v] = max(ve[v], ve[u] + w);
@@ -1134,7 +1134,7 @@ void critical_path(int n) {
             vl[u] = min(vl[u], vl[v] - w);
         }
     }
-    // 對邊 (u, v, w)：ve[u] == vl[v] - w 即為關鍵活動
+    // edge (u, v, w) is critical if ve[u] == vl[v] - w
 }`,
         complexity: 'O(n+m)'
       }
@@ -1183,7 +1183,7 @@ void critical_path(int n) {
             title: 'A* 算法',
             summary:
               '以 f=g+h（已走代價+估計剩餘）為優先級的優先佇列搜索。h 可採納時首次取出目標即最優解。h 越接近真實、剪枝越強。',
-            code: `// Node = {f = g + h, g, state}；小根堆依 f 排序
+            code: `// Node = {f = g + h, g, state}; min-heap ordered by f
 struct Node {
     int f, g, state;
     bool operator>(const Node& o) const {
@@ -1226,7 +1226,7 @@ int astar(int start, int goal) {
     if (isGoal()) {
         return true;
     }
-    // 枚舉下一步，遞迴...
+    // enumerate next moves, then recurse...
     return false;
 }`
           }
@@ -1259,8 +1259,8 @@ int astar(int start, int goal) {
         summary:
           '在樹上做 DP，自底向上合併子樹資訊。狀態常為 f[u][狀態]，在 DFS 回溯（後序）時用子節點更新父節點。最大獨立集是最典型例子。',
         code: `void dfs(int u, int fa) {
-    f[u][1] = a[u];              // 選 u
-    f[u][0] = 0;                 // 不選 u
+    f[u][1] = a[u];              // pick u
+    f[u][0] = 0;                 // skip u
     for (int v : g[u]) {
         if (v != fa) {
             dfs(v, u);
@@ -1275,7 +1275,7 @@ int astar(int start, int goal) {
         title: '狀態壓縮動態規劃',
         summary:
           '用整數的二進位位元表示「集合狀態」，適合 n≤20 的子集問題（旅行商、棋盤覆蓋）。枚舉子集要用 for(int s=m; s; s=(s-1)&m) 才是 O(3^n)。',
-        code: `// 旅行商 TSP：dp[mask][i] = 走過 mask、當前在 i 的最短
+        code: `// TSP: dp[mask][i] = shortest path having visited set mask, currently at i
 for (int mask = 1; mask < (1 << n); ++mask) {
     for (int i = 0; i < n; ++i) {
         if (mask >> i & 1) {
@@ -1306,13 +1306,13 @@ for (int mask = 1; mask < (1 << n); ++mask) {
             title: '單調隊列優化',
             summary:
               '轉移是「在滑動視窗內取最值」時，用單調隊列維護候選：隊頭是視窗最優、過期就彈出，隊尾維持單調。把 O(nk) 降到 O(n)。',
-            code: `deque<int> dq;                        // 存下標，值單調
+            code: `deque<int> dq;                        // stores indices while maintaining monotonic values
 for (int i = 0; i < n; ++i) {
-    while (!dq.empty() && dq.front() < i - k) {      // 過期
+    while (!dq.empty() && dq.front() < i - k) {      // out of window, discard
         dq.pop_front();
     }
     f[i] = a[i] + (dq.empty() ? 0 : f[dq.front()]);
-    while (!dq.empty() && f[dq.back()] >= f[i]) {    // 維持單調
+    while (!dq.empty() && f[dq.back()] >= f[i]) {    // maintain monotonicity by popping larger values
         dq.pop_back();
     }
     dq.push_back(i);
@@ -1354,7 +1354,7 @@ for (int i = 0; i < n; ++i) {
               '模 p 為質數時，由費馬小定理 a⁻¹ ≡ a^(p−2)，用快速冪求；模非質數但與 a 互質時用 ExGCD 求。需要 1..n 全部逆元時可線性遞推。',
             code: `long long inv(long long a, long long p) {
     return qpow(a, p - 2, p);
-} // p 為質數`,
+} // p must be prime for Fermat's little theorem`,
             complexity: 'O(log p)'
           }
         ]
@@ -1363,19 +1363,19 @@ for (int i = 0; i < n; ++i) {
         title: '中國剩餘定理 (CRT)',
         summary:
           '解一組模兩兩互質的同餘方程 x≡a_i (mod m_i)。令 M=∏m_i，x=Σ a_i·M_i·(M_i⁻¹ mod m_i) mod M，其中 M_i=M/m_i。模數不互質時用擴展 CRT 逐步合併。',
-        code: `// exgcd 求 a 對 m 的逆元；m[] 兩兩互質
+        code: `// exgcd finds the modular inverse of a modulo m; m[] are pairwise coprime
 long long crt(int k, long long a[], long long m[]) {
-    long long M = 1, ans = 0;
+    long long mod_prod = 1, ans = 0;
     for (int i = 0; i < k; ++i) {
-        M *= m[i];
+        mod_prod *= m[i];
     }
     for (int i = 0; i < k; ++i) {
-        long long Mi = M / m[i];
+        long long Mi = mod_prod / m[i];
         long long x, y;
         exgcd(Mi, m[i], x, y);  // Mi * x ≡ 1 (mod m[i])
-        ans = (ans + a[i] % M * Mi % M * (x % m[i]) % M) % M;
+        ans = (ans + a[i] % kM * Mi % kM * (x % m[i]) % kM) % kM;
     }
-    return (ans % M + M) % M;
+    return (ans % kM + kM) % kM;
 }`,
         complexity: 'O(k log M)'
       },
@@ -1387,7 +1387,7 @@ long long crt(int k, long long a[], long long m[]) {
             title: '排列組合計算',
             summary:
               'C(n,k)=n!/(k!(n−k)!)。模 p 下預處理階乘與階乘逆元後可 O(1) 查詢任意 C(n,k)。',
-            code: `long long fac[N], ifac[N];
+            code: `long long fac[kN], ifac[kN];
 void init(int n, long long p) {
     fac[0] = 1;
     for (int i = 1; i <= n; ++i) {
@@ -1410,7 +1410,7 @@ long long C(int n, int k, long long p) {
             title: 'Lucas 定理',
             summary:
               'n、k 很大而模 p 為較小質數時，把 n、k 寫成 p 進位，C(n,k) mod p = ∏ C(n_i, k_i) mod p，遞迴計算。',
-            code: `// C(n, k) 為上一節模 p 下的組合數（p 為質數）
+            code: `// C(n, k) is the binomial coefficient modulo p as defined in the previous section (p must be prime)
 long long lucas(long long n, long long k, long long p) {
     if (k == 0) {
         return 1;
@@ -1428,18 +1428,18 @@ long long lucas(long long n, long long k, long long p) {
           {
             title: '矩陣乘法基礎',
             summary: 'C[i][j]=Σ A[i][k]·B[k][j]，注意過程取模與 long long 防溢位。',
-            code: `Mat operator*(const Mat& A, const Mat& B) {
-    Mat C{};
-    for (int i = 0; i < K; ++i) {
-        for (int k = 0; k < K; ++k) {
-            if (A.a[i][k]) {
-                for (int j = 0; j < K; ++j) {
-                    C.a[i][j] = (C.a[i][j] + A.a[i][k] * B.a[k][j]) % MOD;
+            code: `Mat operator*(const Mat& a, const Mat& b) {
+    Mat c{};
+    for (int i = 0; i < kDim; ++i) {
+        for (int k = 0; k < kDim; ++k) {
+            if (a.a[i][k]) {
+                for (int j = 0; j < kDim; ++j) {
+                    c.a[i][j] = (c.a[i][j] + a.a[i][k] * b.a[k][j]) % kMod;
                 }
             }
         }
     }
-    return C;
+    return c;
 }`
           },
           {

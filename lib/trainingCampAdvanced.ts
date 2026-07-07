@@ -32,13 +32,13 @@ export const advancedModules: TrainingCampModule[] = [
           {
             title: '預處理',
             summary: '決定塊大小（約 √n）、算出每個下標所屬塊、預處理每塊的彙總資訊（和、最值等）。',
-            code: `int blk, bel[N], L[M], R[M];
+            code: `int blk, bel[kN], L[kM], R[kM];
 void build() {
     blk = sqrt(n);
     for (int i = 1; i <= n; ++i) {
         bel[i] = (i - 1) / blk + 1;
     }
-    // L[b], R[b] 記錄每塊左右端點
+    // L[b], R[b] store the left/right boundaries of each block
 }`
           },
           {
@@ -130,8 +130,8 @@ for (auto& q : qs) {
             title: '處理多維偏序問題 (三維偏序)',
             summary:
               '第一維排序、第二維在 CDQ 分治中用「左半按第二維、右半按第二維歸併」處理、第三維用樹狀陣列統計。總複雜度 O(n log^2 n)。',
-            code: `// a[] 已按第一維 x 排序（同組去重後帶計數）
-// 對 [l, r]：先遞迴兩半，再統計「左半對右半」的貢獻
+            code: `// a[] is sorted by the first dimension x (deduplicated per group with counts)
+// for [l, r]: recurse on both halves, then count cross-subarray contributions from left to right
 void cdq(int l, int r) {
     if (l == r) {
         return;
@@ -150,7 +150,7 @@ void cdq(int l, int r) {
         a[j].ans += bit.query(a[j].z);
     }
     for (int k = l; k < i; ++k) {
-        bit.clear(a[k].z);  // 撤銷本次加入，保持 O(n log n) 均攤
+        bit.clear(a[k].z);  // undo additions to keep amortized O(n log n) overall
     }
 }`,
             complexity: 'O(n log^2 n)'
@@ -185,7 +185,7 @@ void cdq(int l, int r) {
           {
             title: '創建字典樹',
             summary: '把所有模式串插入 Trie，終點記錄該串資訊（如編號或計數）。',
-            code: `int ch[N][26], cnt[N], tot;
+            code: `int ch[kN][26], cnt[kN], tot;
 void insert(const string& s) {
     int u = 0;
     for (char c : s) {
@@ -217,7 +217,7 @@ while (!q.empty()) {
             fail[v] = ch[fail[u]][c];
             q.push(v);
         } else {
-            v = ch[fail[u]][c];   // 轉移補全
+            v = ch[fail[u]][c];   // fill missing transitions to avoid branching in queries
         }
     }
 }`,
@@ -240,22 +240,22 @@ while (!q.empty()) {
             title: '基數排序',
             summary:
               '倍增建 SA 時，每一輪都要把後綴依 `(rk[i], rk[i + w])` 這組「雙關鍵字」重新排序。若用 `std::sort` 比較排序，每輪是 O(n log n)，總計 O(n log² n)。改用兩趟穩定計數排序（先按次關鍵字 `rk[i + w]`，再按主關鍵字 `rk[i]`），因為關鍵字值域只有 O(n)，每輪可壓到 O(n)，總體變成 O(n log n)。關鍵在於第二趟必須「穩定」——次關鍵字相同的順序要保留，所以逆序掃描已按次關鍵字排好的 `id[]`。',
-            code: `int n, m;               // n：字串長度；m：目前值域大小（初始為字元集大小）
-int sa[N], rk[N], id[N], cnt[N];
+            code: `int n, m;               // n: string length; m: current value range size (initially the alphabet size)
+int sa[kN], rk[kN], id[kN], cnt[kN];
 
-// 一輪倍增：已知按長度 w 的排名 rk[]，求出按長度 2w 排序的 sa[]
-void radix_sort(int w) {
+// One doubling round: given ranks for length w, compute sa[] for length 2w
+void radixSort(int w) {
     int p = 0;
-    // 次關鍵字：rk[i + w]。i + w > n 者第二關鍵字視為最小，優先放入 id[]
+    // secondary key: rk[i + w]. Positions beyond n get the smallest secondary key, prepended first
     for (int i = n; i > n - w; --i) {
         id[++p] = i;
     }
     for (int i = 1; i <= n; ++i) {
         if (sa[i] > w) {
-            id[++p] = sa[i] - w;   // 沿用上一輪 sa[] 得到次關鍵字的有序序列
+            id[++p] = sa[i] - w;   // reuse previous sa[] to obtain the ordered secondary-key sequence
         }
     }
-    // 主關鍵字：對 id[] 依 rk[] 做穩定計數排序
+    // primary key: stable counting sort on id[] by rank[]
     for (int i = 0; i <= m; ++i) {
         cnt[i] = 0;
     }
@@ -265,7 +265,7 @@ void radix_sort(int w) {
     for (int i = 1; i <= m; ++i) {
         cnt[i] += cnt[i - 1];
     }
-    for (int i = n; i >= 1; --i) {   // 逆序掃描保證穩定性
+    for (int i = n; i >= 1; --i) {   // scan backwards to preserve stability
         sa[cnt[rk[id[i]]]--] = id[i];
     }
 }`,
@@ -280,7 +280,7 @@ void radix_sort(int w) {
             title: '後綴數組的應用',
             summary:
               'height 用 h[i]≥h[i−1]−1 的性質 O(n) 求得。之後：不同子串個數 = n(n+1)/2 − Σheight；兩後綴 LCP = height 區間最小值（RMQ）；可求最長重複子串等。',
-            code: `// 用 rank/sa 線性求 height
+            code: `// linear height computation using rank[] / sa[]
 for (int i = 1, k = 0; i <= n; ++i) {
     if (k) {
         --k;
@@ -355,7 +355,7 @@ for (int i = 1, k = 0; i <= n; ++i) {
             title: '預處理',
             summary:
               '兩次 DFS：第一次求子樹大小、深度、父、重兒子（子樹最大者）；第二次按「優先走重兒子」給每點連續的 dfs 序與所在鏈頂 top。',
-            code: `int sz[N], dep[N], fa[N], son[N], top[N], dfn[N], idx;
+            code: `int sz[kN], dep[kN], fa[kN], son[kN], top[kN], dfn[kN], idx;
 void dfs1(int u, int f) {
     sz[u] = 1;
     for (int v : g[u]) {
@@ -488,15 +488,15 @@ void dfs2(int u, int t) {
             code: `struct Point {
     int x[K];
 };
-Point p[N];
-int lc[N], rc[N];
-// 回傳 [l, r) 這段建成的子樹根（存於陣列下標 mid）
+Point p[kN];
+int lc[kN], rc[kN];
+// return the root of the subtree built from [l, r), stored at array index mid
 int build(int l, int r, int depth) {
     if (l >= r) {
         return 0;
     }
     int mid = (l + r) >> 1;
-    int dim = depth % K;
+    int dim = depth % kDim;
     nth_element(p + l, p + mid, p + r, [dim](const Point& a, const Point& b) {
         return a.x[dim] < b.x[dim];
     });
@@ -532,7 +532,7 @@ int build(int l, int r, int depth) {
         return a | b;
     }
     if (val[b] < val[a]) {
-        swap(a, b);     // 小根堆
+        swap(a, b);     // min-heap
     }
     rc[a] = merge(rc[a], b);
     if (dist[lc[a]] < dist[rc[a]]) {
@@ -660,11 +660,11 @@ int build(int l, int r, int depth) {
             title: '最大異或和',
             summary:
               '建可持久化 01-Trie（每位存子樹計數），查詢時貪心地優先往「與目標當前位相反」的分支走，並用版本差分限制下標範圍。',
-            code: `int ch[N * 24][2], cnt[N * 24], tot;
-// 在 pre 版本基礎上插入 val（第 BIT 位到第 0 位）
+            code: `int ch[kN * 24][2], cnt[kN * 24], tot;
+// insert val based on version pre (from bit kBit down to 0)
 int insert(int pre, int val) {
     int cur = ++tot, root = cur;
-    for (int b = BIT; b >= 0; --b) {
+    for (int b = kBit; b >= 0; --b) {
         int x = val >> b & 1;
         ch[cur][x ^ 1] = ch[pre][x ^ 1];
         ch[cur][x] = ++tot;
@@ -674,10 +674,10 @@ int insert(int pre, int val) {
     }
     return root;
 }
-// 在版本區間 (l, r] 中查詢與 val 異或最大值
+// query the maximum xor with val over version interval (l, r]
 int query(int l, int r, int val) {
     int res = 0;
-    for (int b = BIT; b >= 0; --b) {
+    for (int b = kBit; b >= 0; --b) {
         int x = val >> b & 1;
         if (cnt[ch[r][x ^ 1]] - cnt[ch[l][x ^ 1]] > 0) {
             res |= 1 << b;
@@ -725,7 +725,7 @@ int query(int l, int r, int val) {
         title: 'Dinic 算法',
         summary:
           '主流最大流：先 BFS 分層建層次圖，再 DFS 沿「層次遞增」的邊多路增廣，反覆直到無法分層。配當前弧優化避免重掃滿邊。二分圖匹配上跑得極快。',
-        code: `int level[N], cur[N];
+        code: `int level[kN], cur[kN];
 bool bfs(int s, int t) {
     fill(level, level + n, -1);
     queue<int> q;
@@ -894,7 +894,7 @@ for (int u = 0; u < nl; ++u) {
             code: `for (int k = 1; cnt > 0; k <<= 1) {
     int use = min(k, cnt);
     cnt -= use;
-    for (int j = W; j >= use * w; --j) {
+    for (int j = capacity; j >= use * w; --j) {
         f[j] = max(f[j], f[j - use * w] + use * v);
     }
 }`,
@@ -904,8 +904,8 @@ for (int u = 0; u < nl; ++u) {
             title: '分組背包問題',
             summary:
               '物品分組、每組至多選一件。迴圈順序必須「組在最外層、容量在中層、組內物品在最內層」，否則同組會被選多個。',
-            code: `for (int g = 0; g < G; ++g) {
-    for (int j = W; j >= 0; --j) {
+            code: `for (int g = 0; g < group_cnt; ++g) {
+    for (int j = capacity; j >= 0; --j) {
         for (auto& it : group[g]) {
             if (j >= it.w) {
                 f[j] = max(f[j], f[j - it.w] + it.v);
@@ -939,7 +939,7 @@ for (int u = 0; u < nl; ++u) {
             code: `void dfs2(int u, int fa) {
     for (int v : g[u]) {
         if (v != fa) {
-            // 由 f[u] 推 f[v]：先扣除 v 對 u 的貢獻，再把它併入 v
+            // reroot: remove child v's contribution from u, then attach u under v
             g_ans[v] = adjust(g_ans[u], u, v);
             dfs2(v, u);
         }
@@ -977,7 +977,7 @@ for (int u = 0; u < nl; ++u) {
           '統計 [0, N] 中滿足某數位性質的數量。按位從高到低 DFS，帶「是否貼上界 limit」與「是否前導零 lead」兩旗標；非 limit 且非 lead 的狀態可記憶化重用。',
         code: `int dfs(int pos, int state, bool limit, bool lead) {
     if (pos < 0) {
-        return /* 統計 */ 1;
+        return /* count valid numbers */ 1;
     }
     if (!limit && !lead && f[pos][state] != -1) {
         return f[pos][state];
@@ -1003,9 +1003,9 @@ for (int u = 0; u < nl; ++u) {
         title: '斜率優化',
         summary:
           '把轉移式整理成 y=kx+b 的直線形式（把只含 j 的項當座標點、含 i 的項當斜率），用單調隊列維護下凸/上凸殼，均攤 O(1) 取最優決策，把 O(n^2) 降到 O(n)。橫座標與斜率不單調時改用二分或李超線段樹。',
-        code: `// 以 f[i] = min(f[j] + cost(j, i)) 為例，整理成斜率式後
-// 用單調隊列 q[] 維護下凸殼，X()/Y() 為決策點座標
-int q[N], head, tail;
+        code: `// Example: f[i] = min(f[j] + cost(j, i)). After reformulating into slope form...
+// use monotone deque q[] to maintain lower hull; X()/Y() are decision-point coordinates
+int q[kN], head, tail;
 double slope(int a, int b) {
     return (double)(Y(b) - Y(a)) / (X(b) - X(a));
 }

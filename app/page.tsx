@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, BarChart3, BookOpen, Dumbbell, type LucideIcon } from 'lucide-react';
+import { ArrowRight, BarChart3, BookOpen, Dumbbell, GraduationCap, type LucideIcon } from 'lucide-react';
 import { FeaturedTopics } from '@/components/FeaturedTopics';
 import { PageTransition } from '@/components/PageTransition';
 import { ProgressSummary } from '@/components/ProgressSummary';
@@ -12,6 +12,13 @@ const kGuideSteps: { icon: LucideIcon; title: string; description: string; href:
     description: '從核心想法與過程剖析入手，理解每個主題的解題框架。',
     href: '/handbook',
     cta: '前往手冊'
+  },
+  {
+    icon: GraduationCap,
+    title: '排訓練營路線',
+    description: '依三階段二十五講推進，從入門語法一路銜接到進階資料結構與圖論。',
+    href: '/training-camp',
+    cta: '前往訓練營'
   },
   {
     icon: Dumbbell,
@@ -59,6 +66,13 @@ export default function HomePage() {
                 開始閱讀手冊
               </Link>
               <Link
+                href="/training-camp"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-border bg-card/70 px-6 text-base font-medium text-foreground shadow-sm transition duration-200 hover:-translate-y-0.5 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
+                <GraduationCap className="h-5 w-5" aria-hidden />
+                查看訓練營
+              </Link>
+              <Link
                 href="/practice"
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-border bg-card/70 px-6 text-base font-medium text-foreground shadow-sm transition duration-200 hover:-translate-y-0.5 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
@@ -71,10 +85,10 @@ export default function HomePage() {
 
         <section className="space-y-4">
           <div>
-            <p className="text-sm font-semibold text-primary">三步上手</p>
+            <p className="text-sm font-semibold text-primary">四步上手</p>
             <h2 className="mt-2 text-2xl font-semibold">如何使用本網站</h2>
           </div>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-4">
             {kGuideSteps.map((step, index) => (
               <div
                 key={step.title}

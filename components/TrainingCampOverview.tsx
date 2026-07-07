@@ -8,10 +8,10 @@ import {
   ListChecks,
   Route,
   TriangleAlert,
-  Trophy
+  ExternalLink as LeetIcon
 } from 'lucide-react';
 import { kProblemById } from '@/lib/data';
-import { isTrainingItem, type TrainingCampPhase } from '@/lib/trainingCamp';
+import { countTopics, type TrainingCampPhase, type TrainingCampTopic } from '@/lib/trainingCamp';
 import { getTrainingCampNote } from '@/lib/trainingCampNotes';
 import { MarkdownBlock } from '@/components/MarkdownBlock';
 import type { Problem } from '@/lib/types';
@@ -32,6 +32,80 @@ function phaseModuleOffset(phases: TrainingCampPhase[], phase_id: string) {
   return offset;
 }
 
+/** Recursively render a lecture's hierarchical syllabus with teaching content. */
+function TopicTree({
+  topics,
+  moduleId,
+  depth = 0
+}: {
+  topics: TrainingCampTopic[];
+  moduleId: string;
+  depth?: number;
+}) {
+  return (
+    <ol
+      className={cn(
+        'space-y-3',
+        depth > 0 && 'mt-3 space-y-3 border-l-2 border-border/60 pl-4'
+      )}
+    >
+      {topics.map((topic, index) => {
+        const isLeafConcept = Boolean(topic.summary || topic.code);
+
+        return (
+          <li
+            key={`${moduleId}-${depth}-${index}-${topic.title}`}
+            className={cn(
+              'rounded-xl border px-4 py-3',
+              depth === 0
+                ? 'border-border bg-background/45'
+                : 'border-border/70 bg-background/25'
+            )}
+          >
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="flex h-6 min-w-6 items-center justify-center rounded-md bg-primary/10 px-1.5 text-[11px] font-semibold text-primary">
+                {index + 1}
+              </span>
+              <h4
+                className={cn(
+                  'font-semibold',
+                  depth === 0 ? 'text-base' : 'text-sm'
+                )}
+              >
+                {topic.title}
+              </h4>
+              {topic.complexity ? (
+                <span className="rounded-full border border-blue-400/40 bg-blue-500/10 px-2 py-0.5 text-[11px] font-medium text-blue-700 dark:text-blue-200">
+                  {topic.complexity}
+                </span>
+              ) : null}
+              {!isLeafConcept && topic.children ? (
+                <span className="rounded-full border border-border bg-muted/60 px-2 py-0.5 text-[11px] text-muted-foreground">
+                  {topic.children.length} 個子題
+                </span>
+              ) : null}
+            </div>
+
+            {topic.summary ? (
+              <p className="mt-2 text-sm leading-7 text-muted-foreground">{topic.summary}</p>
+            ) : null}
+
+            {topic.code ? (
+              <div className="mt-3">
+                <MarkdownBlock>{`\`\`\`cpp\n${topic.code}\n\`\`\``}</MarkdownBlock>
+              </div>
+            ) : null}
+
+            {topic.children && topic.children.length > 0 ? (
+              <TopicTree topics={topic.children} moduleId={moduleId} depth={depth + 1} />
+            ) : null}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
 export function TrainingCampOverview({
   phases,
   stats
@@ -40,17 +114,15 @@ export function TrainingCampOverview({
   stats: {
     phaseCount: number;
     moduleCount: number;
-    itemCount: number;
-    trainingCount: number;
+    topicCount: number;
     leetcodeProblemCount: number;
   };
 }) {
   const stat_cards = [
     { label: '階段', value: stats.phaseCount, icon: Route },
     { label: '重編講次', value: stats.moduleCount, icon: BookOpen },
-    { label: '知識節點', value: stats.itemCount, icon: ListChecks },
-    { label: '訓練題組', value: stats.trainingCount, icon: Trophy },
-    { label: 'LeetCode 題', value: stats.leetcodeProblemCount, icon: ExternalLink }
+    { label: '知識節點', value: stats.topicCount, icon: ListChecks },
+    { label: 'LeetCode 題', value: stats.leetcodeProblemCount, icon: LeetIcon }
   ];
 
   return (
@@ -65,9 +137,9 @@ export function TrainingCampOverview({
               <p className="text-sm font-semibold text-primary">訓練營</p>
               <h1 className="mt-2 text-3xl font-bold sm:text-4xl">競程訓練營路線</h1>
               <p className="mt-4 max-w-3xl leading-7 text-muted-foreground">
-                將三份原始章節重編為連續的 25
-                講，分成入門、提升、進階三個階段。每講保留原章節編號，方便對照來源目錄，同時避免不同階段都從第
-                1 章開始造成混淆。
+                將三份原始章節重編為連續的 {stats.moduleCount}{' '}
+                講，分成入門、提升、進階三個階段。每一講的每個子標題都附上概念說明、C++
+                實作與複雜度，像教授授課般由淺入深，讓你照著清單就能學會。
               </p>
             </div>
           </div>
@@ -126,7 +198,7 @@ export function TrainingCampOverview({
               <div className="space-y-3">
                 {phase.modules.map((module, module_index) => {
                   const global_index = offset + module_index + 1;
-                  const training_count = module.items.filter(isTrainingItem).length;
+                  const topic_count = countTopics(module.topics);
                   const note = getTrainingCampNote(module.id);
                   const leetcode_problems = (module.leetcodeProblemIds ?? [])
                     .map((problem_id) => kProblemById.get(problem_id))
@@ -151,8 +223,7 @@ export function TrainingCampOverview({
                         </div>
 
                         <p className="text-sm leading-6 text-muted-foreground sm:justify-self-start">
-                          {module.items.length} 個節點，{training_count} 組訓練，
-                          {leetcode_problems.length} 題 LeetCode
+                          {topic_count} 個知識節點，{leetcode_problems.length} 題 LeetCode
                         </p>
 
                         <ChevronDown
@@ -162,39 +233,21 @@ export function TrainingCampOverview({
                       </summary>
 
                       <div className="border-t border-border px-4 pb-5 pt-4 sm:px-5">
-                        <ol className="grid gap-2 md:grid-cols-2">
-                          {module.items.map((item, item_index) => {
-                            const training = isTrainingItem(item);
+                        {note ? (
+                          <div className="mb-5 rounded-2xl border border-blue-400/30 bg-blue-500/[0.06] p-4">
+                            <div className="flex items-center gap-2">
+                              <Lightbulb className="h-4 w-4 text-blue-600 dark:text-blue-300" aria-hidden />
+                              <p className="text-sm font-semibold">本講重點</p>
+                            </div>
+                            <p className="mt-2 text-sm leading-7 text-muted-foreground">{note.summary}</p>
+                          </div>
+                        ) : null}
 
-                            return (
-                              <li
-                                key={`${module.id}-${item_index}-${item}`}
-                                className={cn(
-                                  'flex min-h-11 items-start gap-3 rounded-xl border px-3 py-2 text-sm leading-6',
-                                  training
-                                    ? 'border-amber-400/35 bg-amber-500/10 text-amber-900 dark:text-amber-100'
-                                    : 'border-border bg-background/45 text-foreground'
-                                )}
-                              >
-                                <span className="mt-0.5 flex h-5 min-w-5 items-center justify-center rounded-md bg-muted text-[11px] font-semibold text-muted-foreground">
-                                  {item_index + 1}
-                                </span>
-                                <span className="min-w-0 flex-1">{item}</span>
-                              </li>
-                            );
-                          })}
-                        </ol>
+                        <p className="mb-3 text-sm font-semibold">教材大綱</p>
+                        <TopicTree topics={module.topics} moduleId={module.id} />
 
                         {note ? (
                           <div className="mt-5 space-y-4 border-t border-border pt-4">
-                            <div className="rounded-2xl border border-blue-400/30 bg-blue-500/[0.06] p-4">
-                              <div className="flex items-center gap-2">
-                                <Lightbulb className="h-4 w-4 text-blue-600 dark:text-blue-300" aria-hidden />
-                                <p className="text-sm font-semibold">本講重點</p>
-                              </div>
-                              <p className="mt-2 text-sm leading-7 text-muted-foreground">{note.summary}</p>
-                            </div>
-
                             <div className="space-y-3">
                               <p className="text-sm font-semibold">實作要點</p>
                               <div className="grid gap-3 md:grid-cols-2">
@@ -248,24 +301,24 @@ export function TrainingCampOverview({
                               </ul>
                             </div>
 
-                          {note?.tips ? (
-                            <div className="mt-5 rounded-2xl border border-emerald-400/30 bg-emerald-500/[0.06] p-4">
-                              <div className="flex items-center gap-2">
-                                <Lightbulb className="h-4 w-4 text-emerald-600 dark:text-emerald-300" aria-hidden />
-                                <p className="text-sm font-semibold">快速上手技巧</p>
+                            {note.tips ? (
+                              <div className="rounded-2xl border border-emerald-400/30 bg-emerald-500/[0.06] p-4">
+                                <div className="flex items-center gap-2">
+                                  <Lightbulb className="h-4 w-4 text-emerald-600 dark:text-emerald-300" aria-hidden />
+                                  <p className="text-sm font-semibold">快速上手技巧</p>
+                                </div>
+                                <ul className="mt-2 space-y-2">
+                                  {note.tips.map((tip) => (
+                                    <li key={`${module.id}-tip-${tip}`} className="flex gap-2 text-sm leading-7 text-emerald-900 dark:text-emerald-100">
+                                      <span aria-hidden className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500/70" />
+                                      <span className="min-w-0 flex-1">{tip}</span>
+                                    </li>
+                                  ))}
+                                </ul>
                               </div>
-                              <ul className="mt-2 space-y-2">
-                                {note.tips.map((tip) => (
-                                  <li key={`${module.id}-tip-${tip}`} className="flex gap-2 text-sm leading-7 text-emerald-900 dark:text-emerald-100">
-                                    <span aria-hidden className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500/70" />
-                                    <span className="min-w-0 flex-1">{tip}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          ) : null}
-                        </div>
-                      ) : null}
+                            ) : null}
+                          </div>
+                        ) : null}
 
                         {leetcode_problems.length > 0 ? (
                           <div className="mt-5 border-t border-border pt-4">

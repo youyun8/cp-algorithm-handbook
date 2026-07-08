@@ -2,12 +2,19 @@
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { kCodeLanguages, CodeEditor, kDefaultCodeLanguage } from '@/components/CodeEditor';
 import { MarkdownBlock } from '@/components/MarkdownBlock';
 import { useMounted } from '@/lib/useMounted';
 import { useProgressStore } from '@/store/useProgressStore';
+import { cn } from '@/lib/utils';
+
+const kNotePanels = [
+  { id: 'solution', label: '解答（程式碼）' },
+  { id: 'thought', label: '思路（支援 Markdown）' }
+] as const;
+type NotePanelId = (typeof kNotePanels)[number]['id'];
 
 export function ProblemNotesModal({
   problemId: problem_id,
@@ -72,6 +79,7 @@ function NotesDialogBody({
   const [thought, set_thought] = useState(note?.thought ?? '');
   const [language, set_language] = useState(note?.language ?? kDefaultCodeLanguage);
   const [thought_view, set_thought_view] = useState<'edit' | 'preview'>('preview');
+  const [active_panel, set_active_panel] = useState<NotePanelId>('solution');
   const [saved, set_saved] = useState(false);
 
   function handleSave() {
@@ -107,103 +115,110 @@ function NotesDialogBody({
       </header>
 
       <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
-        <details open className="group rounded-2xl border border-border bg-background/45 p-4">
-          <summary className="flex cursor-pointer list-none items-center gap-2">
-            <span className="flex-1 text-xs font-medium text-muted-foreground">解答（程式碼）</span>
-            <ChevronDown
-              className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
-              aria-hidden
-            />
-          </summary>
-          <div className="mt-3 space-y-2">
-            <div className="flex flex-wrap items-center justify-end gap-2">
-              <label className="flex items-center gap-2 text-xs text-muted-foreground">
-                語言
-                <select
-                  value={language}
-                  onChange={(event) => {
-                    set_language(event.target.value);
-                    set_saved(false);
-                  }}
-                  className="rounded-lg border border-border bg-background/70 px-2 py-1 text-xs text-foreground outline-none focus:border-primary"
-                >
-                  {kCodeLanguages.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-            <CodeEditor
-              value={solution}
-              language={language}
-              onValueChange={(value) => {
-                set_solution(value);
-                set_saved(false);
-              }}
-              placeholder={
-                '// Paste or write your solution code here\n// Highlighting follows the selected language'
-              }
-              minHeight="14rem"
-            />
-          </div>
-        </details>
+        <div className="flex flex-wrap gap-2">
+          {kNotePanels.map((panel) => (
+            <button
+              key={panel.id}
+              type="button"
+              onClick={() => set_active_panel(panel.id)}
+              aria-pressed={active_panel === panel.id}
+              className={cn(
+                'rounded-xl border px-3 py-1.5 text-xs font-medium transition',
+                active_panel === panel.id
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : 'border-border bg-background/50 text-muted-foreground hover:text-foreground'
+              )}
+            >
+              {panel.label}
+            </button>
+          ))}
+        </div>
 
-        <details open className="group rounded-2xl border border-border bg-background/45 p-4">
-          <summary className="flex cursor-pointer list-none items-center gap-2">
-            <span className="flex-1 text-xs font-medium text-muted-foreground">思路（支援 Markdown）</span>
-            <ChevronDown
-              className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
-              aria-hidden
-            />
-          </summary>
-          <div className="mt-3 space-y-2">
-            <div className="flex items-center justify-end gap-1 rounded-xl border border-border p-0.5">
-              {(
-                [
-                  { id: 'edit', label: '編輯' },
-                  { id: 'preview', label: '預覽' }
-                ] as const
-              ).map((option) => (
-                <button
-                  key={option.id}
-                  type="button"
-                  onClick={() => set_thought_view(option.id)}
-                  className={
-                    thought_view === option.id
-                      ? 'rounded-lg bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground'
-                      : 'rounded-lg px-2.5 py-1 text-xs text-muted-foreground transition hover:text-foreground'
-                  }
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-            {thought_view === 'edit' ? (
-              <textarea
-                value={thought}
-                onChange={(event) => {
-                  set_thought(event.target.value);
+        {active_panel === 'solution' ? (
+          <div className="rounded-2xl border border-border bg-background/45 p-4">
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                  語言
+                  <select
+                    value={language}
+                    onChange={(event) => {
+                      set_language(event.target.value);
+                      set_saved(false);
+                    }}
+                    className="rounded-lg border border-border bg-background/70 px-2 py-1 text-xs text-foreground outline-none focus:border-primary"
+                  >
+                    {kCodeLanguages.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <CodeEditor
+                value={solution}
+                language={language}
+                onValueChange={(value) => {
+                  set_solution(value);
                   set_saved(false);
                 }}
-                rows={4}
-                className="min-h-28 w-full resize-y rounded-2xl border border-border bg-card/70 px-3 py-2 font-mono text-sm leading-6 outline-none transition placeholder:text-muted-foreground/70 focus:border-primary focus:ring-2 focus:ring-primary/25"
                 placeholder={
-                  '記錄如何建模、判斷單調性、邊界處理與下次複習提醒。\n\n支援 **粗體**、清單、引言（>）、行內 `code` 與 ``` 程式碼區塊。'
+                  '// Paste or write your solution code here\n// Highlighting follows the selected language'
                 }
+                minHeight="14rem"
               />
-            ) : thought.trim() ? (
-              <div className="min-h-28 rounded-2xl border border-border bg-card/70 px-4 py-3">
-                <MarkdownBlock>{thought}</MarkdownBlock>
-              </div>
-            ) : (
-              <div className="flex min-h-28 items-center justify-center rounded-2xl border border-dashed border-border bg-card/40 px-4 py-3 text-sm text-muted-foreground">
-                尚無內容可預覽
-              </div>
-            )}
+            </div>
           </div>
-        </details>
+        ) : (
+          <div className="rounded-2xl border border-border bg-background/45 p-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-end gap-1 rounded-xl border border-border p-0.5">
+                {(
+                  [
+                    { id: 'edit', label: '編輯' },
+                    { id: 'preview', label: '預覽' }
+                  ] as const
+                ).map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => set_thought_view(option.id)}
+                    className={
+                      thought_view === option.id
+                        ? 'rounded-lg bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground'
+                        : 'rounded-lg px-2.5 py-1 text-xs text-muted-foreground transition hover:text-foreground'
+                    }
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+              {thought_view === 'edit' ? (
+                <textarea
+                  value={thought}
+                  onChange={(event) => {
+                    set_thought(event.target.value);
+                    set_saved(false);
+                  }}
+                  rows={12}
+                  className="min-h-[14rem] w-full resize-y rounded-2xl border border-border bg-card/70 px-3 py-2 font-mono text-sm leading-6 outline-none transition placeholder:text-muted-foreground/70 focus:border-primary focus:ring-2 focus:ring-primary/25"
+                  placeholder={
+                    '記錄如何建模、判斷單調性、邊界處理與下次複習提醒。\n\n支援 **粗體**、清單、引言（>）、行內 `code` 與 ``` 程式碼區塊。'
+                  }
+                />
+              ) : thought.trim() ? (
+                <div className="min-h-[14rem] rounded-2xl border border-border bg-card/70 px-4 py-3">
+                  <MarkdownBlock>{thought}</MarkdownBlock>
+                </div>
+              ) : (
+                <div className="flex min-h-[14rem] items-center justify-center rounded-2xl border border-dashed border-border bg-card/40 px-4 py-3 text-sm text-muted-foreground">
+                  尚無內容可預覽
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-5 py-4">

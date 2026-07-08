@@ -239,3 +239,14 @@ body {
 .dark .hljs-deletion {
   color: #ffdcd7;
 }
+
+/* ---- KaTeX (math notation in Markdown notes) ---- */
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.25rem 0;
+}
+
+.katex {
+  font-size: 1em;
+}

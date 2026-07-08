@@ -22,7 +22,7 @@ export function TopicHandbook({
   const topic_subtopics = subtopics.filter((subtopic) => subtopic.parent_id === topic.id);
 
   return (
-    <div className="flex min-h-screen gap-6">
+    <div className="flex min-h-screen flex-col gap-6 md:flex-row">
       <HandbookSidebar
         topics={topics}
         subtopics={subtopics}

@@ -205,16 +205,18 @@ void uni(int a, int b) {
           {
             title: '稀疏表',
             summary:
-              '對「可重複貢獻」的運算（max/min/gcd）預處理 st[i][k]=區間 [i, i+2^k−1] 的值，O(n log n) 建表。',
-            code: `// 稀疏表: st[i][k] 由兩個長度減半的區間合併而來，是典型的「倍增」預處理。
-int st[kMaxN][20];
+              '對「可重複貢獻」的運算（max/min/gcd）預處理 st[k][i]=區間 [i, i+2^k−1] 的值，O(n log n) 建表。刻意把層數 k 放第一維、起點 i 放第二維，讓每層是一段連續記憶體，建表時能循序存取，對快取更友善。',
+            code: `// 稀疏表: k（層數）放第一維、i（起點）放第二維，讓每層 st[k] 是一段連續陣列，建表時能循序讀寫，比 st[i][k] 的寫法更快取友善。
+int st[20][kMaxN];
 for (int i = 0; i < n; ++i) {
-    st[i][0] = a[i];   // 長度 2^0 = 1 的區間，就是它自己
+    st[0][i] = a[i];   // 第 0 層：長度 2^0 = 1 的區間，就是它自己
 }
 for (int k = 1; (1 << k) <= n; ++k) {                     // 逐步把區間長度加倍：2^1, 2^2, ...
     for (int i = 0; i + (1 << k) <= n; ++i) {              // 只枚舉「不超出陣列右界」的起點
-        // 把 [i, i+2^k-1] 拆成左半 [i, i+2^(k-1)-1] 與右半 [i+2^(k-1), i+2^k-1]，各自的答案已在上一輪算好
-        st[i][k] = max(st[i][k - 1], st[i + (1 << (k - 1))][k - 1]);
+        // 把 [i, i+2^k-1] 拆成左半 [i, i+2^(k-1)-1] 與右半 [i+2^(k-1), i+2^k-1]，各自的答案已在上一輪（st[k-1]）算好；
+        // st[k-1] 與 st[k] 都是連續陣列，這裡等於對上一層做兩次「循序掃描」再循序寫入這一層，遠比 st[i][k-1] 那種
+        // 每個 i 都要跳一個 row stride 的寫法更快取友善，n 很大時建表常數會有感差異
+        st[k][i] = max(st[k - 1][i], st[k - 1][i + (1 << (k - 1))]);
     }
 }`,
             complexity: '建表 O(n log n)'
@@ -223,12 +225,12 @@ for (int k = 1; (1 << k) <= n; ++k) {                     // 逐步把區間長�
             title: '區間值查詢',
             summary:
               '查 [l,r] 時取 k=⌊log2(r−l+1)⌋，用兩個長 2^k 的區間覆蓋（可重疊）取極值，O(1)。僅適用可重複貢獻運算，區間求和不可用。',
-            code: `// 區間值查詢: bit_width 取得 floor(log2(length))。
+            code: `// 區間值查詢: bit_width 取得 floor(log2(length))；兩次存取都落在同一層 st[k]，仍是同一段連續陣列裡的兩個位置。
 int query(int l, int r) {
     int len = r - l + 1;
     int k = static_cast<int>(bit_width(static_cast<unsigned>(len)) - 1);   // k = floor(log2(len))：C++20 <bit> 函式，取代手寫迴圈算 log
     // 用兩個長度為 2^k 的區間去覆蓋 [l, r]：允許重疊是因為 max/min 這類運算對「重複計入」不敏感
-    return max(st[l][k], st[r - (1 << k) + 1][k]);
+    return max(st[k][l], st[k][r - (1 << k) + 1]);
 }`,
             complexity: '查詢 O(1)'
           }

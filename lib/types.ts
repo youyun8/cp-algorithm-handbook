@@ -6,6 +6,11 @@ export type Tier = 'warmup' | 'core' | 'advanced' | 'challenge';
 
 export type SubmissionStatus = 'AC' | 'WA' | 'TLE' | 'SKIP';
 
+// Unified per-problem practice status. Applies to both curated problems
+// (keyed by Problem.id) and handbook practice problems (keyed by
+// `practice:<source>:<source_id>`) via a single record in the progress store.
+export type ProblemStatus = 'none' | 'review' | 'passed';
+
 export interface ReferenceLink {
   label: string;
   url: string;
@@ -156,5 +161,6 @@ export interface ProgressSnapshot {
   practiceCompletionEvents?: { problemId: string; completedAt: string }[];
   problemNotes?: Record<string, ProblemNote>;
   completedPracticeProblemIds?: string[];
+  problemStatuses?: Record<string, ProblemStatus>;
   updatedAt: string; // ISO 8601
 }

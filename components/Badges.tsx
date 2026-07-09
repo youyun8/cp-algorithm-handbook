@@ -33,22 +33,3 @@ export function TierBadge({ tier }: { tier: Problem['tier'] }) {
 export function SourceBadge({ source }: { source: Problem['source'] }) {
   return <Badge className={sourceClass(source)}>{sourceLabel(source)}</Badge>;
 }
-
-export type CompletionStatus = 'accepted' | 'reviewed' | 'none';
-
-const kCompletionMeta: Record<CompletionStatus, { label: string; className: string }> = {
-  accepted: {
-    label: '已通過',
-    className: 'border-emerald-400/40 bg-emerald-500/15 text-emerald-800 dark:text-emerald-300'
-  },
-  reviewed: {
-    label: '已複習',
-    className: 'border-blue-400/40 bg-blue-500/15 text-blue-800 dark:text-blue-200'
-  },
-  none: { label: '尚未練習', className: 'border-border bg-muted/40 text-muted-foreground' }
-};
-
-export function CompletionBadge({ status }: { status: CompletionStatus }) {
-  const meta = kCompletionMeta[status];
-  return <Badge className={meta.className}>{meta.label}</Badge>;
-}

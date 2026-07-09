@@ -1,20 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  CompletionBadge,
-  DifficultyBadge,
-  SourceBadge,
-  TierBadge,
-  type CompletionStatus
-} from '@/components/Badges';
+import { DifficultyBadge, SourceBadge, TierBadge } from '@/components/Badges';
 import { ProblemNotesModal } from '@/components/ProblemNotesModal';
 import { ProblemSourceLink } from '@/components/ProblemSourceLink';
+import { ProblemStatusControl } from '@/components/ProblemStatusControl';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { PracticeProblem } from '@/lib/types';
 import { useMounted } from '@/lib/useMounted';
-import { hasPracticeNote, practiceProblemId } from '@/lib/practiceProgress';
+import { effectiveProblemStatus } from '@/lib/problemStatus';
+import { practiceProblemId } from '@/lib/practiceProgress';
 import { problemDisplayTitle } from '@/lib/utils';
 import { useProgressStore } from '@/store/useProgressStore';
 
@@ -23,11 +19,14 @@ function SubtopicPracticeProblemCard({ problem }: { problem: PracticeProblem }) 
   const mounted = useMounted();
   const problem_id = practiceProblemId(problem);
   const note = useProgressStore((state) => state.problemNotes[problem_id]);
+  const explicit_status = useProgressStore((state) => state.problemStatuses[problem_id]);
   const completed_practice_problem_ids = useProgressStore((state) => state.completedPracticeProblemIds);
-  const mark_practice_problem_completed = useProgressStore((state) => state.markPracticeProblemCompleted);
-  const unmark_practice_problem_completed = useProgressStore((state) => state.unmarkPracticeProblemCompleted);
-  const completed = mounted && completed_practice_problem_ids.includes(problem_id);
-  const completion: CompletionStatus = mounted && (completed || hasPracticeNote(note)) ? 'reviewed' : 'none';
+  const set_problem_status = useProgressStore((state) => state.setProblemStatus);
+  const legacy_completed = completed_practice_problem_ids.includes(problem_id);
+  const status = mounted
+    ? effectiveProblemStatus(explicit_status, { completed: legacy_completed })
+    : 'none';
+  const passed = status === 'passed';
 
   return (
     <Card className="flex h-full flex-col overflow-hidden border-border/80 bg-card/90 shadow-sm transition hover:border-primary/40 hover:shadow-md">
@@ -38,7 +37,10 @@ function SubtopicPracticeProblemCard({ problem }: { problem: PracticeProblem }) 
             {problem.rating ? <DifficultyBadge rating={problem.rating} /> : null}
             {problem.tier ? <TierBadge tier={problem.tier} /> : null}
           </div>
-          <CompletionBadge status={completion} />
+          <ProblemStatusControl
+            problemId={problem_id}
+            legacySignals={{ completed: legacy_completed }}
+          />
         </div>
 
         <div className="space-y-2">
@@ -68,15 +70,11 @@ function SubtopicPracticeProblemCard({ problem }: { problem: PracticeProblem }) 
           </Button>
           <Button
             type="button"
-            variant={completed ? 'ghost' : 'secondary'}
+            variant={passed ? 'ghost' : 'secondary'}
             size="sm"
-            onClick={() =>
-              completed
-                ? unmark_practice_problem_completed(problem_id)
-                : mark_practice_problem_completed(problem_id)
-            }
+            onClick={() => set_problem_status(problem_id, passed ? 'none' : 'passed')}
           >
-            {completed ? '取消完成' : '標記完成'}
+            {passed ? '取消通過' : '標記通過'}
           </Button>
         </div>
 

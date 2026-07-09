@@ -6,6 +6,7 @@ import { DifficultyBadge, ProblemTypeBadge, TierBadge } from '@/components/Badge
 import { MarkdownBlock } from '@/components/MarkdownBlock';
 import { ProblemNotesModal } from '@/components/ProblemNotesModal';
 import { ProblemSourceLink } from '@/components/ProblemSourceLink';
+import { ProblemStatusControl } from '@/components/ProblemStatusControl';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Problem, Topic } from '@/lib/types';
@@ -33,10 +34,13 @@ export function ProblemStrategy({
 }) {
   const [active, set_active] = useState<StrategyTab>('approach');
   const [show_notes, set_show_notes] = useState(false);
-  const mark_reviewed = useProgressStore((state) => state.markReviewed);
   const reviewed_problem_ids = useProgressStore((state) => state.reviewedProblemIds);
+  const submissions = useProgressStore((state) => state.submissions);
   const problem_note = useProgressStore((state) => state.problemNotes[problem.id]);
   const reviewed = reviewed_problem_ids.includes(problem.id);
+  const accepted = submissions.some(
+    (submission) => submission.problemId === problem.id && submission.status === 'AC'
+  );
 
   const mistakes = useMemo(
     () => [
@@ -81,10 +85,14 @@ export function ProblemStrategy({
               <p className="mt-1 font-medium text-foreground">{problem.tags.join('、')}</p>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Button type="button" onClick={() => mark_reviewed(problem.id, problem.topic_id)}>
-              {reviewed ? '已標記複習' : '標記為已複習'}
-            </Button>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">練習狀態</span>
+              <ProblemStatusControl
+                problemId={problem.id}
+                legacySignals={{ accepted, reviewed }}
+              />
+            </div>
             <Button type="button" variant="outline" onClick={() => set_show_notes(true)}>
               {problem_note ? '查看解答與思路' : '記錄解答與思路'}
             </Button>

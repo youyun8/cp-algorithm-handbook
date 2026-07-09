@@ -2,9 +2,10 @@
 
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import type { ProblemNote, ProblemType, SubmissionStatus } from '@/lib/types';
+import { nextProblemStatus, noteHasContent } from '@/lib/problemStatus';
+import type { ProblemNote, ProblemStatus, ProblemType, SubmissionStatus } from '@/lib/types';
 
-export type CompletionFilter = 'all' | 'reviewed' | 'unreviewed' | 'accepted';
+export type CompletionFilter = 'all' | 'none' | 'review' | 'passed';
 export type RatingBandId = 'consolidate' | 'target' | 'stretch';
 
 export interface PracticeFilters {
@@ -54,6 +55,7 @@ interface ProgressState {
   contestSessions: ContestSessionRecord[];
   problemNotes: Record<string, ProblemNote>;
   completedPracticeProblemIds: string[];
+  problemStatuses: Record<string, ProblemStatus>;
   activeContest?: ActiveContestSession;
   lastCloudSyncAt?: string;
   filters: PracticeFilters;
@@ -61,6 +63,8 @@ interface ProgressState {
   setFilters: (filters: Partial<PracticeFilters>) => void;
   markReviewed: (problem_id: string, topic_id?: string) => void;
   logSubmission: (problem_id: string, status: SubmissionStatus, topic_id?: string) => void;
+  setProblemStatus: (problem_id: string, status: ProblemStatus) => void;
+  cycleProblemStatus: (problem_id: string, current: ProblemStatus) => void;
   saveProblemNote: (
     problem_id: string,
     note: Partial<Pick<ProblemNote, 'solution' | 'thought' | 'language'>>
@@ -102,6 +106,7 @@ export const useProgressStore = create<ProgressState>()(
       contestSessions: [],
       problemNotes: {},
       completedPracticeProblemIds: [],
+      problemStatuses: {},
       lastCloudSyncAt: undefined,
       filters: kDefaultFilters,
       setCurrentRating: (rating) => set({ currentRating: rating }),
@@ -132,20 +137,39 @@ export const useProgressStore = create<ProgressState>()(
 
         if (status === 'AC') {
           get().markReviewed(problem_id, topic_id);
+          get().setProblemStatus(problem_id, 'passed');
         }
       },
-      saveProblemNote: (problem_id, note) =>
+      setProblemStatus: (problem_id, status) =>
         set((state) => ({
-          problemNotes: {
-            ...state.problemNotes,
-            [problem_id]: {
-              solution: note.solution ?? state.problemNotes[problem_id]?.solution ?? '',
-              thought: note.thought ?? state.problemNotes[problem_id]?.thought ?? '',
-              language: note.language ?? state.problemNotes[problem_id]?.language,
-              updatedAt: new Date().toISOString()
-            }
-          }
+          problemStatuses: { ...state.problemStatuses, [problem_id]: status }
         })),
+      cycleProblemStatus: (problem_id, current) =>
+        set((state) => ({
+          problemStatuses: { ...state.problemStatuses, [problem_id]: nextProblemStatus(current) }
+        })),
+      saveProblemNote: (problem_id, note) =>
+        set((state) => {
+          const next_note = {
+            solution: note.solution ?? state.problemNotes[problem_id]?.solution ?? '',
+            thought: note.thought ?? state.problemNotes[problem_id]?.thought ?? '',
+            language: note.language ?? state.problemNotes[problem_id]?.language,
+            updatedAt: new Date().toISOString()
+          };
+          // Recording a note auto-promotes an untouched problem to 需複習, so
+          // the status no longer contradicts the fact that work exists. An
+          // explicit status the user already picked (incl. 已通過) is kept.
+          const has_content = noteHasContent(next_note);
+          const current_status = state.problemStatuses[problem_id];
+          const problem_statuses =
+            has_content && current_status === undefined
+              ? { ...state.problemStatuses, [problem_id]: 'review' as ProblemStatus }
+              : state.problemStatuses;
+          return {
+            problemNotes: { ...state.problemNotes, [problem_id]: next_note },
+            problemStatuses: problem_statuses
+          };
+        }),
       markPracticeProblemCompleted: (problem_id) =>
         set((state) => {
           const already_completed = state.completedPracticeProblemIds.includes(problem_id);
@@ -197,7 +221,8 @@ export const useProgressStore = create<ProgressState>()(
           practiceCompletionEvents: state.practiceCompletionEvents.slice(-200),
           contestSessions: state.contestSessions.slice(0, 50),
           problemNotes: state.problemNotes,
-          completedPracticeProblemIds: state.completedPracticeProblemIds
+          completedPracticeProblemIds: state.completedPracticeProblemIds,
+          problemStatuses: state.problemStatuses
         };
         const res = await fetch('/api/progress', {
           method: 'POST',
@@ -224,6 +249,7 @@ export const useProgressStore = create<ProgressState>()(
           contestSessions: data.contestSessions ?? [],
           problemNotes: data.problemNotes ?? {},
           completedPracticeProblemIds: data.completedPracticeProblemIds ?? [],
+          problemStatuses: data.problemStatuses ?? {},
           lastCloudSyncAt: data.updatedAt ?? new Date().toISOString()
         });
         return { ok: true };

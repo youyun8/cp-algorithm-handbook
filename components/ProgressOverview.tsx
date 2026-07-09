@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Problem, Subtopic, Topic } from '@/lib/types';
 import { hasPracticeNote, practiceProblemId } from '@/lib/practiceProgress';
+import { effectiveProblemStatus, emptyProblemStatusCounts } from '@/lib/problemStatus';
 import { useProgressStore } from '@/store/useProgressStore';
 
 export function ProgressOverview({
@@ -21,32 +22,40 @@ export function ProgressOverview({
   const contest_sessions = useProgressStore((state) => state.contestSessions);
   const problem_notes = useProgressStore((state) => state.problemNotes);
   const completed_practice_problem_ids = useProgressStore((state) => state.completedPracticeProblemIds);
+  const problem_statuses = useProgressStore((state) => state.problemStatuses);
 
   const handbook_totals = useMemo(() => {
     const completed_practice_set = new Set(completed_practice_problem_ids);
     const all_practice_problems = subtopics.flatMap((subtopic) => subtopic.practice_problems ?? []);
-    const completed = all_practice_problems.filter((practice_problem) => {
-      const id = practiceProblemId(practice_problem);
-      return completed_practice_set.has(id) || hasPracticeNote(problem_notes[id]);
-    }).length;
+    const status_for = (id: string) =>
+      effectiveProblemStatus(problem_statuses[id], {
+        completed: completed_practice_set.has(id),
+        hasNote: hasPracticeNote(problem_notes[id])
+      });
+
+    const counts = emptyProblemStatusCounts();
+    for (const practice_problem of all_practice_problems) {
+      counts[status_for(practiceProblemId(practice_problem))] += 1;
+    }
 
     const covered_topic_ids = new Set<string>();
     for (const subtopic of subtopics) {
-      const covered = (subtopic.practice_problems ?? []).some((practice_problem) => {
-        const id = practiceProblemId(practice_problem);
-        return completed_practice_set.has(id) || hasPracticeNote(problem_notes[id]);
-      });
+      const covered = (subtopic.practice_problems ?? []).some(
+        (practice_problem) => status_for(practiceProblemId(practice_problem)) !== 'none'
+      );
       if (covered) covered_topic_ids.add(subtopic.parent_id);
     }
 
+    const completed = counts.passed;
     return {
+      counts: counts,
       completed: completed,
       total: all_practice_problems.length,
       percent:
         all_practice_problems.length === 0 ? 0 : Math.round((completed / all_practice_problems.length) * 100),
       coveredTopics: covered_topic_ids.size
     };
-  }, [completed_practice_problem_ids, problem_notes, subtopics]);
+  }, [completed_practice_problem_ids, problem_notes, problem_statuses, subtopics]);
 
   const performance_totals = useMemo(() => {
     const problem_by_id = new Map(problems.map((problem) => [problem.id, problem]));
@@ -73,18 +82,10 @@ export function ProgressOverview({
         </CardHeader>
         <CardContent className="space-y-5">
           <div className="grid grid-cols-2 gap-3">
-            <OverviewMetric
-              label="完成題目"
-              value={`${handbook_totals.completed}/${handbook_totals.total}`}
-            />
-            <OverviewMetric label="覆蓋主題" value={`${handbook_totals.coveredTopics}/${topics.length}`} />
+            <OverviewMetric label="尚未練習" value={handbook_totals.counts.none.toString()} />
+            <OverviewMetric label="需複習" value={handbook_totals.counts.review.toString()} />
+            <OverviewMetric label="已通過" value={handbook_totals.counts.passed.toString()} />
             <OverviewMetric label="完成率" value={`${handbook_totals.percent}%`} />
-            <OverviewMetric
-              label="筆記數"
-              value={Object.entries(problem_notes)
-                .filter(([id, note]) => id.startsWith('practice:') && hasPracticeNote(note))
-                .length.toString()}
-            />
           </div>
           <Link
             href="/progress/handbook"

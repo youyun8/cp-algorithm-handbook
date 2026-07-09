@@ -3,41 +3,31 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import {
-  CompletionBadge,
   DifficultyBadge,
   ProblemTypeBadge,
   SourceBadge,
-  TierBadge,
-  type CompletionStatus
+  TierBadge
 } from '@/components/Badges';
 import { ProblemNotesModal } from '@/components/ProblemNotesModal';
+import { ProblemStatusControl } from '@/components/ProblemStatusControl';
 import { ProblemSourceLink } from '@/components/ProblemSourceLink';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Problem } from '@/lib/types';
-import { useMounted } from '@/lib/useMounted';
 import { problemDisplayTitle } from '@/lib/utils';
 import { useProgressStore } from '@/store/useProgressStore';
 
 export function ProblemCard({ problem }: { problem: Problem }) {
   const [show_hint, set_show_hint] = useState(false);
   const [show_notes, set_show_notes] = useState(false);
-  const mounted = useMounted();
   const reviewed_problem_ids = useProgressStore((state) => state.reviewedProblemIds);
   const submissions = useProgressStore((state) => state.submissions);
   const problem_note = useProgressStore((state) => state.problemNotes[problem.id]);
 
-  let completion: CompletionStatus = 'none';
-  if (mounted) {
-    const accepted = submissions.some(
-      (submission) => submission.problemId === problem.id && submission.status === 'AC'
-    );
-    if (accepted) {
-      completion = 'accepted';
-    } else if (reviewed_problem_ids.includes(problem.id)) {
-      completion = 'reviewed';
-    }
-  }
+  const accepted = submissions.some(
+    (submission) => submission.problemId === problem.id && submission.status === 'AC'
+  );
+  const reviewed = reviewed_problem_ids.includes(problem.id);
 
   return (
     <Card className="flex h-full flex-col overflow-hidden border-border/80 bg-card/90 shadow-sm transition hover:border-primary/40 hover:shadow-md">
@@ -49,7 +39,10 @@ export function ProblemCard({ problem }: { problem: Problem }) {
             <ProblemTypeBadge problemType={problem.problem_type} />
             <TierBadge tier={problem.tier} />
           </div>
-          <CompletionBadge status={completion} />
+          <ProblemStatusControl
+            problemId={problem.id}
+            legacySignals={{ accepted, reviewed }}
+          />
         </div>
         <div className="space-y-2">
           <CardTitle className="text-base leading-6">{problemDisplayTitle(problem)}</CardTitle>

@@ -4,9 +4,15 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { DifficultyBadge, SourceBadge, TierBadge } from '@/components/Badges';
 import { ProblemNotesModal } from '@/components/ProblemNotesModal';
+import { ProblemStatusControl } from '@/components/ProblemStatusControl';
+import type { PracticeProblem, ProblemStatus, Subtopic, Topic } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { PracticeProblem, Subtopic, Topic } from '@/lib/types';
 import { hasPracticeNote, practiceProblemId } from '@/lib/practiceProgress';
+import {
+  effectiveProblemStatus,
+  emptyProblemStatusCounts,
+  kProblemStatusMeta
+} from '@/lib/problemStatus';
 import { problemDisplayTitle } from '@/lib/utils';
 import { useProgressStore } from '@/store/useProgressStore';
 
@@ -21,8 +27,7 @@ export function HandbookProgressDashboard({ topics, subtopics }: { topics: Topic
   const practice_completion_events = useProgressStore((state) => state.practiceCompletionEvents);
   const problem_notes = useProgressStore((state) => state.problemNotes);
   const completed_practice_problem_ids = useProgressStore((state) => state.completedPracticeProblemIds);
-  const mark_practice_problem_completed = useProgressStore((state) => state.markPracticeProblemCompleted);
-  const unmark_practice_problem_completed = useProgressStore((state) => state.unmarkPracticeProblemCompleted);
+  const problem_statuses = useProgressStore((state) => state.problemStatuses);
   const [handbook_filter, set_handbook_filter] = useState<HandbookFilter>('all');
   const [active_practice_note, set_active_practice_note] = useState<ActivePracticeNote | null>(null);
 
@@ -32,16 +37,26 @@ export function HandbookProgressDashboard({ topics, subtopics }: { topics: Topic
     [completed_practice_problem_ids]
   );
 
+  // The single status resolver used across every count in this dashboard:
+  // explicit stored status wins, otherwise fall back to legacy completion / note.
+  const status_for = useMemo(() => {
+    return (id: string): ProblemStatus =>
+      effectiveProblemStatus(problem_statuses[id], {
+        completed: completed_practice_set.has(id),
+        hasNote: hasPracticeNote(problem_notes[id])
+      });
+  }, [completed_practice_set, problem_notes, problem_statuses]);
+
   const handbook_practice_breakdown = useMemo(() => {
     return subtopics
       .map((subtopic) => {
         const practice_problems = subtopic.practice_problems ?? [];
         const rows = practice_problems.map((practice_problem) => {
           const id = practiceProblemId(practice_problem);
-          const completed = completed_practice_set.has(id) || hasPracticeNote(problem_notes[id]);
-          return { id: id, problem: practice_problem, completed: completed };
+          const status = status_for(id);
+          return { id: id, problem: practice_problem, status: status };
         });
-        const completed_count = rows.filter((row) => row.completed).length;
+        const completed_count = rows.filter((row) => row.status === 'passed').length;
         const total = rows.length;
         const parent_topic = topic_by_id.get(subtopic.parent_id);
         return {
@@ -59,41 +74,34 @@ export function HandbookProgressDashboard({ topics, subtopics }: { topics: Topic
         if (handbook_filter === 'incomplete') return item.completedCount < item.total;
         return true;
       });
-  }, [completed_practice_set, handbook_filter, problem_notes, subtopics, topic_by_id]);
+  }, [handbook_filter, status_for, subtopics, topic_by_id]);
 
   const handbook_practice_totals = useMemo(() => {
     const all_practice_problems = subtopics.flatMap((subtopic) => subtopic.practice_problems ?? []);
     const total = all_practice_problems.length;
-    const completed = all_practice_problems.filter((practice_problem) => {
-      const id = practiceProblemId(practice_problem);
-      return completed_practice_set.has(id) || hasPracticeNote(problem_notes[id]);
-    }).length;
+    const counts = emptyProblemStatusCounts();
+    for (const practice_problem of all_practice_problems) {
+      counts[status_for(practiceProblemId(practice_problem))] += 1;
+    }
+    const completed = counts.passed;
     return {
       total: total,
       completed: completed,
+      counts: counts,
       percent: total === 0 ? 0 : Math.round((completed / total) * 100)
     };
-  }, [completed_practice_set, problem_notes, subtopics]);
+  }, [status_for, subtopics]);
 
   const covered_topic_ids = useMemo(() => {
     const topic_ids = new Set<string>();
     for (const subtopic of subtopics) {
-      const covered = (subtopic.practice_problems ?? []).some((practice_problem) => {
-        const id = practiceProblemId(practice_problem);
-        return completed_practice_set.has(id) || hasPracticeNote(problem_notes[id]);
-      });
+      const covered = (subtopic.practice_problems ?? []).some(
+        (practice_problem) => status_for(practiceProblemId(practice_problem)) !== 'none'
+      );
       if (covered) topic_ids.add(subtopic.parent_id);
     }
     return topic_ids;
-  }, [completed_practice_set, problem_notes, subtopics]);
-
-  const note_count = useMemo(
-    () =>
-      Object.entries(problem_notes).filter(
-        ([id, note]) => id.startsWith('practice:') && hasPracticeNote(note)
-      ).length,
-    [problem_notes]
-  );
+  }, [status_for, subtopics]);
 
   const heatmap_days = useMemo(() => {
     const counts = new Map<string, number>();
@@ -117,9 +125,9 @@ export function HandbookProgressDashboard({ topics, subtopics }: { topics: Topic
   }, [practice_completion_events, problem_notes]);
 
   const stats = [
-    { label: '手冊完成題目', value: handbook_practice_totals.completed },
-    { label: '手冊覆蓋主題', value: `${covered_topic_ids.size}/${topics.length}` },
-    { label: '筆記數', value: note_count },
+    { label: kProblemStatusMeta.none.label, value: handbook_practice_totals.counts.none },
+    { label: kProblemStatusMeta.review.label, value: handbook_practice_totals.counts.review },
+    { label: kProblemStatusMeta.passed.label, value: handbook_practice_totals.counts.passed },
     { label: '總完成率', value: `${handbook_practice_totals.percent}%` }
   ];
 
@@ -231,14 +239,8 @@ export function HandbookProgressDashboard({ topics, subtopics }: { topics: Topic
                       key={row.id}
                       id={row.id}
                       problem={row.problem}
-                      completed={row.completed}
                       onOpenNote={() =>
                         set_active_practice_note({ id: row.id, title: problemDisplayTitle(row.problem) })
-                      }
-                      onToggleCompleted={() =>
-                        completed_practice_set.has(row.id)
-                          ? unmark_practice_problem_completed(row.id)
-                          : mark_practice_problem_completed(row.id)
                       }
                     />
                   ))}
@@ -283,17 +285,13 @@ export function HandbookProgressDashboard({ topics, subtopics }: { topics: Topic
 function PracticeProgressRow({
   id,
   problem,
-  completed,
-  onOpenNote: on_open_note,
-  onToggleCompleted: on_toggle_completed
+  onOpenNote: on_open_note
 }: {
   id: string;
   problem: PracticeProblem;
-  completed: boolean;
   onOpenNote: () => void;
-  onToggleCompleted: () => void;
 }) {
-  const explicitly_completed = useProgressStore((state) => state.completedPracticeProblemIds.includes(id));
+  const legacy_completed = useProgressStore((state) => state.completedPracticeProblemIds.includes(id));
 
   return (
     <div className="grid gap-3 rounded-xl border border-border bg-background/55 p-3 transition hover:border-primary/35 hover:bg-background/80 md:grid-cols-[1fr_auto]">
@@ -308,28 +306,13 @@ function PracticeProgressRow({
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-2 md:justify-end">
-        <span
-          className={
-            completed
-              ? 'rounded-full bg-emerald-500/15 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300'
-              : 'rounded-full bg-accent px-2.5 py-1 text-xs font-semibold text-muted-foreground'
-          }
-        >
-          {completed ? '已完成' : '未完成'}
-        </span>
+        <ProblemStatusControl problemId={id} legacySignals={{ completed: legacy_completed }} />
         <button
           type="button"
           onClick={on_open_note}
           className="rounded-lg border border-border px-2.5 py-1.5 text-xs font-semibold text-muted-foreground transition hover:bg-accent hover:text-foreground"
         >
           筆記
-        </button>
-        <button
-          type="button"
-          onClick={on_toggle_completed}
-          className="rounded-lg border border-border px-2.5 py-1.5 text-xs font-semibold text-muted-foreground transition hover:bg-accent hover:text-foreground"
-        >
-          {explicitly_completed ? '取消' : '完成'}
         </button>
       </div>
     </div>

@@ -20,8 +20,10 @@ import {
 import { DifficultyBadge, ProblemTypeBadge } from '@/components/Badges';
 import { ProblemNotesModal } from '@/components/ProblemNotesModal';
 import { ProblemSourceLink } from '@/components/ProblemSourceLink';
+import { ProblemStatusControl } from '@/components/ProblemStatusControl';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { effectiveProblemStatus } from '@/lib/problemStatus';
 import type { Contest, ContestProblem, Problem, SubmissionStatus, Subtopic, Topic } from '@/lib/types';
 import {
   cn,
@@ -122,6 +124,7 @@ export function PracticeArena({
   const filters = useProgressStore((state) => state.filters);
   const reviewed_problem_ids = useProgressStore((state) => state.reviewedProblemIds);
   const submissions = useProgressStore((state) => state.submissions);
+  const problem_statuses = useProgressStore((state) => state.problemStatuses);
   const active_contest = useProgressStore((state) => state.activeContest);
   const set_current_rating = useProgressStore((state) => state.setCurrentRating);
   const set_filters = useProgressStore((state) => state.setFilters);
@@ -159,6 +162,13 @@ export function PracticeArena({
       ),
     [submissions]
   );
+  const status_for = useMemo(() => {
+    return (id: string) =>
+      effectiveProblemStatus(problem_statuses[id], {
+        accepted: accepted_set.has(id),
+        reviewed: reviewed_set.has(id)
+      });
+  }, [accepted_set, problem_statuses, reviewed_set]);
   const all_tags = useMemo(
     () => Array.from(new Set(problems.flatMap((problem) => problem.tags))).sort(),
     [problems]
@@ -174,16 +184,14 @@ export function PracticeArena({
         if (problem.rating < filters.minRating) return false;
         if (filters.maxRating !== null && problem.rating > filters.maxRating) return false;
         if (filters.problemType !== 'all' && problem.problem_type !== filters.problemType) return false;
-        if (filters.completion === 'reviewed' && !reviewed_set.has(problem.id)) return false;
-        if (filters.completion === 'unreviewed' && reviewed_set.has(problem.id)) return false;
-        if (filters.completion === 'accepted' && !accepted_set.has(problem.id)) return false;
+        if (filters.completion !== 'all' && status_for(problem.id) !== filters.completion) return false;
         return true;
       })
       .sort((a, b) => {
         if (filters.band === 'stretch') return (b.solve_count ?? 0) - (a.solve_count ?? 0);
         return a.rating - b.rating || (b.solve_count ?? 0) - (a.solve_count ?? 0);
       });
-  }, [accepted_set, filters, problems, reviewed_set, subtopic_filter, topic_filter]);
+  }, [filters, problems, status_for, subtopic_filter, topic_filter]);
 
   const contest_pool = useMemo<PickedContestProblem[]>(() => {
     const result: PickedContestProblem[] = [];
@@ -385,9 +393,9 @@ export function PracticeArena({
               className="w-full rounded-xl border border-border bg-background px-3 py-2"
             >
               <option value="all">全部狀態</option>
-              <option value="unreviewed">尚未複習</option>
-              <option value="reviewed">已複習</option>
-              <option value="accepted">已通過</option>
+              <option value="none">尚未練習</option>
+              <option value="review">需複習</option>
+              <option value="passed">已通過</option>
             </select>
           </label>
           <div className="space-y-2 text-sm lg:col-span-2">
@@ -931,6 +939,7 @@ function PracticeProblemRow({
         <div className="flex flex-wrap gap-2">
           <DifficultyBadge rating={problem.rating} />
           <ProblemTypeBadge problemType={problem.problem_type} />
+          <ProblemStatusControl problemId={problem.id} />
         </div>
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-2">

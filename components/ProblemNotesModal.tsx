@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
+import { Eraser, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { kCodeLanguages, CodeEditor, kDefaultCodeLanguage } from '@/components/CodeEditor';
 import { MarkdownBlock } from '@/components/MarkdownBlock';
@@ -74,6 +74,7 @@ function NotesDialogBody({
 }) {
   const note = useProgressStore((state) => state.problemNotes[problem_id]);
   const save_problem_note = useProgressStore((state) => state.saveProblemNote);
+  const clear_problem_note = useProgressStore((state) => state.clearProblemNote);
 
   const [solution, set_solution] = useState(note?.solution ?? '');
   const [thought, set_thought] = useState(note?.thought ?? '');
@@ -84,6 +85,26 @@ function NotesDialogBody({
 
   function handleSave() {
     save_problem_note(problem_id, { solution, thought, language });
+    set_saved(true);
+  }
+
+  function handleClearField(field: NotePanelId) {
+    const next_solution = field === 'solution' ? '' : solution;
+    const next_thought = field === 'thought' ? '' : thought;
+
+    set_solution(next_solution);
+    set_thought(next_thought);
+    save_problem_note(problem_id, { solution: next_solution, thought: next_thought, language });
+    set_saved(true);
+  }
+
+  function handleClearAll() {
+    if (!solution.trim() && !thought.trim() && !note) return;
+    if (!window.confirm('確定要清空這題的解答與思路嗎？')) return;
+
+    set_solution('');
+    set_thought('');
+    clear_problem_note(problem_id, 'all');
     set_saved(true);
   }
 
@@ -115,23 +136,36 @@ function NotesDialogBody({
       </header>
 
       <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
-        <div className="flex flex-wrap gap-2">
-          {kNotePanels.map((panel) => (
-            <button
-              key={panel.id}
-              type="button"
-              onClick={() => set_active_panel(panel.id)}
-              aria-pressed={active_panel === panel.id}
-              className={cn(
-                'rounded-xl border px-3 py-1.5 text-xs font-medium transition',
-                active_panel === panel.id
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-border bg-background/50 text-muted-foreground hover:text-foreground'
-              )}
-            >
-              {panel.label}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap gap-2">
+            {kNotePanels.map((panel) => (
+              <button
+                key={panel.id}
+                type="button"
+                onClick={() => set_active_panel(panel.id)}
+                aria-pressed={active_panel === panel.id}
+                className={cn(
+                  'rounded-xl border px-3 py-1.5 text-xs font-medium transition',
+                  active_panel === panel.id
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : 'border-border bg-background/50 text-muted-foreground hover:text-foreground'
+                )}
+              >
+                {panel.label}
+              </button>
+            ))}
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => handleClearField(active_panel)}
+            disabled={active_panel === 'solution' ? !solution.trim() : !thought.trim()}
+            title={active_panel === 'solution' ? '清空解答' : '清空思路'}
+          >
+            <Eraser className="h-4 w-4" aria-hidden />
+            {active_panel === 'solution' ? '清空解答' : '清空思路'}
+          </Button>
         </div>
 
         {active_panel === 'solution' ? (
@@ -229,6 +263,17 @@ function NotesDialogBody({
           {saved ? (
             <span className="text-xs font-medium text-emerald-600 dark:text-emerald-300">已儲存</span>
           ) : null}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleClearAll}
+            disabled={!solution.trim() && !thought.trim() && !note}
+            className="text-rose-600 hover:bg-rose-500/10 hover:text-rose-700 dark:text-rose-300 dark:hover:text-rose-200"
+          >
+            <Trash2 className="h-4 w-4" aria-hidden />
+            清空全部
+          </Button>
           <Button type="button" variant="ghost" size="sm" onClick={on_close}>
             關閉
           </Button>

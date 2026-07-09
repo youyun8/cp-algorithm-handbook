@@ -44,12 +44,7 @@ function TopicTree({
   depth?: number;
 }) {
   return (
-    <ol
-      className={cn(
-        'space-y-3',
-        depth > 0 && 'mt-3 space-y-3 border-l-2 border-border/60 pl-4'
-      )}
-    >
+    <ol className={cn('space-y-3', depth > 0 && 'mt-3 space-y-3 border-l-2 border-border/60 pl-4')}>
       {topics.map((topic, index) => {
         const isLeafConcept = Boolean(topic.summary || topic.code);
 
@@ -58,23 +53,14 @@ function TopicTree({
             key={`${moduleId}-${depth}-${index}-${topic.title}`}
             className={cn(
               'rounded-xl border px-4 py-3',
-              depth === 0
-                ? 'border-border bg-background/45'
-                : 'border-border/70 bg-background/25'
+              depth === 0 ? 'border-border bg-background/45' : 'border-border/70 bg-background/25'
             )}
           >
             <div className="flex flex-wrap items-center gap-2">
               <span className="flex h-6 min-w-6 items-center justify-center rounded-md bg-primary/10 px-1.5 text-[11px] font-semibold text-primary">
                 {index + 1}
               </span>
-              <h4
-                className={cn(
-                  'font-semibold',
-                  depth === 0 ? 'text-base' : 'text-sm'
-                )}
-              >
-                {topic.title}
-              </h4>
+              <h4 className={cn('font-semibold', depth === 0 ? 'text-base' : 'text-sm')}>{topic.title}</h4>
               {topic.complexity ? (
                 <span className="rounded-full border border-blue-400/40 bg-blue-500/10 px-2 py-0.5 text-[11px] font-medium text-blue-700 dark:text-blue-200">
                   {topic.complexity}
@@ -311,13 +297,22 @@ export function TrainingCampOverview({
                             {note.tips ? (
                               <div className="rounded-2xl border border-emerald-400/30 bg-emerald-500/[0.06] p-4">
                                 <div className="flex items-center gap-2">
-                                  <Lightbulb className="h-4 w-4 text-emerald-600 dark:text-emerald-300" aria-hidden />
+                                  <Lightbulb
+                                    className="h-4 w-4 text-emerald-600 dark:text-emerald-300"
+                                    aria-hidden
+                                  />
                                   <p className="text-sm font-semibold">快速上手技巧</p>
                                 </div>
                                 <ul className="mt-2 space-y-2">
                                   {note.tips.map((tip) => (
-                                    <li key={`${module.id}-tip-${tip}`} className="flex gap-2 text-sm leading-7 text-emerald-900 dark:text-emerald-100">
-                                      <span aria-hidden className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500/70" />
+                                    <li
+                                      key={`${module.id}-tip-${tip}`}
+                                      className="flex gap-2 text-sm leading-7 text-emerald-900 dark:text-emerald-100"
+                                    >
+                                      <span
+                                        aria-hidden
+                                        className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500/70"
+                                      />
                                       <span className="min-w-0 flex-1">
                                         <InlineMarkdown>{tip}</InlineMarkdown>
                                       </span>

@@ -88,10 +88,7 @@ export function ProblemStrategy({
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">練習狀態</span>
-              <ProblemStatusControl
-                problemId={problem.id}
-                legacySignals={{ accepted, reviewed }}
-              />
+              <ProblemStatusControl problemId={problem.id} legacySignals={{ accepted, reviewed }} />
             </div>
             <Button type="button" variant="outline" onClick={() => set_show_notes(true)}>
               {problem_note ? '查看解答與思路' : '記錄解答與思路'}

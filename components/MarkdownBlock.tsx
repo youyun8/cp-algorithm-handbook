@@ -104,7 +104,13 @@ function normalizeListIndentation(markdown: string): string {
  * emphasis. This keeps inline code like `rand()` or `__gnu_pbds` styled while
  * leaving math untouched.
  */
-export function InlineMarkdown({ children, className: class_name }: { children: string; className?: string }) {
+export function InlineMarkdown({
+  children,
+  className: class_name
+}: {
+  children: string;
+  className?: string;
+}) {
   // Split on properly-paired backtick spans; unmatched backticks stay literal.
   const segments = children.split(/(`[^`]+`)/g);
 
@@ -301,38 +307,39 @@ function highlightCppLine(line: string) {
 type AlertType = 'note' | 'tip' | 'important' | 'warning' | 'caution';
 
 // Mirrors GitHub's five `> [!TYPE]` alert callouts (colors, icon, label).
-const kAlertMeta: Record<AlertType, { icon: typeof Info; label: string; container: string; title: string }> = {
-  note: {
-    icon: Info,
-    label: 'Note',
-    container: 'border-blue-400/50 bg-blue-500/10',
-    title: 'text-blue-700 dark:text-blue-300'
-  },
-  tip: {
-    icon: Lightbulb,
-    label: 'Tip',
-    container: 'border-emerald-400/50 bg-emerald-500/10',
-    title: 'text-emerald-700 dark:text-emerald-300'
-  },
-  important: {
-    icon: AlertCircle,
-    label: 'Important',
-    container: 'border-purple-400/50 bg-purple-500/10',
-    title: 'text-purple-700 dark:text-purple-300'
-  },
-  warning: {
-    icon: AlertTriangle,
-    label: 'Warning',
-    container: 'border-amber-400/50 bg-amber-500/10',
-    title: 'text-amber-700 dark:text-amber-300'
-  },
-  caution: {
-    icon: XCircle,
-    label: 'Caution',
-    container: 'border-rose-400/50 bg-rose-500/10',
-    title: 'text-rose-700 dark:text-rose-300'
-  }
-};
+const kAlertMeta: Record<AlertType, { icon: typeof Info; label: string; container: string; title: string }> =
+  {
+    note: {
+      icon: Info,
+      label: 'Note',
+      container: 'border-blue-400/50 bg-blue-500/10',
+      title: 'text-blue-700 dark:text-blue-300'
+    },
+    tip: {
+      icon: Lightbulb,
+      label: 'Tip',
+      container: 'border-emerald-400/50 bg-emerald-500/10',
+      title: 'text-emerald-700 dark:text-emerald-300'
+    },
+    important: {
+      icon: AlertCircle,
+      label: 'Important',
+      container: 'border-purple-400/50 bg-purple-500/10',
+      title: 'text-purple-700 dark:text-purple-300'
+    },
+    warning: {
+      icon: AlertTriangle,
+      label: 'Warning',
+      container: 'border-amber-400/50 bg-amber-500/10',
+      title: 'text-amber-700 dark:text-amber-300'
+    },
+    caution: {
+      icon: XCircle,
+      label: 'Caution',
+      container: 'border-rose-400/50 bg-rose-500/10',
+      title: 'text-rose-700 dark:text-rose-300'
+    }
+  };
 
 function alertTypeFromClassName(class_name?: string): AlertType | null {
   const token = class_name?.split(/\s+/).find((entry) => entry.startsWith('markdown-alert-'));
@@ -431,7 +438,9 @@ export function MarkdownBlock({ children, className: class_name }: { children: s
             );
           }
           return (
-            <li className="pl-1 [&>ol]:mb-0 [&>ol]:mt-1.5 [&>p]:my-0 [&>ul]:mb-0 [&>ul]:mt-1.5">{item_children}</li>
+            <li className="pl-1 [&>ol]:mb-0 [&>ol]:mt-1.5 [&>p]:my-0 [&>ul]:mb-0 [&>ul]:mt-1.5">
+              {item_children}
+            </li>
           );
         },
         input: ({ type: input_type, checked: input_checked }) => {
@@ -455,7 +464,9 @@ export function MarkdownBlock({ children, className: class_name }: { children: s
         ),
         thead: ({ children: thead_children }) => <thead className="bg-muted/60">{thead_children}</thead>,
         tbody: ({ children: tbody_children }) => (
-          <tbody className="divide-y divide-border [&_tr:nth-child(even)]:bg-muted/30">{tbody_children}</tbody>
+          <tbody className="divide-y divide-border [&_tr:nth-child(even)]:bg-muted/30">
+            {tbody_children}
+          </tbody>
         ),
         th: ({ children: th_children, style: th_style }) => (
           <th
@@ -473,7 +484,12 @@ export function MarkdownBlock({ children, className: class_name }: { children: s
         img: ({ src, alt }) => (
           // eslint-disable-next-line @next/next/no-img-element -- markdown images have
           // arbitrary, unconfigured remote sources that next/image can't optimize.
-          <img src={src} alt={alt ?? ''} loading="lazy" className="max-w-full rounded-xl border border-border" />
+          <img
+            src={src}
+            alt={alt ?? ''}
+            loading="lazy"
+            className="max-w-full rounded-xl border border-border"
+          />
         ),
         section: ({ children: section_children, className: section_class_name }) => {
           if (section_class_name?.includes('footnotes')) {

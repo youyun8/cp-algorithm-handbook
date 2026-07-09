@@ -29,8 +29,8 @@ export default function SignInPage() {
         </div>
         <h1 className="mb-2 text-2xl font-bold">登入以同步進度</h1>
         <p className="mb-6 text-sm text-muted-foreground">
-          使用 GitHub 帳號登入，你的練習進度、解答與思路將自動儲存到你自己帳號下的一份私有 Gist。
-          我們會請求 <span className="font-medium text-foreground">gist</span> 權限，僅用於讀寫這份進度檔案。
+          使用 GitHub 帳號登入，你的練習進度、解答與思路將自動儲存到你自己帳號下的一份私有 Gist。 我們會請求{' '}
+          <span className="font-medium text-foreground">gist</span> 權限，僅用於讀寫這份進度檔案。
         </p>
         <button
           type="button"

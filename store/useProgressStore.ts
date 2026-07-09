@@ -69,6 +69,7 @@ interface ProgressState {
     problem_id: string,
     note: Partial<Pick<ProblemNote, 'solution' | 'thought' | 'language'>>
   ) => void;
+  clearProblemNote: (problem_id: string, field?: 'solution' | 'thought' | 'all') => void;
   markPracticeProblemCompleted: (problem_id: string) => void;
   unmarkPracticeProblemCompleted: (problem_id: string) => void;
   startContest: (problem_ids: string[], duration_minutes: number) => void;
@@ -165,9 +166,41 @@ export const useProgressStore = create<ProgressState>()(
             has_content && current_status === undefined
               ? { ...state.problemStatuses, [problem_id]: 'review' as ProblemStatus }
               : state.problemStatuses;
+          if (!has_content) {
+            const { [problem_id]: _removed_note, ...problem_notes } = state.problemNotes;
+            return {
+              problemNotes: problem_notes,
+              problemStatuses: problem_statuses
+            };
+          }
           return {
             problemNotes: { ...state.problemNotes, [problem_id]: next_note },
             problemStatuses: problem_statuses
+          };
+        }),
+      clearProblemNote: (problem_id, field = 'all') =>
+        set((state) => {
+          const current_note = state.problemNotes[problem_id];
+          if (!current_note) return state;
+
+          if (field === 'all') {
+            const { [problem_id]: _removed_note, ...problem_notes } = state.problemNotes;
+            return { problemNotes: problem_notes };
+          }
+
+          const next_note = {
+            ...current_note,
+            [field]: '',
+            updatedAt: new Date().toISOString()
+          };
+
+          if (!noteHasContent(next_note)) {
+            const { [problem_id]: _removed_note, ...problem_notes } = state.problemNotes;
+            return { problemNotes: problem_notes };
+          }
+
+          return {
+            problemNotes: { ...state.problemNotes, [problem_id]: next_note }
           };
         }),
       markPracticeProblemCompleted: (problem_id) =>

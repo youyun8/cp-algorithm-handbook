@@ -235,7 +235,9 @@ export function HandbookSidebar({
                 <X className="h-5 w-5" aria-hidden />
               </button>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto scrollbar-thin">{render_nav(() => set_mobile_open(false))}</div>
+            <div className="min-h-0 flex-1 overflow-y-auto scrollbar-thin">
+              {render_nav(() => set_mobile_open(false))}
+            </div>
           </div>
         </div>
       )}

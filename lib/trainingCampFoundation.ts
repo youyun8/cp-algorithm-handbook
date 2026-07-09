@@ -154,7 +154,8 @@ for (int i = 0; i < n; ++i) {          // 外層走列（row）
       },
       {
         title: '玩轉字符串',
-        summary: '競程處理字串有兩套：C 風格字元陣列與 C++ 的 string。多數情況用 string，需要極致常數才回退 char[]。',
+        summary:
+          '競程處理字串有兩套：C 風格字元陣列與 C++ 的 string。多數情況用 string，需要極致常數才回退 char[]。',
         children: [
           {
             title: 'C 風格的字符串',
@@ -388,7 +389,8 @@ void erase_after(Node* p) {
           },
           {
             title: '雙向鏈表',
-            summary: '節點多一個 prev 指標，可 O(1) 前後移動與雙向刪除，代價是多維護一組指標。對應 STL 的 std::list。',
+            summary:
+              '節點多一個 prev 指標，可 O(1) 前後移動與雙向刪除，代價是多維護一組指標。對應 STL 的 std::list。',
             code: `// 雙向鏈表: prev/next 都初始化為 nullptr，避免野指標。
 struct Node {
     int val{};
@@ -444,7 +446,8 @@ int t = st.top();  // O(1)，呼叫前同樣要確保 st 不是空的`
         children: [
           {
             title: '順序隊列',
-            summary: '用陣列 + 頭尾指標（front/rear）實作，入隊移動 rear、出隊移動 front。純線性陣列會「假溢位」浪費前段空間。',
+            summary:
+              '用陣列 + 頭尾指標（front/rear）實作，入隊移動 rear、出隊移動 front。純線性陣列會「假溢位」浪費前段空間。',
             code: `// 順序隊列: vector 當底層儲存，head/tail 是半開區間 [head, tail)。
 vector<int> q(kMaxN);
 int head = 0, tail = 0;   // [head, tail) 內是目前隊列的有效元素，head == tail 代表空
@@ -453,8 +456,7 @@ int y = q[head++];    // dequeue：讀出頭端的值後，把 head 往後移一
           },
           {
             title: '循環隊列',
-            summary:
-              '把陣列首尾相接，下標對容量取模，解決假溢位。判空與判滿要留一格或另存 size 來區分。',
+            summary: '把陣列首尾相接，下標對容量取模，解決假溢位。判空與判滿要留一格或另存 size 來區分。',
             code: `// 循環隊列: 取模讓尾端回到陣列開頭。
 array<int, kMaxN> q{};
 int head = 0, tail = 0;
@@ -531,11 +533,13 @@ list<int> lst; lst.push_front(1); lst.push_back(2);  // 頭尾都能 O(1) 插入
     topics: [
       {
         title: '樹',
-        summary: '樹是無環連通圖，n 個節點 n-1 條邊。它是遞迴結構的典型，許多問題都能「在子樹上遞迴、回到父節點合併」。',
+        summary:
+          '樹是無環連通圖，n 個節點 n-1 條邊。它是遞迴結構的典型，許多問題都能「在子樹上遞迴、回到父節點合併」。',
         children: [
           {
             title: '樹的存儲',
-            summary: '一般樹用「孩子表示法」：每個節點存一個子節點清單（vector）。有根樹另存父節點便於向上跳。',
+            summary:
+              '一般樹用「孩子表示法」：每個節點存一個子節點清單（vector）。有根樹另存父節點便於向上跳。',
             code: `// 樹的存儲: 每個節點保留自己的孩子清單。
 vector<vector<int>> child(n + 1);   // 開 n+1 是因為節點編號習慣從 1 開始，留出下標 0 不使用
 child[u].push_back(v);   // v is a child of u`
@@ -765,11 +769,13 @@ Node* del(Node* r, int x) {
     topics: [
       {
         title: '圖的存儲',
-        summary: '圖的第一件事是「怎麼存」。選型看稠密度：稀疏圖用鄰接表 O(n+m)，稠密圖或需 O(1) 查邊用鄰接矩陣。',
+        summary:
+          '圖的第一件事是「怎麼存」。選型看稠密度：稀疏圖用鄰接表 O(n+m)，稠密圖或需 O(1) 查邊用鄰接矩陣。',
         children: [
           {
             title: '鄰接矩陣',
-            summary: 'g[u][v] 記錄 u→v 的邊或權。查任一邊 O(1)，但空間 O(n^2)，n 上千就 MLE。適合稠密圖與 Floyd。',
+            summary:
+              'g[u][v] 記錄 u→v 的邊或權。查任一邊 O(1)，但空間 O(n^2)，n 上千就 MLE。適合稠密圖與 Floyd。',
             code: `// 鄰接矩陣: vector 依節點數配置，初值代表沒有邊。
 vector<vector<int>> g(n + 1, vector<int>(n + 1, kInf));   // 初值設成 kInf（一個夠大的數），代表 u、v 之間預設「不連通」
 g[u][v] = w;   // 查詢任兩點是否有邊、邊權多少都是 O(1)，代價是 O(n^2) 空間`,
@@ -777,7 +783,8 @@ g[u][v] = w;   // 查詢任兩點是否有邊、邊權多少都是 O(1)，代價
           },
           {
             title: '邊集數組',
-            summary: '直接存所有邊 (u, v, w)。本身不利於查鄰居，但 Kruskal、Bellman-Ford 這類「遍歷所有邊」的算法很合用。',
+            summary:
+              '直接存所有邊 (u, v, w)。本身不利於查鄰居，但 Kruskal、Bellman-Ford 這類「遍歷所有邊」的算法很合用。',
             code: `// 邊集數組: Kruskal/Bellman-Ford 會直接掃所有邊。
 struct Edge { int u, v, w; };
 vector<Edge> edges;   // 只存邊本身、不記錄「某點的所有鄰居」，正適合這兩種對全體邊逐一排序/鬆弛的算法`
@@ -1123,8 +1130,7 @@ for (int i = 2; i < kMaxN; ++i) {
         children: [
           {
             title: '歐幾里得算法 (輾轉相除法)',
-            summary:
-              '基於 gcd(a,b)=gcd(b, a mod b)，輾轉取餘直到 0。lcm(a,b)=a/gcd*b（先除再乘防溢位）。',
+            summary: '基於 gcd(a,b)=gcd(b, a mod b)，輾轉取餘直到 0。lcm(a,b)=a/gcd*b（先除再乘防溢位）。',
             code: `// 歐幾里得算法 (輾轉相除法): 基於 gcd(a,b) = gcd(b, a mod b)，輾轉取餘直到餘數為 0 即得解。
 long long gcd(long long a, long long b) {
     return std::gcd(a, b);    // C++17 <numeric> 已內建，不必自己手寫遞迴版本
@@ -1353,7 +1359,8 @@ vector<int> div(const vector<int>& a, int b, int& rem) {
     topics: [
       {
         title: '二分算法',
-        summary: '在「單調性」上折半縮小範圍，每次砍一半，O(log n)。最易錯的是邊界與更新方式，選定一種寫法並固定。',
+        summary:
+          '在「單調性」上折半縮小範圍，每次砍一半，O(log n)。最易錯的是邊界與更新方式，選定一種寫法並固定。',
         children: [
           {
             title: '二分查找',
@@ -1460,7 +1467,8 @@ void dfs(int step) {
     topics: [
       {
         title: '動態規劃秘籍',
-        summary: 'DP 的本質是「重疊子問題 + 最優子結構」。把大問題拆成有序可解的子問題，記錄子問題答案避免重算。',
+        summary:
+          'DP 的本質是「重疊子問題 + 最優子結構」。把大問題拆成有序可解的子問題，記錄子問題答案避免重算。',
         children: [
           {
             title: '動態規劃的三個要素',

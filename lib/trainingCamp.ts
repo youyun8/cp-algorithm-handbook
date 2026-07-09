@@ -61,18 +61,13 @@ export const kTrainingCampPhases: TrainingCampPhase[] = [
 
 /** Count every node in a topic tree, including grouping headings. */
 export function countTopics(topics: TrainingCampTopic[]): number {
-  return topics.reduce(
-    (total, topic) => total + 1 + (topic.children ? countTopics(topic.children) : 0),
-    0
-  );
+  return topics.reduce((total, topic) => total + 1 + (topic.children ? countTopics(topic.children) : 0), 0);
 }
 
 export function getTrainingCampStats(phases: TrainingCampPhase[] = kTrainingCampPhases) {
   const modules = phases.flatMap((phase) => phase.modules);
   const topicCount = modules.reduce((total, module) => total + countTopics(module.topics), 0);
-  const leetcodeProblemCount = new Set(
-    modules.flatMap((module) => module.leetcodeProblemIds ?? [])
-  ).size;
+  const leetcodeProblemCount = new Set(modules.flatMap((module) => module.leetcodeProblemIds ?? [])).size;
 
   return {
     phaseCount: phases.length,

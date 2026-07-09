@@ -2,12 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import {
-  DifficultyBadge,
-  ProblemTypeBadge,
-  SourceBadge,
-  TierBadge
-} from '@/components/Badges';
+import { DifficultyBadge, ProblemTypeBadge, SourceBadge, TierBadge } from '@/components/Badges';
 import { ProblemNotesModal } from '@/components/ProblemNotesModal';
 import { ProblemStatusControl } from '@/components/ProblemStatusControl';
 import { ProblemSourceLink } from '@/components/ProblemSourceLink';
@@ -39,10 +34,7 @@ export function ProblemCard({ problem }: { problem: Problem }) {
             <ProblemTypeBadge problemType={problem.problem_type} />
             <TierBadge tier={problem.tier} />
           </div>
-          <ProblemStatusControl
-            problemId={problem.id}
-            legacySignals={{ accepted, reviewed }}
-          />
+          <ProblemStatusControl problemId={problem.id} legacySignals={{ accepted, reviewed }} />
         </div>
         <div className="space-y-2">
           <CardTitle className="text-base leading-6">{problemDisplayTitle(problem)}</CardTitle>

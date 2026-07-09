@@ -24,8 +24,7 @@ export const strengtheningModules: TrainingCampModule[] = [
     topics: [
       {
         title: 'deque（雙端隊列）',
-        summary:
-          '兩端都能 O(1) 增刪的序列，且支援隨機存取。是單調隊列、滑動窗口最值的底層容器。',
+        summary: '兩端都能 O(1) 增刪的序列，且支援隨機存取。是單調隊列、滑動窗口最值的底層容器。',
         code: `// deque（雙端隊列）: 兩端操作都是 O(1)。
 deque<int> dq;
 dq.push_back(1);    // 尾端插入
@@ -63,7 +62,8 @@ bitset<8> d("1100");     // from string：字串的最左字元對應最高位�
           },
           {
             title: '基本操作',
-            summary: 'set/reset/flip 單位或全體，count() 數 1，test(i) 查位，並支援 & | ^ << >> 做集合運算，常數極小。',
+            summary:
+              'set/reset/flip 單位或全體，count() 數 1，test(i) 查位，並支援 & | ^ << >> 做集合運算，常數極小。',
             code: `// 基本操作: 每個位元運算都同時作用在整組（通常 64 位元）字組上，遠比逐一元素判斷快。
 b.set(3);      // 把第 3 位設成 1
 b.reset(0);    // 把第 0 位設成 0
@@ -113,7 +113,8 @@ fill(a.begin(), a.end(), 0);  // use fill instead of byte-wise memset for typed 
           },
           {
             title: 'nth_element()',
-            summary: '把第 k 小放到定位，且左邊皆不大於它、右邊皆不小於它，平均 O(n)——不必整段排序即取第 k 小。',
+            summary:
+              '把第 k 小放到定位，且左邊皆不大於它、右邊皆不小於它，平均 O(n)——不必整段排序即取第 k 小。',
             code: `// nth_element(): 只保證第 k 小定位，不會完全排序。
 ranges::nth_element(a, a.begin() + k);   // 執行後 a[k] 就是第 k 小，左邊都 <= 它、右邊都 >= 它，但左右內部順序不保證
 int kth = a[k];`,
@@ -415,7 +416,8 @@ void push_down(int p, int l, int r) {
           },
           {
             title: '鏈結位址法',
-            summary: '每個桶掛一條鏈（或 vector），衝突元素串在同桶。實作簡單、對負載因子較不敏感，是 STL 的做法。'
+            summary:
+              '每個桶掛一條鏈（或 vector），衝突元素串在同桶。實作簡單、對負載因子較不敏感，是 STL 的做法。'
           },
           {
             title: '建立公共溢位區',
@@ -423,7 +425,8 @@ void push_down(int p, int l, int r) {
           },
           {
             title: '散列查找及其性能分析',
-            summary: '平均查找長度取決於負載因子 α=元素數/桶數。α 越小越快但越費空間，通常維持 α<0.75 並適時再雜湊擴容。'
+            summary:
+              '平均查找長度取決於負載因子 α=元素數/桶數。α 越小越快但越費空間，通常維持 α<0.75 並適時再雜湊擴容。'
           }
         ]
       },
@@ -1253,7 +1256,8 @@ void critical_path(int n) {
       },
       {
         title: '啟發式搜尋 (A*, IDA*)',
-        summary: '用估價函數 h（對到目標剩餘代價的估計）引導方向。h 必須「可採納」（不高估真實代價）才能保證最優。',
+        summary:
+          '用估價函數 h（對到目標剩餘代價的估計）引導方向。h 必須「可採納」（不高估真實代價）才能保證最優。',
         children: [
           {
             title: 'A* 算法',
@@ -1472,8 +1476,7 @@ long long crt(int k, long long a[], long long m[]) {
         children: [
           {
             title: '排列組合計算',
-            summary:
-              'C(n,k)=n!/(k!(n−k)!)。模 p 下預處理階乘與階乘逆元後可 O(1) 查詢任意 C(n,k)。',
+            summary: 'C(n,k)=n!/(k!(n−k)!)。模 p 下預處理階乘與階乘逆元後可 O(1) 查詢任意 C(n,k)。',
             code: `// 排列組合計算: 先 O(n) 預處理所有階乘與階乘的逆元，之後每次查詢 C(n,k) 只需三次乘法，O(1)。
 long long fac[kMaxN], ifac[kMaxN];
 void init(int n, long long p) {
@@ -1547,8 +1550,7 @@ Mat operator*(const Mat& a, const Mat& b) {
         children: [
           {
             title: 'Nim 遊戲',
-            summary:
-              '多堆石子輪流取，取完者勝。結論：各堆石子數的異或和為 0 時先手必敗，否則先手必勝。',
+            summary: '多堆石子輪流取，取完者勝。結論：各堆石子數的異或和為 0 時先手必敗，否則先手必勝。',
             code: `// Nim 遊戲: 結論本身要用 SG 理論證明，但實作上只需一行——所有堆的石子數異或起來，非零先手必勝。
 int x = 0;
 for (int s : piles) {

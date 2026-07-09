@@ -23,9 +23,7 @@ function SubtopicPracticeProblemCard({ problem }: { problem: PracticeProblem }) 
   const completed_practice_problem_ids = useProgressStore((state) => state.completedPracticeProblemIds);
   const set_problem_status = useProgressStore((state) => state.setProblemStatus);
   const legacy_completed = completed_practice_problem_ids.includes(problem_id);
-  const status = mounted
-    ? effectiveProblemStatus(explicit_status, { completed: legacy_completed })
-    : 'none';
+  const status = mounted ? effectiveProblemStatus(explicit_status, { completed: legacy_completed }) : 'none';
   const passed = status === 'passed';
 
   return (
@@ -37,10 +35,7 @@ function SubtopicPracticeProblemCard({ problem }: { problem: PracticeProblem }) 
             {problem.rating ? <DifficultyBadge rating={problem.rating} /> : null}
             {problem.tier ? <TierBadge tier={problem.tier} /> : null}
           </div>
-          <ProblemStatusControl
-            problemId={problem_id}
-            legacySignals={{ completed: legacy_completed }}
-          />
+          <ProblemStatusControl problemId={problem_id} legacySignals={{ completed: legacy_completed }} />
         </div>
 
         <div className="space-y-2">

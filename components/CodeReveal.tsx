@@ -126,9 +126,7 @@ function CodeWindow({
               <Code2 className="h-4 w-4 text-primary" aria-hidden />
               {title ?? '實作程式碼'}
             </p>
-            {complexity ? (
-              <p className="mt-1 text-xs text-muted-foreground">複雜度：{complexity}</p>
-            ) : null}
+            {complexity ? <p className="mt-1 text-xs text-muted-foreground">複雜度：{complexity}</p> : null}
           </div>
           <button
             type="button"

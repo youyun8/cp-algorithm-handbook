@@ -1,8 +1,4 @@
-import {
-  kProblemStatusMeta,
-  kProblemStatusOrder,
-  type ProblemStatusCounts
-} from '@/lib/problemStatus';
+import { kProblemStatusMeta, kProblemStatusOrder, type ProblemStatusCounts } from '@/lib/problemStatus';
 import { cn } from '@/lib/utils';
 
 // A compact row of three chips showing how many problems sit in each status.
@@ -20,10 +16,7 @@ export function ProblemStatusCountsBar({
       {kProblemStatusOrder.map((status) => {
         const meta = kProblemStatusMeta[status];
         return (
-          <span
-            key={status}
-            className={cn('rounded-full border px-2.5 py-1 font-semibold', meta.className)}
-          >
+          <span key={status} className={cn('rounded-full border px-2.5 py-1 font-semibold', meta.className)}>
             {meta.label} {counts[status]}
           </span>
         );

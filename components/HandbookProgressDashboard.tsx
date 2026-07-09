@@ -8,11 +8,7 @@ import { ProblemStatusControl } from '@/components/ProblemStatusControl';
 import type { PracticeProblem, ProblemStatus, Subtopic, Topic } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { hasPracticeNote, practiceProblemId } from '@/lib/practiceProgress';
-import {
-  effectiveProblemStatus,
-  emptyProblemStatusCounts,
-  kProblemStatusMeta
-} from '@/lib/problemStatus';
+import { effectiveProblemStatus, emptyProblemStatusCounts, kProblemStatusMeta } from '@/lib/problemStatus';
 import { problemDisplayTitle } from '@/lib/utils';
 import { useProgressStore } from '@/store/useProgressStore';
 

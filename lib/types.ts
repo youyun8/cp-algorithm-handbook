@@ -162,5 +162,13 @@ export interface ProgressSnapshot {
   problemNotes?: Record<string, ProblemNote>;
   completedPracticeProblemIds?: string[];
   problemStatuses?: Record<string, ProblemStatus>;
+  diagnostic?: DiagnosticSnapshot;
   updatedAt: string; // ISO 8601
+}
+
+// Self-assessment diagnostic result, carried alongside progress so a user's
+// learning-path plan survives across devices.
+export interface DiagnosticSnapshot {
+  responses: Record<string, string>;
+  completedAt?: string;
 }

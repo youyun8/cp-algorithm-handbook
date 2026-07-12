@@ -1,5 +1,13 @@
 import Link from 'next/link';
-import { ArrowRight, BarChart3, BookOpen, Dumbbell, GraduationCap, type LucideIcon } from 'lucide-react';
+import {
+  ArrowRight,
+  BarChart3,
+  BookOpen,
+  Dumbbell,
+  GraduationCap,
+  Target,
+  type LucideIcon
+} from 'lucide-react';
 import { FeaturedTopics } from '@/components/FeaturedTopics';
 import { PageTransition } from '@/components/PageTransition';
 import { ProgressSummary } from '@/components/ProgressSummary';
@@ -73,14 +81,42 @@ export default function HomePage() {
                 查看訓練營
               </Link>
               <Link
-                href="/practice"
+                href="/diagnostic"
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-border bg-card/70 px-6 text-base font-medium text-foreground shadow-sm transition duration-200 hover:-translate-y-0.5 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
-                <Dumbbell className="h-5 w-5" aria-hidden />
-                進入練習場
+                <Target className="h-5 w-5" aria-hidden />
+                做實力診斷
               </Link>
             </div>
           </div>
+        </section>
+
+        <section>
+          <Link
+            href="/diagnostic"
+            className="group relative flex flex-col gap-4 overflow-hidden rounded-3xl border border-primary/30 bg-gradient-to-br from-primary/10 via-card/70 to-accent/40 p-6 shadow-card transition duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-card-hover sm:flex-row sm:items-center sm:justify-between sm:p-8"
+          >
+            <div
+              className="pointer-events-none absolute -left-12 -bottom-16 h-52 w-52 rounded-full bg-primary/15 blur-3xl"
+              aria-hidden
+            />
+            <div className="relative flex items-start gap-4">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-glow">
+                <Target className="h-6 w-6" aria-hidden />
+              </span>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-primary">以週賽 AK 為目標</p>
+                <h2 className="mt-1 text-xl font-semibold tracking-tight">先做一次實力診斷</h2>
+                <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+                  18 題快速自評，估算你的週賽實力分數、找出卡關的難度槽，並自動生成通往 AK
+                  的專屬學習路線與推薦題單。
+                </p>
+              </div>
+            </div>
+            <span className="relative inline-flex shrink-0 items-center gap-1 self-start rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-all group-hover:gap-2 sm:self-auto">
+              開始診斷 <ArrowRight className="h-4 w-4" aria-hidden />
+            </span>
+          </Link>
         </section>
 
         <section className="space-y-4">

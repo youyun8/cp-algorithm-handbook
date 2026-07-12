@@ -4,6 +4,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { nextProblemStatus, noteHasContent } from '@/lib/problemStatus';
 import type { ProblemNote, ProblemStatus, ProblemType, SubmissionStatus } from '@/lib/types';
+import { useDiagnosticStore } from '@/store/useDiagnosticStore';
 
 export type CompletionFilter = 'all' | 'none' | 'review' | 'passed';
 export type RatingBandId = 'consolidate' | 'target' | 'stretch';
@@ -255,7 +256,11 @@ export const useProgressStore = create<ProgressState>()(
           contestSessions: state.contestSessions.slice(0, 50),
           problemNotes: state.problemNotes,
           completedPracticeProblemIds: state.completedPracticeProblemIds,
-          problemStatuses: state.problemStatuses
+          problemStatuses: state.problemStatuses,
+          diagnostic: {
+            responses: useDiagnosticStore.getState().responses,
+            completedAt: useDiagnosticStore.getState().completedAt
+          }
         };
         const res = await fetch('/api/progress', {
           method: 'POST',
@@ -285,6 +290,9 @@ export const useProgressStore = create<ProgressState>()(
           problemStatuses: data.problemStatuses ?? {},
           lastCloudSyncAt: data.updatedAt ?? new Date().toISOString()
         });
+        if (data.diagnostic) {
+          useDiagnosticStore.getState().hydrate(data.diagnostic);
+        }
         return { ok: true };
       }
     }),

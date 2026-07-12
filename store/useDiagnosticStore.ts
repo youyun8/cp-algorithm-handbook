@@ -11,6 +11,8 @@ interface DiagnosticState {
   setResponse: (questionId: string, level: MasteryLevelId) => void;
   markCompleted: () => void;
   reset: () => void;
+  /** Replace local state from a synced cloud snapshot. */
+  hydrate: (data: { responses?: DiagnosticResponses; completedAt?: string }) => void;
 }
 
 export const useDiagnosticStore = create<DiagnosticState>()(
@@ -21,7 +23,8 @@ export const useDiagnosticStore = create<DiagnosticState>()(
       setResponse: (questionId, level) =>
         set((state) => ({ responses: { ...state.responses, [questionId]: level } })),
       markCompleted: () => set({ completedAt: new Date().toISOString() }),
-      reset: () => set({ responses: {}, completedAt: undefined })
+      reset: () => set({ responses: {}, completedAt: undefined }),
+      hydrate: (data) => set({ responses: data.responses ?? {}, completedAt: data.completedAt })
     }),
     {
       name: 'cp-handbook-diagnostic',

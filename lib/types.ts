@@ -167,8 +167,19 @@ export interface ProgressSnapshot {
 }
 
 // Self-assessment diagnostic result, carried alongside progress so a user's
-// learning-path plan survives across devices.
+// learning-path plan and assessment history survive across devices.
 export interface DiagnosticSnapshot {
+  seed?: number;
   responses: Record<string, string>;
   completedAt?: string;
+  history?: DiagnosticAttemptSnapshot[];
+}
+
+export interface DiagnosticAttemptSnapshot {
+  seed: number;
+  completedAt: string;
+  estimatedRating: number;
+  difficulty: string;
+  clearedSlots: number;
+  akReady: boolean;
 }

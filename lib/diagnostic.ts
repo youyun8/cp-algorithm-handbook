@@ -138,31 +138,69 @@ export interface DiagnosticQuestion {
   slot: SlotId;
 }
 
-function pickProbeProblem(topicId: string, slot: SlotId, used: Set<string>): Problem | undefined {
+/** Small deterministic PRNG (mulberry32) so a seed reproduces a question set. */
+function mulberry32(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** A fresh random seed for a new assessment attempt. */
+export function makeSeed(): number {
+  return (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
+}
+
+/** How many of the most-representative problems form the randomisation pool. */
+const kProbePoolSize = 12;
+
+function pickProbeProblem(
+  topicId: string,
+  slot: SlotId,
+  used: Set<string>,
+  rng?: () => number
+): Problem | undefined {
   const [lo, hi] = kSlotById.get(slot)!.ratingRange;
   const inCell = kProblems.filter(
     (p) => p.topic_id === topicId && p.rating >= lo && p.rating < hi && !used.has(p.id)
   );
-  // Prefer LeetCode (contest-relevant, recognisable) and the most-solved
-  // problem in the cell — the canonical representative of that difficulty.
+  if (inCell.length === 0) return undefined;
+  // Rank by how canonical the problem is: LeetCode first (contest-relevant,
+  // recognisable), then most-solved.
   const ranked = inCell.sort((a, b) => {
     const lcA = a.source === 'leetcode' ? 1 : 0;
     const lcB = b.source === 'leetcode' ? 1 : 0;
     if (lcA !== lcB) return lcB - lcA;
     return (b.solve_count ?? 0) - (a.solve_count ?? 0);
   });
-  return ranked[0];
+  // Deterministic (no seed): always the single canonical representative.
+  if (!rng) return ranked[0];
+  // Seeded: pick from a pool of the top representatives so retakes vary while
+  // still showing well-known problems at the right difficulty.
+  const leetcode = ranked.filter((p) => p.source === 'leetcode');
+  const base = leetcode.length >= 4 ? leetcode : ranked;
+  const pool = base.slice(0, Math.min(kProbePoolSize, base.length));
+  return pool[Math.floor(rng() * pool.length)] ?? ranked[0];
 }
 
 /**
- * Build the deterministic diagnostic question set. Stable across renders and
- * sessions so results are reproducible.
+ * Build a diagnostic question set.
+ *
+ * Question ids are keyed by `topicId:slot` (the *cell*), not the concrete
+ * problem, so scoring is stable regardless of which representative problem is
+ * shown. Passing a `seed` picks a different-but-reproducible problem per cell —
+ * this is what lets each retake feel like a fresh assessment while a given
+ * attempt always renders the same problems.
  */
-export function buildDiagnostic(): DiagnosticQuestion[] {
+export function buildDiagnostic(seed?: number): DiagnosticQuestion[] {
   const used = new Set<string>();
+  const rng = seed != null ? mulberry32(seed) : undefined;
   const questions: DiagnosticQuestion[] = [];
   for (const probe of kProbeBlueprint) {
-    const problem = pickProbeProblem(probe.topicId, probe.slot, used);
+    const problem = pickProbeProblem(probe.topicId, probe.slot, used, rng);
     if (!problem) continue;
     used.add(problem.id);
     questions.push({

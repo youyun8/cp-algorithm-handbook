@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, RotateCcw, Sparkles, Target, Trophy } from 'lucide-react';
+import { ArrowRight, Pencil, RotateCcw, Sparkles, Target, TrendingUp, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -23,7 +23,7 @@ import {
   toneSelectedClass,
   toneSoftClass
 } from '@/lib/utils';
-import { useDiagnosticStore } from '@/store/useDiagnosticStore';
+import { useDiagnosticStore, type DiagnosticAttempt } from '@/store/useDiagnosticStore';
 import { useProgressStore } from '@/store/useProgressStore';
 
 function pct(value: number) {
@@ -32,13 +32,17 @@ function pct(value: number) {
 
 export function DiagnosticExperience() {
   const mounted = useMounted();
-  const questions = useMemo(() => buildDiagnostic(), []);
+  const seed = useDiagnosticStore((s) => s.seed);
   const responses = useDiagnosticStore((s) => s.responses);
   const completedAt = useDiagnosticStore((s) => s.completedAt);
+  const history = useDiagnosticStore((s) => s.history);
   const setResponse = useDiagnosticStore((s) => s.setResponse);
-  const markCompleted = useDiagnosticStore((s) => s.markCompleted);
-  const reset = useDiagnosticStore((s) => s.reset);
+  const completeAttempt = useDiagnosticStore((s) => s.completeAttempt);
+  const startNewAttempt = useDiagnosticStore((s) => s.startNewAttempt);
   const setCurrentRating = useProgressStore((s) => s.setCurrentRating);
+
+  // Each attempt's seed picks a different-but-stable set of problems.
+  const questions = useMemo(() => buildDiagnostic(seed), [seed]);
 
   const [editing, setEditing] = useState(false);
   const [appliedRating, setAppliedRating] = useState<number | null>(null);
@@ -61,10 +65,12 @@ export function DiagnosticExperience() {
     return (
       <ResultView
         result={result}
+        history={history}
         onRetake={() => {
-          reset();
+          startNewAttempt();
           setEditing(false);
           setAppliedRating(null);
+          if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
         onEdit={() => setEditing(true)}
         appliedRating={appliedRating}
@@ -82,9 +88,17 @@ export function DiagnosticExperience() {
       responses={responses}
       answeredCount={answeredCount}
       allAnswered={allAnswered}
+      lastAttempt={history.length > 0 ? history[history.length - 1] : null}
       onSelect={setResponse}
       onSubmit={() => {
-        markCompleted();
+        if (result) {
+          completeAttempt({
+            estimatedRating: result.estimatedRating,
+            difficulty: result.difficulty,
+            clearedSlots: result.slots.filter((s) => s.cleared).length,
+            akReady: result.akReady
+          });
+        }
         setEditing(false);
         if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
       }}
@@ -101,11 +115,20 @@ interface QuizViewProps {
   responses: Record<string, string>;
   answeredCount: number;
   allAnswered: boolean;
+  lastAttempt: DiagnosticAttempt | null;
   onSelect: (id: string, level: (typeof kMasteryLevels)[number]['id']) => void;
   onSubmit: () => void;
 }
 
-function QuizView({ questions, responses, answeredCount, allAnswered, onSelect, onSubmit }: QuizViewProps) {
+function QuizView({
+  questions,
+  responses,
+  answeredCount,
+  allAnswered,
+  lastAttempt,
+  onSelect,
+  onSubmit
+}: QuizViewProps) {
   return (
     <div className="space-y-6 pb-24">
       <Card className="overflow-hidden">
@@ -116,8 +139,18 @@ function QuizView({ questions, responses, answeredCount, allAnswered, onSelect, 
           <CardTitle className="text-2xl">18 題快速自評，量身規劃 AK 路線</CardTitle>
           <p className="text-sm leading-6 text-muted-foreground">
             以下題目橫跨 LeetCode 週賽的 Q1–Q4 四個難度槽。想像你在賽場上遇到每一題，誠實選出你的把握度即可 —
-            不必真的作答。完成後會估算你的實力分數、找出瓶頸，並生成專屬學習路線。
+            不必真的作答。完成後會估算你的實力分數、找出瓶頸，並生成專屬學習路線。每次重測都會換一批題目，適合當作一段時間後的實力追蹤。
           </p>
+          {lastAttempt && (
+            <div className="mt-1 inline-flex flex-wrap items-center gap-2 rounded-xl border border-border bg-accent/40 px-3 py-2 text-sm">
+              <TrendingUp className="h-4 w-4 text-primary" />
+              <span className="text-muted-foreground">上次評量</span>
+              <span className="font-semibold tabular-nums">{lastAttempt.estimatedRating}</span>
+              <span className="text-xs text-muted-foreground">
+                （{formatAttemptDate(lastAttempt.completedAt)}）
+              </span>
+            </div>
+          )}
         </CardHeader>
       </Card>
 
@@ -223,13 +256,18 @@ function QuizView({ questions, responses, answeredCount, allAnswered, onSelect, 
 
 interface ResultViewProps {
   result: ReturnType<typeof scoreDiagnostic>;
+  history: DiagnosticAttempt[];
   onRetake: () => void;
   onEdit: () => void;
   onApplyRating: () => void;
   appliedRating: number | null;
 }
 
-function ResultView({ result, onRetake, onEdit, onApplyRating, appliedRating }: ResultViewProps) {
+function ResultView({ result, history, onRetake, onEdit, onApplyRating, appliedRating }: ResultViewProps) {
+  // The most recent history entry is this attempt; compare against the one before.
+  const previous = history.length >= 2 ? history[history.length - 2] : null;
+  const delta = previous ? result.estimatedRating - previous.estimatedRating : null;
+
   return (
     <div className="space-y-6">
       {/* Hero */}
@@ -239,11 +277,25 @@ function ResultView({ result, onRetake, onEdit, onApplyRating, appliedRating }: 
             <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
               <Target className="h-4 w-4" /> 估算實力分數
             </div>
-            <div className="mt-1 flex items-baseline gap-3">
+            <div className="mt-1 flex flex-wrap items-baseline gap-3">
               <span className="text-5xl font-bold tracking-tight tabular-nums">{result.estimatedRating}</span>
               <span className="rounded-full border border-border bg-accent/50 px-3 py-1 text-sm font-medium">
                 {result.difficulty}
               </span>
+              {delta !== null && (
+                <span
+                  className={cn(
+                    'rounded-full border px-2.5 py-1 text-sm font-medium tabular-nums',
+                    delta > 0
+                      ? toneSoftClass('green')
+                      : delta < 0
+                        ? toneSoftClass('rose')
+                        : toneSoftClass('blue')
+                  )}
+                >
+                  {delta > 0 ? `▲ +${delta}` : delta < 0 ? `▼ ${delta}` : '± 0'} vs 上次
+                </span>
+              )}
             </div>
             <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
               {result.akReady
@@ -272,6 +324,9 @@ function ResultView({ result, onRetake, onEdit, onApplyRating, appliedRating }: 
           </div>
         </CardContent>
       </Card>
+
+      {/* Assessment trend over time */}
+      {history.length >= 2 && <TrendSection history={history} />}
 
       {/* Slot readiness */}
       <Card>
@@ -332,14 +387,88 @@ function ResultView({ result, onRetake, onEdit, onApplyRating, appliedRating }: 
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <Button variant="outline" onClick={onEdit} className="gap-1.5">
-          修改答案
+        <Button variant="default" onClick={onRetake} className="gap-1.5">
+          <RotateCcw className="h-4 w-4" /> 換一批題目再測一次
         </Button>
-        <Button variant="ghost" onClick={onRetake} className="gap-1.5">
-          <RotateCcw className="h-4 w-4" /> 重新診斷
+        <Button variant="outline" onClick={onEdit} className="gap-1.5">
+          <Pencil className="h-4 w-4" /> 修改這次的答案
         </Button>
       </div>
     </div>
+  );
+}
+
+function formatAttemptDate(iso: string) {
+  const d = new Date(iso);
+  return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function TrendSection({ history }: { history: DiagnosticAttempt[] }) {
+  // Show the most recent attempts oldest → newest as a compact bar chart.
+  const recent = history.slice(-8);
+  const ratings = recent.map((a) => a.estimatedRating);
+  const min = Math.min(...ratings);
+  const max = Math.max(...ratings);
+  const span = Math.max(1, max - min);
+  const first = recent[0];
+  const last = recent[recent.length - 1];
+  const total = last.estimatedRating - first.estimatedRating;
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <TrendingUp className="h-5 w-5 text-primary" />
+          <CardTitle className="text-lg">實力變化</CardTitle>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          共 {history.length} 次評量。
+          {recent.length >= 2 && (
+            <>
+              最近 {recent.length} 次估分{' '}
+              <span
+                className={cn(
+                  'font-semibold',
+                  total > 0
+                    ? 'text-emerald-600 dark:text-emerald-400'
+                    : total < 0
+                      ? 'text-rose-600 dark:text-rose-400'
+                      : 'text-foreground'
+                )}
+              >
+                {total > 0 ? `上升 ${total}` : total < 0 ? `下降 ${-total}` : '持平'}
+              </span>
+              分。
+            </>
+          )}
+        </p>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-end gap-2 sm:gap-3">
+          {recent.map((a) => {
+            const heightPct = 30 + (70 * (a.estimatedRating - min)) / span;
+            return (
+              <div key={a.seed} className="flex min-w-0 flex-1 flex-col items-center gap-1.5">
+                <span className="text-xs font-semibold tabular-nums">{a.estimatedRating}</span>
+                <div className="flex h-24 w-full items-end">
+                  <div
+                    className={cn(
+                      'w-full rounded-t-md transition-all',
+                      a.akReady ? 'bg-emerald-500/70' : 'bg-primary/60'
+                    )}
+                    style={{ height: `${heightPct}%` }}
+                    title={`${a.clearedSlots}/4 難度槽穩定通過`}
+                  />
+                </div>
+                <span className="w-full truncate text-center text-[10px] text-muted-foreground">
+                  {formatAttemptDate(a.completedAt).slice(5)}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 

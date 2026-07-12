@@ -258,8 +258,10 @@ export const useProgressStore = create<ProgressState>()(
           completedPracticeProblemIds: state.completedPracticeProblemIds,
           problemStatuses: state.problemStatuses,
           diagnostic: {
+            seed: useDiagnosticStore.getState().seed,
             responses: useDiagnosticStore.getState().responses,
-            completedAt: useDiagnosticStore.getState().completedAt
+            completedAt: useDiagnosticStore.getState().completedAt,
+            history: useDiagnosticStore.getState().history
           }
         };
         const res = await fetch('/api/progress', {

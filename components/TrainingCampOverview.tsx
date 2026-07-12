@@ -17,6 +17,7 @@ import { InlineMarkdown } from '@/components/MarkdownBlock';
 import { CodeReveal } from '@/components/CodeReveal';
 import type { Problem } from '@/lib/types';
 import { cn, difficultyClass, problemDisplayTitle, sourceUrl } from '@/lib/utils';
+import { trainingModuleName, trainingTopicName } from '@/lib/trainingCampPresentation';
 
 const kPhaseTone: Record<string, string> = {
   foundation: 'border-emerald-400/40 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200',
@@ -47,6 +48,7 @@ function TopicTree({
     <ol className={cn('space-y-3', depth > 0 && 'mt-3 space-y-3 border-l-2 border-border/60 pl-4')}>
       {topics.map((topic, index) => {
         const isLeafConcept = Boolean(topic.summary || topic.code);
+        const display_title = trainingTopicName(topic.title);
 
         return (
           <li
@@ -60,7 +62,7 @@ function TopicTree({
               <span className="flex h-6 min-w-6 items-center justify-center rounded-md bg-primary/10 px-1.5 text-[11px] font-semibold text-primary">
                 {index + 1}
               </span>
-              <h4 className={cn('font-semibold', depth === 0 ? 'text-base' : 'text-sm')}>{topic.title}</h4>
+              <h4 className={cn('font-semibold', depth === 0 ? 'text-base' : 'text-sm')}>{display_title}</h4>
               {topic.complexity ? (
                 <span className="rounded-full border border-blue-400/40 bg-blue-500/10 px-2 py-0.5 text-[11px] font-medium text-blue-700 dark:text-blue-200">
                   {topic.complexity}
@@ -80,7 +82,7 @@ function TopicTree({
             ) : null}
 
             {topic.code ? (
-              <CodeReveal code={topic.code} title={topic.title} complexity={topic.complexity} />
+              <CodeReveal code={topic.code} title={display_title} complexity={topic.complexity} />
             ) : null}
 
             {topic.children && topic.children.length > 0 ? (
@@ -106,9 +108,9 @@ export function TrainingCampOverview({
   };
 }) {
   const stat_cards = [
-    { label: '階段', value: stats.phaseCount, icon: Route },
-    { label: '重編講次', value: stats.moduleCount, icon: BookOpen },
-    { label: '知識節點', value: stats.topicCount, icon: ListChecks },
+    { label: '訓練區域', value: stats.phaseCount, icon: Route },
+    { label: '解題關卡', value: stats.moduleCount, icon: BookOpen },
+    { label: '訓練節點', value: stats.topicCount, icon: ListChecks },
     { label: 'LeetCode 題', value: stats.leetcodeProblemCount, icon: LeetIcon }
   ];
 
@@ -122,11 +124,10 @@ export function TrainingCampOverview({
             </span>
             <div className="min-w-0">
               <p className="text-sm font-semibold text-primary">訓練營</p>
-              <h1 className="mt-2 text-3xl font-bold sm:text-4xl">競程訓練營路線</h1>
+              <h1 className="mt-2 text-3xl font-bold sm:text-4xl">競程解題訓練營</h1>
               <p className="mt-4 max-w-3xl leading-7 text-muted-foreground">
-                將三份原始章節重編為連續的 {stats.moduleCount}{' '}
-                講，分成入門、提升、進階三個階段。每一講的每個子標題都附上概念說明、C++
-                實作與複雜度，像教授授課般由淺入深，讓你照著清單就能學會。
+                將完整教材重編為 {stats.moduleCount} 個關卡，分成起步、核心、挑戰三個區域。
+                每個章節與子項目都採用學習目標式命名，並提供概念說明、C++ 實作與複雜度，讓你循著流程由淺入深練習。
               </p>
             </div>
           </div>
@@ -145,7 +146,7 @@ export function TrainingCampOverview({
         </div>
       </section>
 
-      <nav aria-label="訓練營階段" className="grid gap-3 md:grid-cols-3">
+      <nav aria-label="訓練營區域" className="grid gap-3 md:grid-cols-3">
         {phases.map((phase) => {
           const offset = phaseModuleOffset(phases, phase.id);
           const from = offset + 1;
@@ -160,10 +161,10 @@ export function TrainingCampOverview({
                 kPhaseTone[phase.id]
               )}
             >
-              <p className="text-sm font-semibold">第 {phase.order} 階段</p>
+              <p className="text-sm font-semibold">區域 {phase.order}</p>
               <p className="mt-1 text-xl font-bold">{phase.title}</p>
               <p className="mt-2 text-sm leading-6 opacity-85">
-                第 {from} 講 - 第 {to} 講，共 {phase.modules.length} 講
+                關卡 {from} - {to}，共 {phase.modules.length} 關
               </p>
             </a>
           );
@@ -177,7 +178,7 @@ export function TrainingCampOverview({
           return (
             <section key={phase.id} id={phase.id} className="scroll-mt-24 space-y-4">
               <div>
-                <p className="text-sm font-semibold text-primary">第 {phase.order} 階段</p>
+                <p className="text-sm font-semibold text-primary">區域 {phase.order}</p>
                 <h2 className="mt-1 text-2xl font-bold">{phase.title}</h2>
                 <p className="mt-2 max-w-4xl leading-7 text-muted-foreground">{phase.description}</p>
               </div>
@@ -187,6 +188,7 @@ export function TrainingCampOverview({
                   const global_index = offset + module_index + 1;
                   const topic_count = countTopics(module.topics);
                   const note = getTrainingCampNote(module.id);
+                  const module_title = trainingModuleName(module.id, module.title);
                   const leetcode_problems = (module.leetcodeProblemIds ?? [])
                     .map((problem_id) => kProblemById.get(problem_id))
                     .filter((problem): problem is Problem => Boolean(problem));
@@ -203,14 +205,14 @@ export function TrainingCampOverview({
                           </span>
                           <div className="min-w-0">
                             <p className="text-xs font-medium text-muted-foreground">
-                              第 {global_index} 講 · 原第 {module.sourceChapter} 章
+                              關卡 {global_index} · 對應原教材第 {module.sourceChapter} 章
                             </p>
-                            <h3 className="mt-1 text-lg font-semibold">{module.title}</h3>
+                            <h3 className="mt-1 text-lg font-semibold">{module_title}</h3>
                           </div>
                         </div>
 
                         <p className="text-sm leading-6 text-muted-foreground sm:justify-self-start">
-                          {topic_count} 個知識節點，{leetcode_problems.length} 題 LeetCode
+                          {topic_count} 個訓練節點，{leetcode_problems.length} 題 LeetCode
                         </p>
 
                         <ChevronDown
@@ -224,7 +226,7 @@ export function TrainingCampOverview({
                           <div className="mb-5 rounded-2xl border border-blue-400/30 bg-blue-500/[0.06] p-4">
                             <div className="flex items-center gap-2">
                               <Lightbulb className="h-4 w-4 text-blue-600 dark:text-blue-300" aria-hidden />
-                              <p className="text-sm font-semibold">本講重點</p>
+                              <p className="text-sm font-semibold">本關重點</p>
                             </div>
                             <p className="mt-2 text-sm leading-7 text-muted-foreground">
                               <InlineMarkdown>{note.summary}</InlineMarkdown>
@@ -232,7 +234,7 @@ export function TrainingCampOverview({
                           </div>
                         ) : null}
 
-                        <p className="mb-3 text-sm font-semibold">教材大綱</p>
+                        <p className="mb-3 text-sm font-semibold">關卡路線</p>
                         <TopicTree topics={module.topics} moduleId={module.id} />
 
                         {note ? (
@@ -246,7 +248,9 @@ export function TrainingCampOverview({
                                     className="flex flex-col rounded-2xl border border-border bg-background/55 p-4"
                                   >
                                     <div className="flex flex-wrap items-center justify-between gap-2">
-                                      <h4 className="text-sm font-semibold">{impl.title}</h4>
+                                      <h4 className="text-sm font-semibold">
+                                        {trainingTopicName(impl.title)}
+                                      </h4>
                                       {impl.complexity ? (
                                         <span className="rounded-full border border-blue-400/40 bg-blue-500/10 px-2 py-0.5 text-[11px] font-medium text-blue-700 dark:text-blue-200">
                                           {impl.complexity}
@@ -259,7 +263,7 @@ export function TrainingCampOverview({
                                     {impl.code ? (
                                       <CodeReveal
                                         code={impl.code}
-                                        title={impl.title}
+                                        title={trainingTopicName(impl.title)}
                                         complexity={impl.complexity}
                                       />
                                     ) : null}
@@ -330,7 +334,7 @@ export function TrainingCampOverview({
                               <div>
                                 <p className="text-sm font-semibold">LeetCode 同類題</p>
                                 <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                                  對應本講概念的遷移練習；部分進階 OI 主題使用最接近的 LeetCode 類型題。
+                                  對應本關概念的遷移練習；部分進階 OI 主題使用最接近的 LeetCode 類型題。
                                 </p>
                               </div>
                               <span className="rounded-full border border-border bg-background/55 px-3 py-1 text-xs text-muted-foreground">

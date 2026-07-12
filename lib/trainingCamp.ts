@@ -39,22 +39,22 @@ export const kTrainingCampPhases: TrainingCampPhase[] = [
   {
     id: 'foundation',
     order: 1,
-    title: '入門營',
-    description: '從 C++ 語法、基礎資料結構，到樹、圖、貪心、分治、高精度、搜尋與動態規劃入門。',
+    title: '起步區 · 建立解題底盤',
+    description: '從 C++ 語法與基礎資料結構出發，逐步走過樹、圖、貪心、分治、高精度、搜尋與動態規劃。',
     modules: foundationModules
   },
   {
     id: 'strengthening',
     order: 2,
-    title: '提升營',
-    description: '補齊 STL、實用資料結構、查找與字串、平衡樹、圖論提高、搜尋提高與 DP 提升。',
+    title: '核心區 · 串起常用模型',
+    description: '整合 STL、實用資料結構、查詢與字串、平衡搜尋樹、圖論、搜尋與動態規劃模型。',
     modules: strengtheningModules
   },
   {
     id: 'advanced',
     order: 3,
-    title: '進階營',
-    description: '聚焦進階資料結構、字串算法、樹上操作、網路流與複雜動態規劃優化。',
+    title: '挑戰區 · 攻克高階題型',
+    description: '聚焦進階資料結構、字串演算法、樹上操作、網路流與複雜動態規劃優化。',
     modules: advancedModules
   }
 ];

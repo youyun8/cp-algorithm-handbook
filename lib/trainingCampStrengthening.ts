@@ -1140,7 +1140,7 @@ for (auto& e : edges) {
           {
             title: 'SPFA 算法',
             summary:
-              'Bellman-Ford 的佇列優化：只有距離被更新的點才重新入隊鬆弛鄰居。平均很快，但特殊構造圖會退化 O(nm)，稠密圖或卡常題慎用。判負環看某點入隊次數是否 ≥ n。',
+              'Bellman-Ford 的佇列優化：只有距離被更新的點才重新入隊鬆弛鄰居。某些資料上很快，但沒有可依賴的平均複雜度保證，特殊構造圖會退化 O(nm)。判負環可記錄鬆弛路徑邊數，若某點達到 n 即存在可達負環。',
             code: `// SPFA 算法: 只有距離更新過的點才需要重新入隊，是 Bellman-Ford「盲目對所有邊鬆弛 n-1 輪」的隊列優化版本。
 constexpr long long kInf = numeric_limits<long long>::max() / 4;
 queue<int> q;
@@ -1162,7 +1162,7 @@ while (!q.empty()) {
         }
     }
 }`,
-            complexity: '平均 O(km)，最壞 O(nm)'
+            complexity: '最壞 O(nm)；實務速度高度依賴圖形與入隊順序'
           }
         ]
       },

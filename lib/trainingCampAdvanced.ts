@@ -181,7 +181,7 @@ void cdq(int l, int r) {
       'str-lc-1044',
       'lc-30',
       'lc-1707',
-      'lc-1392'
+      'str-lc-1392'
     ],
     topics: [
       {
@@ -354,9 +354,9 @@ for (int i = 1, k = 0; i <= n; ++i) {
       'lc-236',
       'lc-2277',
       'treedp-lc-834',
-      'lc-3515-2',
+      'lc-3515',
       'lc-1123',
-      'lc-1483'
+      'lift-001'
     ],
     topics: [
       {
@@ -614,7 +614,7 @@ void access(int x) {
     sourceChapter: 5,
     title: '可持久化數據結構',
     leetcodeProblemIds: [
-      'lc-3027-2',
+      'lc-3027',
       'lc-3072',
       'lc-3624',
       'lc-3187',
@@ -791,7 +791,7 @@ int dfs(int u, int t, int f) {   // f 是這條路徑目前允許通過的最大
     }
     return res;
 }`,
-        complexity: '一般 O(V^2 E)，二分圖 O(E√V)'
+        complexity: '一般 O(V^2 E)；二分圖匹配型單位網路 O(E√V)；一般單位容量圖 O(E·min(V^(2/3), √E))'
       },
       {
         title: 'ISAP 算法',
@@ -908,8 +908,7 @@ for (int u = 0; u < nl; ++u) {
       'lc-879',
       'treedp-lc-337',
       'treedp-lc-834',
-      'lc-2463',
-      'lc-337'
+      'lc-2463'
     ],
     topics: [
       {

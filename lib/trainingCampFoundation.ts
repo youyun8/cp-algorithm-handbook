@@ -226,7 +226,7 @@ struct Node { int v; Node* next = nullptr; };   // 指標成員預設初始化�
           {
             title: '時間複雜度',
             summary:
-              '以基本運算次數對 n 的成長階數表示。實務基準：約 10^8 次運算 ≈ 1 秒。反推可用複雜度：n≤20 可 2^n；n≤5000 可 O(n^2)；n≤10^5 需 O(n log n)；n≤10^7 幾乎只能 O(n)。',
+              '以基本運算次數對 n 的成長階數表示。粗估時常以每秒 10^7～10^8 次簡單操作作量級參考，但實際速度會受語言、常數、記憶體存取與硬體影響；必須搭配時限判斷。常見反推：n≤20 可考慮 2^n；n≤5000 可考慮 O(n^2)；n≤10^5 通常需要 O(n log n)；n≤10^7 多半接近 O(n)。',
             code: `// 時間複雜度: 巢狀迴圈的執行次數是「各層迴圈次數的乘積」，這是估算複雜度最直接的方法。
 // O(n^2): nested loops
 for (int i = 0; i < n; ++i) {          // 外層跑 n 次
@@ -234,7 +234,7 @@ for (int i = 0; i < n; ++i) {          // 外層跑 n 次
         work();                         // 故 work() 總共被呼叫 n*n 次，是 O(n^2)
     }
 }`,
-            complexity: '以 10^8 ops/s 估時限'
+            complexity: '先估成長量級，再以約 10^7～10^8 簡單操作／秒作粗略校準'
           },
           {
             title: '空間複雜度',
@@ -471,7 +471,8 @@ int y = q[head]; head = (head + 1) % kMaxN; // dequeue：同樣取模前進；�
         children: [
           {
             title: 'sort()',
-            summary: 'introsort，平均 O(n log n)。第三參數傳比較器，回傳 true 表示「前者該排在前」。',
+            summary:
+              'C++ 標準保證 std::sort 最壞 O(n log n) 次比較；常見實作是 introsort。第三參數傳比較器，回傳 true 表示「前者應排在前」，且必須滿足嚴格弱序。',
             code: `// sort(): ranges::sort 可直接接容器，少寫 begin/end。
 ranges::sort(v);                         // ascending，預設用 operator< 比較
 ranges::sort(v, greater<>{});             // 傳入比較器 greater<>{} 反轉比較方向，變成降序
@@ -521,7 +522,7 @@ list<int> lst; lst.push_front(1); lst.push_back(2);  // 頭尾都能 O(1) 插入
       'lc-404',
       'lc-671',
       'lc-872',
-      'lc-1214-2',
+      'lc-1214',
       'lc-144',
       'lc-94',
       'lc-145',
@@ -876,7 +877,7 @@ void dfs(int u) {
       'lc-455',
       'int-lc-435',
       'heap-lc-215',
-      'lc-912-2',
+      'lc-912',
       'lc-973',
       'bs-lc-410'
     ],

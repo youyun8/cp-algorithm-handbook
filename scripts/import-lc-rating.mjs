@@ -56,7 +56,7 @@ const kTitleTopicRules = [
   [/LCA|最近公共祖先|倍增/, 'binary-lifting-lca'],
   [/樹形 DP|換根|樹的直徑|一般樹|二叉樹|N 叉樹/, 'tree-dp'],
   [/網路流|費用流/, 'network-flow'],
-  [/回溯|搜尋|排列|組合|子集|折半列舉/, 'backtracking'],
+  [/回溯|排列|組合|子集|折半列舉/, 'backtracking'],
   [/KMP|Z 函式|Manacher|字串|字典樹|Trie|後綴|AC 自動機|雜湊/, 'string-algorithms'],
   [/狀壓|位運算|異或|AND|OR|線性基|拆位|試填/, 'bitmask-dp'],
   [/DP|背包|LCS|LIS|劃分|狀態機|數位|區間 DP|優化 DP|博弈 DP|機率\/期望 DP/, 'dp-fundamentals'],
@@ -268,6 +268,9 @@ function dedupeLeetcodeProblems(problems, subtopics) {
       deduped.push(problem);
       continue;
     }
+    // Older imports sometimes stored slugs as `/two-sum/`. Treat that as the
+    // same canonical key as `two-sum`, otherwise refreshes create duplicates.
+    problem.source_id = problem.source_id.replace(/^\/+|\/+$/g, '');
     const primary = by_slug.get(problem.source_id);
     if (!primary) {
       by_slug.set(problem.source_id, problem);
@@ -279,8 +282,12 @@ function dedupeLeetcodeProblems(problems, subtopics) {
   }
 
   for (const problem of deduped) {
-    problem.similar_problems = (problem.similar_problems ?? []).map(
-      (id) => duplicate_to_primary.get(id) ?? id
+    problem.similar_problems = Array.from(
+      new Set(
+        (problem.similar_problems ?? [])
+          .map((id) => duplicate_to_primary.get(id) ?? id)
+          .filter((id) => id !== problem.id)
+      )
     );
   }
   for (const subtopic of subtopics) {

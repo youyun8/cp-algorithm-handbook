@@ -16,7 +16,7 @@ const kGuideSteps: { icon: LucideIcon; title: string; description: string; href:
   {
     icon: GraduationCap,
     title: '排訓練營路線',
-    description: '依三階段二十五講推進，從入門語法一路銜接到進階資料結構與圖論。',
+    description: '依三大區域、二十八個關卡推進，從入門語法一路銜接到進階資料結構與圖論。',
     href: '/training-camp',
     cta: '前往訓練營'
   },

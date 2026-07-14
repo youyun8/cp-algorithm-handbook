@@ -2,9 +2,10 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Pencil, RotateCcw, Sparkles, Target, TrendingUp, Trophy } from 'lucide-react';
+import { ArrowRight, ExternalLink, Pencil, RotateCcw, Sparkles, Target, TrendingUp, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ProblemSourceLink } from '@/components/ProblemSourceLink';
 import {
   buildDiagnostic,
   kContestSlots,
@@ -196,6 +197,12 @@ function QuizView({
                       {problemDisplayTitle(q.problem)}
                     </Link>
                     <span className="text-xs text-muted-foreground">· {sourceLabel(q.problem.source)}</span>
+                    <ProblemSourceLink
+                      problem={q.problem}
+                      className="inline-flex items-center gap-1 text-xs font-medium text-primary underline-offset-4 hover:underline"
+                    >
+                      <ExternalLink className="h-3 w-3" /> 前往作答
+                    </ProblemSourceLink>
                   </div>
                   <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {kMasteryLevels.map((level) => {
@@ -548,6 +555,12 @@ function PathStep({ step }: { step: LearningStep }) {
                     <Link href={`/problems/${p.id}`} className="truncate underline-offset-4 hover:underline">
                       {problemDisplayTitle(p)}
                     </Link>
+                    <ProblemSourceLink
+                      problem={p}
+                      className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-primary underline-offset-4 hover:underline"
+                    >
+                      <ExternalLink className="h-3 w-3" /> 原題
+                    </ProblemSourceLink>
                   </li>
                 ))}
               </ul>

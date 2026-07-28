@@ -1,0 +1,802 @@
+[
+  {
+    "id": "hdu-6375",
+    "title": "度度熊学队列",
+    "origin": "HDU-6375",
+    "originalUrl": "https://vjudge.net/problem/HDU-6375",
+    "moduleId": "strengthening-stl",
+    "section": "1.1 deque／訓練 度度熊學隊列",
+    "summary": "多組資料直到 EOF。每組先給 N（≤150000）個空雙端佇列與 Q 次操作（所有資料 Q 總和≤500000）：1 u w val 從指定端插入；2 u w 輸出並刪除指定端元素，空時輸出 -1 且不刪；3 u v w 把 v 正序或反序接到 u 尾端並清空 v。",
+    "hints": [
+      "先辨識核心為「可合併雙向鏈結串列」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "以隱式 Treap 表示每個雙端佇列；子樹中序即佇列順序，懶惰 rev 標記代表整段反轉。首尾插入與刪除用 merge/split，合併時視 w 切換來源根的 rev，再接到目的根後並清空來源。split 依子樹大小精確切出指定前綴，merge 保持兩段相對順序，因此三種操作都與定義一致。每次操作期望 O(log Q)，空間 O(N+Q)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nstruct Node{int l=0,r=0,sz=1,val=0;bool rev=false;};\nint mergeTreap(int a,int b){ // TODO: merge two implicit Treaps\n    return a?a:b;\n}\nvoid splitTreap(int root,int k,int& a,int& b){ // TODO: split first k elements\n    a=root;b=0;\n}\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,q;while(cin>>n>>q){vector<int>root(n+1);while(q--){int op,u,v,w,val;cin>>op;if(op==1){cin>>u>>w>>val;/* TODO: insert at selected end */}else if(op==2){cin>>u>>w;int answer=-1;/* TODO: remove selected end */cout<<answer<<'\\n';}else{cin>>u>>v>>w;/* TODO: optionally reverse v and append it to u */}}}}\n",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;\nstruct Node{int l=0,r=0,sz=1,val;unsigned pri;bool rev=false;} t[500005];\nunsigned seedv=712367821; unsigned rng(){seedv^=seedv<<13;seedv^=seedv>>17;return seedv^=seedv<<5;}\nint sz(int x){return x?t[x].sz:0;} void pull(int x){if(x)t[x].sz=1+sz(t[x].l)+sz(t[x].r);}\nvoid flip(int x){if(x)swap(t[x].l,t[x].r),t[x].rev^=1;}\nvoid push(int x){if(x&&t[x].rev)flip(t[x].l),flip(t[x].r),t[x].rev=false;}\nint mergeT(int a,int b){if(!a||!b)return a|b;if(t[a].pri<t[b].pri){push(a);t[a].r=mergeT(t[a].r,b);pull(a);return a;}push(b);t[b].l=mergeT(a,t[b].l);pull(b);return b;}\nvoid split(int x,int k,int &a,int &b){if(!x){a=b=0;return;}push(x);if(sz(t[x].l)>=k){split(t[x].l,k,a,t[x].l);b=x;pull(b);}else{split(t[x].r,k-sz(t[x].l)-1,t[x].r,b);a=x;pull(a);}}\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,q;while(cin>>n>>q){vector<int> root(n+1);int tot=0;while(q--){int op,u,v,w,val,a,b;cin>>op;if(op==1){cin>>u>>w>>val;++tot;t[tot]=Node();t[tot].val=val;t[tot].pri=rng();if(w==0)root[u]=mergeT(tot,root[u]);else root[u]=mergeT(root[u],tot);}else if(op==2){cin>>u>>w;if(!root[u]){cout<<-1<<'\\n';continue;}if(w==0){split(root[u],1,a,b);root[u]=b;}else{split(root[u],sz(root[u])-1,b,a);root[u]=b;}cout<<t[a].val<<'\\n';}else{cin>>u>>v>>w;if(w)flip(root[v]);root[u]=mergeT(root[u],root[v]);root[v]=0;}}}}\n"
+  },
+  {
+    "id": "hdu-4006",
+    "title": "The kth great number",
+    "origin": "HDU-4006",
+    "originalUrl": "https://vjudge.net/problem/HDU-4006",
+    "moduleId": "strengthening-stl",
+    "section": "1.2 priority_queue／訓練1 第 k 大的數",
+    "summary": "多組資料直到 EOF；在插入與查詢命令中動態輸出目前第 k 大值，且詢問時元素數不少於 k。",
+    "hints": [
+      "先辨識核心為「大小為 k 的小根堆」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "維護恰含目前最大 k 個數的小根堆：未滿 k 就插入，否則僅在新值大於堆頂時替換；因此堆頂永遠是目前第 k 大值。每次插入 O(log k)、查詢 O(1)，空間 O(k)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,k;while(cin>>n>>k){priority_queue<int,vector<int>,greater<int>> topK;while(n--){char op;cin>>op;if(op=='I'){int x;cin>>x;// TODO: maintain the k greatest inserted values\n}else{int answer=0;// TODO: read the current kth greatest value\ncout<<answer<<'\\n';}}}}\n",
+    "solution": "#include <iostream>\n#include <cstdio>\n#include <cstdlib>\n\nusing namespace std;\n\nclass Heap\n{     \npublic:\n     Heap(){size=0;}\n     void push(const int& value);\n     int top(){return _heap[1];}\n     int pop();\n     bool isEmpty(){return size==0;}\n     int _heap[1000101];\n     int size;\n\nprivate:\n     \n\n     void heapify_down(const int& pos);\n     void heapify_up(const int& pos);\n};\n\n\n\ninline void Heap::push(const int& value)\n{     \n     _heap[++size]=value;\n     heapify_up(size);\n}\n\ninline int Heap::pop()\n{\n     int ret=_heap[1];\n     _heap[1]=_heap[size--];\n     heapify_down(1);\n     \n     return ret;\n}\n\nvoid Heap::heapify_down(const int& pos)\n{\n     for(register int i=pos;(i<<1)<=size;)\n     {\n          register int s=i<<1,r=(i<<1)+1;\n          if(r<=size && _heap[r]<_heap[s])\n               s=r;\n          \n          if(_heap[i]>_heap[s])\n          {\n               swap(_heap[i],_heap[s]);\n               i=s;\n          }\n          else\n               break;\n     }\n}\n\nvoid Heap::heapify_up(const int& pos)\n{\n     for(register int i=pos;i>1;)\n     {\n          register int s=i>>1;\n          if(_heap[i]<_heap[s])\n          {\n               swap(_heap[i],_heap[s]);\n               i=s;\n          }\n          else\n               break;\n     }\n}\n\nHeap heap;\n\nint main()\n{\n     int n,k;\n\n     while(cin>>n>>k)\n     {\n          while(!heap.isEmpty())\n               heap.pop();\n          \n          while(n--)\n          {\n               char input;\n          \n               cin>>input;\n               if(input=='I')\n               {\n                    int num;\n                    cin>>num;\n\n                    heap.push(num);\n               }\n               else if(input=='Q')\n               {\n                    printf(\"%d\\n\",heap.top());\n               }\n               \n               while(heap.size>k)\n               {\n                    heap.pop();\n               }\n          }\n     }\n\n     return 0;\n}\n"
+  },
+  {
+    "id": "poj-2833",
+    "title": "The Average",
+    "origin": "POJ-2833",
+    "originalUrl": "https://vjudge.net/problem/POJ-2833",
+    "moduleId": "strengthening-stl",
+    "section": "1.2 priority_queue／訓練2 表演評分",
+    "summary": "每組移除 n1 個最大值與 n2 個最小值後輸出其餘平均值六位小數；n 可達五百萬，以 0 0 0 結束。",
+    "hints": [
+      "先辨識核心為「兩個小型堆加總和」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "保留總和，另以大小 n1 的小根堆保存最大值、大小 n2 的大根堆保存最小值；讀完扣除兩堆元素便是中段總和。兩堆的不變量保證被扣除者正是兩端指定數量。時間 O(n(log n1+log n2))，空間 O(n1+n2)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int low,high,n;while(cin>>low>>high>>n&&(low||high||n)){priority_queue<int>small;priority_queue<int,vector<int>,greater<int>>large;long long sum=0;for(int i=0,x;i<n;i++){cin>>x;sum+=x;// TODO: retain the requested smallest and largest values\n}double answer=0;// TODO: remove extremes and compute the remaining average\ncout<<fixed<<setprecision(6)<<answer<<'\\n';}}\n",
+    "solution": "#include<bits/stdc++.h>\nusing namespace std;int main(){int a,b,n;while(scanf(\"%d%d%d\",&a,&b,&n)==3&&(a||b||n)){priority_queue<int,vector<int>,greater<int>>hi;priority_queue<int>lo;long long s=0;for(int i=0,x;i<n;i++){scanf(\"%d\",&x);s+=x;hi.push(x);if((int)hi.size()>a)hi.pop();lo.push(x);if((int)lo.size()>b)lo.pop();}while(hi.size())s-=hi.top(),hi.pop();while(lo.size())s-=lo.top(),lo.pop();printf(\"%.6f\\n\",double(s)/(n-a-b));}}"
+  },
+  {
+    "id": "poj-2443",
+    "title": "Set Operation",
+    "origin": "POJ-2443",
+    "originalUrl": "https://vjudge.net/problem/POJ-2443",
+    "moduleId": "strengthening-stl",
+    "section": "1.3 bitset／訓練 集合運算",
+    "summary": "讀 N 個集合與 Q 次元素對詢問，判斷兩元素是否同屬至少一個集合，逐行輸出 Yes/No。",
+    "hints": [
+      "先辨識核心為「每元素一個集合位圖」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "為每個元素建立位元集合，位元 i 表示它是否出現在第 i 個集合。詢問兩元素時做 AND，只要結果非零即存在共同集合，充要地對應題意。建表 O(元素出現總數)，每問 O(N/word)，空間 O(U*N/word)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n;cin>>n;vector<bitset<1000>> belongs(10001);for(int setId=0;setId<n;setId++){int k;cin>>k;while(k--){int x;cin>>x;// TODO: mark that x belongs to setId\n}}int q;cin>>q;while(q--){int x,y;cin>>x>>y;bool common=false;// TODO: test whether the two membership bitsets intersect\ncout<<(common?\"Yes\":\"No\")<<'\\n';}}\n",
+    "solution": "#include<bits/stdc++.h>\nusing namespace std;bitset<1000>b[10001];int main(){int n,c,x;scanf(\"%d\",&n);for(int i=0;i<n;i++){scanf(\"%d\",&c);while(c--)scanf(\"%d\",&x),b[x][i]=1;}int q,y;scanf(\"%d\",&q);while(q--){scanf(\"%d%d\",&x,&y);puts((b[x]&b[y]).any()?\"Yes\":\"No\");}}"
+  },
+  {
+    "id": "hdu-1412",
+    "title": "{A} + {B}",
+    "origin": "HDU-1412",
+    "originalUrl": "https://vjudge.net/problem/HDU-1412",
+    "moduleId": "strengthening-stl",
+    "section": "1.4 set／訓練1 集合合併",
+    "summary": "多組資料直到 EOF，輸出兩整數集合的聯集，升序且以單一空格分隔。",
+    "hints": [
+      "先辨識核心為「有序集合」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "把兩組整數都插入有序 set；集合自動去重且迭代順序遞增，所以輸出恰為排序後聯集。時間 O((n+m)log(n+m))，空間 O(n+m)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,m;while(cin>>n>>m){set<int>uni;for(int i=0,x;i<n+m;i++){cin>>x;// TODO: insert x into the union\n}bool first=true;for(int x:uni){if(!first)cout<<' ';cout<<x;first=false;}cout<<'\\n';}}\n",
+    "solution": "#include<bits/stdc++.h>\nusing namespace std;int main(){int n,m,x;while(cin>>n>>m){set<int>s;while(n--){cin>>x;s.insert(x);}while(m--){cin>>x;s.insert(x);}bool f=0;for(int v:s){if(f)cout<<' ';cout<<v;f=1;}cout<<'\\n';}}"
+  },
+  {
+    "id": "poj-1281",
+    "title": "MANAGER",
+    "origin": "POJ-1281",
+    "originalUrl": "https://vjudge.net/problem/POJ-1281",
+    "moduleId": "strengthening-stl",
+    "section": "1.4 set、multiset／訓練2 並行處理",
+    "summary": "模擬加入、切換刪最小/最大策略及移除；只輸出指定序號移除的結果，空時 -1，資料組間空行。",
+    "hints": [
+      "先辨識核心為「multiset 取兩端」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "multiset 同時保留重複值與排序；加入直接 insert，依當前策略刪 begin 或 prev(end)，即可得到尚未刪除元素的最小／最大值。每項操作 O(log n)，空間 O(n)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int maxValue,k;bool between=false;while(cin>>maxValue>>k){vector<int>requested(k);for(int&x:requested)cin>>x;multiset<int>values;vector<int>removed(1);int policy=1;char op;while(cin>>op&&op!='e'){if(op=='a'){int x;cin>>x;// TODO: add x\n}else if(op=='p')cin>>policy;else{int answer=-1;// TODO: remove minimum or maximum according to policy\nremoved.push_back(answer);}}if(between)cout<<'\\n';between=true;for(int id:requested)cout<<removed[id]<<'\\n';}}\n",
+    "solution": "#include<bits/stdc++.h>\nusing namespace std;int main(){int mx,n;bool f=0;while(cin>>mx>>n){vector<int>q(n),a(1);for(int&i:q)cin>>i;multiset<int>s;char c;int p=1;while(cin>>c&&c!='e'){if(c=='a'){int x;cin>>x;s.insert(x);}else if(c=='p')cin>>p;else{int x=-1;if(!s.empty()){auto it=p==1?s.begin():prev(s.end());x=*it;s.erase(it);}a.push_back(x);}}if(f)cout<<'\\n';f=1;for(int x:q)cout<<a[x]<<'\\n';}}"
+  },
+  {
+    "id": "poj-2418",
+    "title": "Hardwood Species",
+    "origin": "POJ-2418",
+    "originalUrl": "https://vjudge.net/problem/POJ-2418",
+    "moduleId": "strengthening-stl",
+    "section": "1.5 map／訓練1 硬木種類",
+    "summary": "讀到 EOF 的逐行物種名稱，依字典序輸出每種占總數百分比四位小數。",
+    "hints": [
+      "先辨識核心為「map 計數」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "逐行以 map 累計完整物種名稱並統計總行數；map 的鍵序就是要求的字典序，比例為 count/total×100。若有 n 行、s 種，時間 O(n log s)，空間 O(s)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);map<string,int>count;string name;int total=0;while(getline(cin,name)){// TODO: count this complete species name\n}for(auto &[s,c]:count)cout<<s<<' '<<fixed<<setprecision(4)<<(100.0*c/max(1,total))<<'\\n';}\n",
+    "solution": "#include <iostream>\n#include <cstdio>\n#include <string>\n#include <map>\nusing namespace std;\nmap<string, int> treeCount;\nmap<string, int> :: iterator treeIter;\nstring tree;\nint totalNum = 0;\nint main(int argc, const char *argv[])\n{\n    while( getline(cin, tree) )\n    {\n        treeCount[tree]++;\n        totalNum++;\n    }\n    for( treeIter=treeCount.begin(); treeIter!=treeCount.end(); treeIter++)\n    {\n        printf(\"%s %.4f\\n\", treeIter->first.c_str(), (treeIter->second*100.0)/totalNum);\n    }\n    return 0;\n}\n"
+  },
+  {
+    "id": "hdu-1263",
+    "title": "水果",
+    "origin": "HDU-1263",
+    "originalUrl": "https://vjudge.net/problem/HDU-1263",
+    "moduleId": "strengthening-stl",
+    "section": "1.5 map／訓練2 水果",
+    "summary": "T 組交易，按產地及水果名稱兩層字典序輸出累計銷量，格式為三空格 |----name(sum)，組間空行。",
+    "hints": [
+      "先辨識核心為「巢狀 map」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "使用 map<產地,map<水果,數量>> 累加交易；兩層 map 的迭代順序同時滿足產地與水果的字典序，累加值也涵蓋重複交易。時間 O(n log s)，空間 O(s)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int T;cin>>T;for(int cs=0;cs<T;cs++){int n;cin>>n;map<string,map<string,int>>sales;while(n--){string fruit,place;int amount;cin>>fruit>>place>>amount;// TODO: aggregate by place and fruit\n}if(cs)cout<<'\\n';for(auto &[place,items]:sales){cout<<place<<'\\n';for(auto &[fruit,sum]:items)cout<<\"   |----\"<<fruit<<'('<<sum<<\")\\n\";}}}\n",
+    "solution": "#include<bits/stdc++.h>\nusing namespace std;int main(){int T;cin>>T;for(int z=0;z<T;z++){int n,x;cin>>n;map<string,map<string,int>>m;string a,b;while(n--)cin>>a>>b>>x,m[b][a]+=x;if(z)cout<<'\\n';for(auto&o:m){cout<<o.first<<'\\n';for(auto&f:o.second)cout<<\"   |----\"<<f.first<<'('<<f.second<<\")\\n\";}}}"
+  },
+  {
+    "id": "poj-2388",
+    "title": "Who's in the Middle",
+    "origin": "POJ-2388",
+    "originalUrl": "https://vjudge.net/problem/POJ-2388",
+    "moduleId": "strengthening-stl",
+    "section": "1.6 常用函數／訓練1 中位數",
+    "summary": "給奇數個產奶量，輸出中位數。",
+    "hints": [
+      "先辨識核心為「nth_element」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "以 nth_element 將索引 n/2 的元素放到其排序後位置；奇數長度時該值唯一是中位數，不必排序其餘元素。平均時間 O(n)，空間 O(1)（不計輸入陣列）。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n;cin>>n;vector<int>a(n);for(int&x:a)cin>>x;int median=0;// TODO: select the element at sorted position n/2\ncout<<median<<'\\n';}\n",
+    "solution": "#include<bits/stdc++.h>\nusing namespace std;int main(){int n;cin>>n;vector<int>a(n);for(int&x:a)cin>>x;nth_element(a.begin(),a.begin()+n/2,a.end());cout<<a[n/2]<<'\\n';}"
+  },
+  {
+    "id": "poj-1256",
+    "title": "Anagram",
+    "origin": "POJ-1256",
+    "originalUrl": "https://vjudge.net/problem/POJ-1256",
+    "moduleId": "strengthening-stl",
+    "section": "1.6 常用函數／訓練2 字謎",
+    "summary": "對每個長度小於 13 的英文字輸出所有不重複排列，順序 A<a<B<b<…。",
+    "hints": [
+      "先辨識核心為「自訂序的 next_permutation」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "定義忽略大小寫且同字母大寫在前的全序，先排序到最小排列，再用 next_permutation 逐一產生下一個不同排列；故無遺漏且順序正確。設輸出排列數 P、字長 L，時間 O(P·L)，空間 O(L)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nbool letterLess(char a,char b){ // TODO: implement A<a<B<b ordering\n    return a<b;\n}\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int T;cin>>T;while(T--){string s;cin>>s;// TODO: sort with letterLess and enumerate every distinct permutation\ncout<<s<<'\\n';}}\n",
+    "solution": "#include<bits/stdc++.h>\nusing namespace std;bool c(char a,char b){char x=tolower(a),y=tolower(b);return x==y?a<b:x<y;}int main(){int T;cin>>T;while(T--){string s;cin>>s;sort(s.begin(),s.end(),c);do cout<<s<<'\\n';while(next_permutation(s.begin(),s.end(),c));}}"
+  },
+  {
+    "id": "hdu-1232",
+    "title": "畅通工程",
+    "origin": "HDU-1232",
+    "originalUrl": "https://vjudge.net/problem/HDU-1232",
+    "moduleId": "strengthening-practical-data-structures",
+    "section": "2.1 並查集／訓練1 暢通工程",
+    "summary": "多組城鎮與既有雙向道路，輸出使全圖連通最少新增道路數；N=0 結束。",
+    "hints": [
+      "先辨識核心為「並查集數連通塊」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "並查集合併每條既有道路端點，最後剩餘連通塊數 c。連接 c 個分量至少需 c−1 條邊，串接各分量也能以 c−1 條完成，答案因此為 c−1。時間 O((N+M)α(N))，空間 O(N)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nstruct DSU{vector<int>p,rankv;DSU(int n):p(n+1),rankv(n+1){iota(p.begin(),p.end(),0);}int find(int x){ // TODO: path compression\nreturn x;}bool unite(int a,int b){ // TODO: union by rank and report whether merged\nreturn false;}};\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,m;while(cin>>n&&n){cin>>m;DSU dsu(n);int components=n;while(m--){int a,b;cin>>a>>b;// TODO: merge road endpoints and update components\n}cout<<components-1<<'\\n';}}\n",
+    "solution": "#include<bits/stdc++.h>\nusing namespace std;int p[1005];int F(int x){return p[x]==x?x:p[x]=F(p[x]);}int main(){int n,m;while(cin>>n&&n){cin>>m;iota(p,p+n+1,0);int c=n,u,v;while(m--){cin>>u>>v;u=F(u);v=F(v);if(u!=v)p[u]=v,--c;}cout<<c-1<<'\\n';}}"
+  },
+  {
+    "id": "poj-1988",
+    "title": "Cube Stacking",
+    "origin": "POJ-1988",
+    "originalUrl": "https://vjudge.net/problem/POJ-1988",
+    "moduleId": "strengthening-practical-data-structures",
+    "section": "2.1 並查集／訓練2 方塊棧",
+    "summary": "M X Y 將 X 所在整棧放到 Y 棧頂；C X 輸出 X 下方方塊數，最多三萬方塊、十萬操作。",
+    "hints": [
+      "先辨識核心為「帶距離及集合大小的並查集」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "帶權並查集記錄 d[x] 為 x 到所在棧底的方塊數；把 X 棧接到 Y 棧頂時令 X 根的距離為 Y 棧大小，並更新集合大小。路徑壓縮時累加父距離，故查詢所得 d[x] 正是下方數量。攤銷時間 O(Mα(N))，空間 O(N)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nstruct WeightedDSU{vector<int>p,sz,below;WeightedDSU(int n):p(n),sz(n,1),below(n){iota(p.begin(),p.end(),0);}int find(int x){ // TODO: compress path while accumulating distance\nreturn x;}void moveStack(int x,int y){ // TODO: put x's whole stack on top of y's stack\n}};\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);WeightedDSU dsu(30005);int q;cin>>q;while(q--){char op;int x,y;cin>>op>>x;if(op=='M'){cin>>y;dsu.moveStack(x,y);}else{dsu.find(x);cout<<dsu.below[x]<<'\\n';}}}\n",
+    "solution": "#include<bits/stdc++.h>\nusing namespace std;int p[30005],sz[30005],d[30005];int F(int x){if(p[x]==x)return x;int q=p[x];p[x]=F(q);d[x]+=d[q];return p[x];}int main(){iota(p,p+30005,0);fill(sz,sz+30005,1);int n,x,y;cin>>n;char c;while(n--){cin>>c>>x;if(c=='M'){cin>>y;int a=F(x),b=F(y);p[a]=b;d[a]=sz[b];sz[b]+=sz[a];}else F(x),cout<<d[x]<<'\\n';}}"
+  },
+  {
+    "id": "poj-3264",
+    "title": "Balanced Lineup",
+    "origin": "POJ-3264",
+    "originalUrl": "https://vjudge.net/problem/POJ-3264",
+    "moduleId": "strengthening-practical-data-structures",
+    "section": "2.2 RMQ／訓練1 區間最值差",
+    "summary": "N 個高度與 Q 個閉區間詢問，逐行輸出區間最大值減最小值。",
+    "hints": [
+      "先辨識核心為「最大最小稀疏表」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "分別建立區間最大與最小 Sparse Table；每個詢問以兩個長度 2^k 的區間覆蓋端點，其聯集涵蓋整段，冪等 max/min 允許重疊。預處理 O(N log N)、每問 O(1)、空間 O(N log N)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nstruct SparseTable{vector<vector<int>>mn,mx;vector<int>lg;SparseTable(const vector<int>&a){ // TODO: build logarithms and min/max tables\n}pair<int,int>query(int l,int r)const{ // TODO: combine two power-of-two blocks\nreturn {0,0};}};\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,q;cin>>n>>q;vector<int>a(n);for(int&x:a)cin>>x;SparseTable st(a);while(q--){int l,r;cin>>l>>r;auto [lo,hi]=st.query(l-1,r-1);cout<<hi-lo<<'\\n';}}\n",
+    "solution": "/*\n * POJ 3264: Balanced Lineup\n * 题意：奶牛站成一排，给出所有牛身高。多个查询。每次询问某个区间内的身高差的最大值。\n * 类型：线段树\n * 算法：使用线段树自底向上保存每个树节点的最大值和最小值，对于每个询问自顶向下查询最大值和最小值相减。\n */\n\n#include <cstdio>\n#include <algorithm>\n#include <iostream>\n\nusing namespace std;\n\nconst int MAXN = 50010;\nconst int MAXM = 1 << 17;\n\nint mi[MAXM], ma[MAXM];\nint c[50010];\nint n;\n\n#define lchild rt << 1, l, (l + r) >> 1\n#define rchild rt << 1 | 1, ((l + r) >> 1) + 1, r\n\nvoid update(int rt, int l, int r) {\n  if (l == r) {\n    mi[rt] = ma[rt] = c[l];\n    return;\n  }\n  update(lchild);\n  update(rchild);\n  mi[rt] = min(mi[rt << 1], mi[rt << 1 | 1]);\n  ma[rt] = max(ma[rt << 1], ma[rt << 1 | 1]);\n}\n\nvoid query(int rt, int l, int r, int ql, int qr, int &mic, int &mac) {\n  if (ql <= l && r <= qr) {\n    mic = min(mic, mi[rt]);\n    mac = max(mac, ma[rt]);\n    return;\n  }\n\n  int m = (l + r) >> 1;\n  if (ql <= m) {\n    query(lchild, ql, qr, mic, mac);\n  }\n  if (qr > m) {\n    query(rchild, ql, qr, mic, mac);\n  }\n}\n\nint main() {\n  int n, m;\n  scanf(\"%d%d\", &n, &m);\n  for (int i = 0; i < n; ++i) scanf(\"%d\", &c[i]);\n  update(1, 0, n - 1);\n  for (int i = 0; i < m; ++i) {\n    int a, b;\n    scanf(\"%d%d\", &a, &b);\n    int mic, mac;\n    mic = ma[1];\n    mac = mi[1];\n    query(1, 0, n - 1, a - 1, b - 1, mic, mac);\n    printf(\"%d\\n\", mac - mic);\n  }\n  return 0;\n}\n"
+  },
+  {
+    "id": "poj-3368",
+    "title": "Frequent values",
+    "origin": "POJ-3368",
+    "originalUrl": "https://vjudge.net/problem/POJ-3368",
+    "moduleId": "strengthening-practical-data-structures",
+    "section": "2.2 RMQ／訓練2 最頻繁值",
+    "summary": "多組非遞減序列，詢問區間內最高出現頻率；單一 0 結束。",
+    "hints": [
+      "先辨識核心為「值段壓縮加 RMQ」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "非遞減序列中同值必為連續段。詢問先計算左右邊界殘段的頻率，中間完整段以 Sparse Table 求最大段長，三者最大即答案。預處理 O(N log N)、每問 O(1)、空間 O(N log N)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nstruct RunRMQ{vector<int>runId,leftEnd,rightEnd,runLength;vector<vector<int>>st;RunRMQ(const vector<int>&a){ // TODO: compress equal-value runs and build RMQ\n}int query(int l,int r)const{ // TODO: combine boundary fragments and complete middle runs\nreturn 0;}};\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,q;while(cin>>n&&n){cin>>q;vector<int>a(n);for(int&x:a)cin>>x;RunRMQ rmq(a);while(q--){int l,r;cin>>l>>r;cout<<rmq.query(l-1,r-1)<<'\\n';}}}\n",
+    "solution": "#include<iostream>\n#include<map>\n#include<set>\n#include<string>\n#include <vector>\n#include <stdlib.h>\n#include <climits>\n#include <utility>\n#include <stdio.h>\n#include <assert.h>\n#include <stack>\n#include <string.h>\n#include <queue>\nusing namespace std;\n#define lson (rt<<1)\n#define rson ((rt<<1)|1)\nconst int N = 100010;\nint n, q;\nint u, v;\nint A[N];\n\nstruct Node {\n    int l, r;\n    int lmax, mmax, rmax;\n    int lp, rp;\n} T[N << 2];\n\nvoid push_up(int rt, int m) {\n    T[rt].mmax = max(T[lson].mmax, T[rson].mmax);\n    T[rt].lp = T[lson].lp;\n    T[rt].rp = T[rson].rp;\n    T[rt].lmax = T[lson].lmax;\n    T[rt].rmax = T[rson].rmax;\n    if (T[lson].rp == T[rson].lp) {\n        T[rt].mmax = max(T[rt].mmax, T[lson].rmax + T[rson].lmax);\n        if (T[lson].lmax == m - (m / 2)) T[rt].lmax += T[rson].lmax;\n        if (T[rson].rmax == m / 2) T[rt].rmax += T[lson].rmax;\n    }\n}\n\nvoid build(int rt, int l, int r) {\n    T[rt].l = l;\n    T[rt].r = r;\n    if (l == r) {\n        T[rt].lp = T[rt].rp = A[l];\n        T[rt].lmax = T[rt].rmax = T[rt].mmax = 1;\n        return;\n    }\n    int mid = (l + r) / 2;\n    build(lson, l, mid);\n    build(rson, mid + 1, r);\n    push_up(rt, r - l + 1);\n}\n\nint query(int rt, int l, int r) {\n    if (l <= T[rt].l && r >= T[rt].r) return T[rt].mmax;\n    int ret = 0;\n    int m = (T[rt].l + T[rt].r) / 2;\n    if (l <= m) ret = max(ret, query(lson, l, r));\n    if (r >= m + 1) ret = max(ret, query(rson, l, r));\n    if (T[lson].rp == T[rson].lp && l <= m && r > m) {\n        int x = T[lson].rmax;\n        int y = T[rson].lmax;\n        if (m - x + 1 <= l - 1) x = m - l + 1;\n        if (m + y >= r + 1) y = r - m;\n        ret = max(ret, x + y);\n    }\n    return ret;\n\n}\n\nint main() {\n    while (scanf(\"%d\", &n), n) {\n        scanf(\"%d\", &q);\n        for (int i = 1; i <= n; i++)\n            scanf(\"%d\", A + i);\n        build(1, 1, n);\n        for (int i = 1; i <= q; i++) {\n            scanf(\"%d%d\", &u, &v);\n            printf(\"%d\\n\", query(1, u, v));\n        }\n    }\n    return 0;\n}\n"
+  },
+  {
+    "id": "poj-1330",
+    "title": "Nearest Common Ancestors",
+    "origin": "POJ-1330",
+    "originalUrl": "https://vjudge.net/problem/POJ-1330",
+    "moduleId": "strengthening-practical-data-structures",
+    "section": "2.3 LCA／訓練1 最近公共祖先",
+    "summary": "T 棵有根樹，每棵給父子邊與一對不同節點，輸出其最近公共祖先。",
+    "hints": [
+      "先辨識核心為「倍增 LCA」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "沿第一節點到根標記所有祖先，再由第二節點向上走；首次遇到標記者是第二節點路徑上最深的共同祖先，故為 LCA。每組時間 O(N)、空間 O(N)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nint lca(int a,int b,const vector<int>&parent){ // TODO: mark one ancestor chain and find first common node\nreturn 0;}\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int T;cin>>T;while(T--){int n;cin>>n;vector<int>parent(n+1);for(int i=1,a,b;i<n;i++){cin>>a>>b;parent[b]=a;}int a,b;cin>>a>>b;cout<<lca(a,b,parent)<<'\\n';}}\n",
+    "solution": "#include<bits/stdc++.h>\nusing namespace std;int main(){int T;cin>>T;while(T--){int n;cin>>n;vector<int>p(n+1),vis(n+1);for(int i=1,a,b;i<n;i++)cin>>a>>b,p[b]=a;int a,b;cin>>a>>b;for(;a;a=p[a])vis[a]=1;while(!vis[b])b=p[b];cout<<b<<'\\n';}}"
+  },
+  {
+    "id": "hdu-2586",
+    "title": "How far away ？",
+    "origin": "HDU-2586",
+    "originalUrl": "https://vjudge.net/problem/HDU-2586",
+    "moduleId": "strengthening-practical-data-structures",
+    "section": "2.3 LCA／訓練2 樹上距離",
+    "summary": "T 組加權樹；每組有 n（≤40000）間房、n−1 條正權雙向道路及 m（≤200）個兩點詢問。逐行輸出兩點唯一簡單路徑長度，並在每組輸出後留一個空行。",
+    "hints": [
+      "先辨識核心為「根距離加倍增 LCA」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "任選 1 為根，以 BFS 求深度、根距離及倍增祖先表。將兩點提升到同深度後同步由高位跳升可得 LCA；樹上距離為 dist[u]+dist[v]−2dist[lca]。預處理 O(N log N)，每問 O(log N)，空間 O(N log N)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nstruct LCA{vector<int>depth;vector<long long>dist;vector<vector<int>>up;LCA(const vector<vector<pair<int,int>>>&g):depth(g.size()),dist(g.size()),up(1,vector<int>(g.size())){ // TODO: root the tree and build binary ancestors\n}int query(int a,int b)const{ // TODO: lift nodes to their lowest common ancestor\nreturn 1;}};\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int T;cin>>T;while(T--){int n,m;cin>>n>>m;vector<vector<pair<int,int>>>g(n+1);for(int i=1,u,v,w;i<n;i++){cin>>u>>v>>w;g[u].push_back({v,w});g[v].push_back({u,w});}LCA tree(g);while(m--){int a,b;cin>>a>>b;int c=tree.query(a,b);cout<<tree.dist[a]+tree.dist[b]-2*tree.dist[c]<<'\\n';}cout<<'\\n';}}\n",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int T;cin>>T;while(T--){int n,m;cin>>n>>m;vector<vector<pair<int,int>>>g(n+1);for(int i=1,u,v,w;i<n;i++){cin>>u>>v>>w;g[u].push_back({v,w});g[v].push_back({u,w});}int L=1;while((1<<L)<=n)++L;vector<vector<int>>up(L,vector<int>(n+1));vector<int>dep(n+1);vector<long long>dist(n+1);queue<int>q;q.push(1);up[0][1]=1;while(!q.empty()){int u=q.front();q.pop();for(auto [v,w]:g[u])if(v!=up[0][u])up[0][v]=u,dep[v]=dep[u]+1,dist[v]=dist[u]+w,q.push(v);}for(int j=1;j<L;j++)for(int i=1;i<=n;i++)up[j][i]=up[j-1][up[j-1][i]];auto lca=[&](int a,int b){if(dep[a]<dep[b])swap(a,b);int d=dep[a]-dep[b];for(int j=0;j<L;j++)if(d>>j&1)a=up[j][a];if(a==b)return a;for(int j=L-1;j>=0;j--)if(up[j][a]!=up[j][b])a=up[j][a],b=up[j][b];return up[0][a];};while(m--){int a,b;cin>>a>>b;int c=lca(a,b);cout<<dist[a]+dist[b]-2*dist[c]<<'\\n';}cout<<'\\n';}}\n"
+  },
+  {
+    "id": "poj-2352",
+    "title": "Stars",
+    "origin": "POJ-2352",
+    "originalUrl": "https://vjudge.net/problem/POJ-2352",
+    "moduleId": "strengthening-practical-data-structures",
+    "section": "2.4 樹狀數組／訓練1 數星星",
+    "summary": "座標已按 y、再按 x 升序；計算每顆星左下含邊界的先前星數作 level，輸出各 level 顆數。",
+    "hints": [
+      "先辨識核心為「x 軸 Fenwick 前綴和」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "輸入已按 y、x 排序，因此一顆星之前讀入且 x 不大於它的星，恰是其左下（含邊界）星。Fenwick 前綴和給出此數並累計對應 level。時間 O(N log C)，空間 O(N+C)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nstruct Fenwick{vector<int>bit;Fenwick(int n):bit(n+1){}void add(int x,int v){ // TODO: update Fenwick ancestors\n}int sum(int x)const{ // TODO: return prefix sum\nreturn 0;}};\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n;cin>>n;Fenwick fw(32005);vector<int>levels(n);for(int i=0,x,y;i<n;i++){cin>>x>>y;int level=fw.sum(x+1);levels[level]++;fw.add(x+1,1);}for(int x:levels)cout<<x<<'\\n';}\n",
+    "solution": "#include<bits/stdc++.h>\nusing namespace std;int t[32005],a[15005];void add(int x){for(;x<=32002;x+=x&-x)t[x]++;}int sum(int x){int s=0;for(;x;x-=x&-x)s+=t[x];return s;}int main(){int n,x,y;cin>>n;while(n--){cin>>x>>y;x++;a[sum(x)]++;add(x);}for(int i=0;a[i]||i<=15000;i++){cout<<a[i]<<'\\n';if(i+1==sum(32002))break;}}"
+  },
+  {
+    "id": "poj-1195",
+    "title": "Mobile phones",
+    "origin": "POJ-1195",
+    "originalUrl": "https://vjudge.net/problem/POJ-1195",
+    "moduleId": "strengthening-practical-data-structures",
+    "section": "2.4 樹狀數組／訓練2 矩形區域查詢",
+    "summary": "命令 0 初始化 S×S、1 單點增量、2 查閉矩形總和、3 結束；座標從 0。",
+    "hints": [
+      "先辨識核心為「二維 Fenwick 與容斥」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "二維 Fenwick 儲存點增量及矩形前綴和；任意閉矩形由四個前綴和容斥得到，故每次更新與查詢都精確反映目前網格。時間 O(log²S)，空間 O(S²)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nstruct Fenwick2D{int n=0;vector<vector<int>>bit;void init(int size){n=size;bit.assign(n+1,vector<int>(n+1));}void add(int x,int y,int v){ // TODO: two-dimensional point update\n}int prefix(int x,int y)const{ // TODO: two-dimensional prefix sum\nreturn 0;}int rectangle(int l,int b,int r,int u)const{ // TODO: four-prefix inclusion-exclusion\nreturn 0;}};\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);Fenwick2D fw;int op;while(cin>>op&&op!=3){if(op==0){int s;cin>>s;fw.init(s);}else if(op==1){int x,y,v;cin>>x>>y>>v;fw.add(x+1,y+1,v);}else{int l,b,r,u;cin>>l>>b>>r>>u;cout<<fw.rectangle(l,b,r,u)<<'\\n';}}}\n",
+    "solution": "#include<bits/stdc++.h>\nusing namespace std;int n,t[1026][1026];void add(int x,int y,int v){for(int i=x;i<=n;i+=i&-i)for(int j=y;j<=n;j+=j&-j)t[i][j]+=v;}int S(int x,int y){int r=0;for(int i=x;i;i-=i&-i)for(int j=y;j;j-=j&-j)r+=t[i][j];return r;}int main(){int o;while(cin>>o&&o!=3)if(o==0)cin>>n;else if(o==1){int x,y,v;cin>>x>>y>>v;add(x+1,y+1,v);}else{int l,b,r,u;cin>>l>>b>>r>>u;cout<<S(r+1,u+1)-S(l,u+1)-S(r+1,b)+S(l,b)<<'\\n';}}"
+  },
+  {
+    "id": "hdu-1166",
+    "title": "敌兵布阵",
+    "origin": "HDU-1166",
+    "originalUrl": "https://vjudge.net/problem/HDU-1166",
+    "moduleId": "strengthening-practical-data-structures",
+    "section": "2.5 線段樹／訓練1 敵兵布陣",
+    "summary": "第一行 T。每組給 N≤50000 個營地初始人數，接著以 End 結束命令；Add i j／Sub i j 單點增減，Query i j 查閉區間總人數。先輸出 Case k:，再逐行輸出 Query 答案。",
+    "hints": [
+      "先辨識核心為「Fenwick 單點改區間和」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "Fenwick 樹維護各營地人數的前綴和；Add/Sub 是正負單點增量，Query(i,j)=prefix(j)−prefix(i−1)，直接由前綴差得到區間總數。每命令 O(log N)，空間 O(N)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nstruct Fenwick{vector<int>b;Fenwick(int n):b(n+1){}void add(int i,int v){ // TODO: point update\n}int prefix(int i)const{ // TODO: prefix sum\nreturn 0;}};\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int T;cin>>T;for(int cs=1;cs<=T;cs++){int n;cin>>n;Fenwick fw(n);for(int i=1,x;i<=n;i++){cin>>x;fw.add(i,x);}cout<<\"Case \"<<cs<<\":\\n\";string op;while(cin>>op&&op!=\"End\"){int x,y;cin>>x>>y;if(op==\"Add\")fw.add(x,y);else if(op==\"Sub\")fw.add(x,-y);else cout<<fw.prefix(y)-fw.prefix(x-1)<<'\\n';}}}\n",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;int main(){ios::sync_with_stdio(false);cin.tie(nullptr);int T;cin>>T;for(int cs=1;cs<=T;cs++){int n;cin>>n;vector<int>bit(n+1);auto add=[&](int x,int v){for(;x<=n;x+=x&-x)bit[x]+=v;};auto sum=[&](int x){int s=0;for(;x;x-=x&-x)s+=bit[x];return s;};for(int i=1,x;i<=n;i++)cin>>x,add(i,x);cout<<\"Case \"<<cs<<\":\\n\";string op;while(cin>>op&&op!=\"End\"){int x,y;cin>>x>>y;if(op[0]=='A')add(x,y);else if(op[0]=='S')add(x,-y);else cout<<sum(y)-sum(x-1)<<'\\n';}}}\n"
+  },
+  {
+    "id": "poj-3468",
+    "title": "A Simple Problem with Integers",
+    "origin": "POJ-3468",
+    "originalUrl": "https://vjudge.net/problem/POJ-3468",
+    "moduleId": "strengthening-practical-data-structures",
+    "section": "2.5 線段樹／訓練2 簡單的整數問題",
+    "summary": "N,Q≤10^5；C a b c 區間加，Q a b 輸出區間和，須 64 位元。",
+    "hints": [
+      "先辨識核心為「懶標記線段樹」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "懶標記線段樹令節點保存區間和與尚未下傳的整段加值。全覆蓋時同步增加 sum 與 tag，部分覆蓋前下傳，故節點和始終等於真實區間和。建樹 O(N)，每操作 O(log N)，空間 O(N)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nstruct SegmentTree{struct Node{long long sum=0,lazy=0;};int n;vector<Node>tr;SegmentTree(const vector<long long>&a):n(a.size()),tr(4*n){ // TODO: build range sums\n}void add(int ql,int qr,long long v,int p,int l,int r){ // TODO: lazy range addition\n}long long query(int ql,int qr,int p,int l,int r){ // TODO: lazy range-sum query\nreturn 0;}};\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,q;cin>>n>>q;vector<long long>a(n);for(auto&x:a)cin>>x;SegmentTree st(a);while(q--){char op;int l,r;cin>>op>>l>>r;if(op=='C'){long long v;cin>>v;st.add(l-1,r-1,v,1,0,n-1);}else cout<<st.query(l-1,r-1,1,0,n-1)<<'\\n';}}\n",
+    "solution": "#include<cstdio>\n#include<algorithm>\n\nconst int INTEGER_NUM_MAX=100000,OPERATION_NUM_MAX=100000;\n\nstruct SegmentTreeNode{\n\tint begin,end;\n\tlong long sum,increment;\n};\n\nint integerNum,operationNum;\nint integers[INTEGER_NUM_MAX];\nSegmentTreeNode segmentTree[INTEGER_NUM_MAX*3];\n\nint leftSon(int index){\n\treturn 2*index+1;\n}\n\nint rightSon(int index){\n\treturn 2*index+2;\n}\n\nvoid createSegmentTree(int index,int begin,int end){\n\tsegmentTree[index].begin=begin;\n\tsegmentTree[index].end=end;\n\tif(begin+1==end)\n\t\tsegmentTree[index].sum=integers[begin];\n\telse{\n\t\tint mid=(begin+end)/2;\n\t\tcreateSegmentTree(leftSon(index),begin,mid);\n\t\tcreateSegmentTree(rightSon(index),mid,end);\n\t\tsegmentTree[index].sum=segmentTree[leftSon(index)].sum+segmentTree[rightSon(index)].sum;\n\t}\n\tsegmentTree[index].increment=0;\n}\n\nlong long sum(int index,int begin,int end){\n\tif(begin>=segmentTree[index].end || end<=segmentTree[index].begin)\n\t\treturn 0;\n\tif(begin<=segmentTree[index].begin && end>=segmentTree[index].end)\n\t\treturn segmentTree[index].sum;\n\n\tint sectionBegin=std::max(begin,segmentTree[index].begin),\n\t\tsectionEnd=std::min(end,segmentTree[index].end);\n\tlong long incrementTotal=(sectionEnd-sectionBegin)*segmentTree[index].increment;\n\treturn sum(leftSon(index),begin,end)+sum(rightSon(index),begin,end)+incrementTotal;\n}\n\nlong long query(int begin,int end){\n\treturn sum(0,begin,end);\n}\n\nvoid increase(int index,int begin,int end,int increment){\n\tif(begin>=segmentTree[index].end || end<=segmentTree[index].begin)\n\t\treturn;\n\n\tint sectionBegin=std::max(begin,segmentTree[index].begin),\n\t\tsectionEnd=std::min(end,segmentTree[index].end);\n\tsegmentTree[index].sum+=(sectionEnd-sectionBegin)*increment;\n\n\tif(begin<=segmentTree[index].begin && end>=segmentTree[index].end){\n\t\tsegmentTree[index].increment+=increment;\n\t\treturn;\n\t}\n\tincrease(leftSon(index),begin,end,increment);\n\tincrease(rightSon(index),begin,end,increment);\n}\n\nvoid add(int begin,int end,int increment){\n\tincrease(0,begin,end,increment);\n}\n\nint main(){\n\tscanf(\"%d%d\",&integerNum,&operationNum);\n\tfor(int integerIndex=0;integerIndex<integerNum;integerIndex++)\n\t\tscanf(\"%d\",integers+integerIndex);\n\tcreateSegmentTree(0,0,integerNum);\n\twhile(operationNum--){\n\t\tchar operationType;\n\t\tscanf(\" %c\",&operationType);\n\t\tif(operationType=='Q'){\n\t\t\tint lower,upper;\n\t\t\tscanf(\"%d%d\",&lower,&upper);\n\t\t\tprintf(\"%lld\\n\",query(lower-1,upper));\n\t\t}\n\t\telse if(operationType=='C'){\n\t\t\tint lower,upper,increment;\n\t\t\tscanf(\"%d%d%d\",&lower,&upper,&increment);\n\t\t\tadd(lower-1,upper,increment);\n\t\t}\n\t}\n\treturn 0;\n}"
+  },
+  {
+    "id": "poj-3349",
+    "title": "Snowflake Snow Snowflakes",
+    "origin": "POJ-3349",
+    "originalUrl": "https://vjudge.net/problem/POJ-3349",
+    "moduleId": "strengthening-searching",
+    "section": "3.1 散列表／訓練 雪花",
+    "summary": "判斷十萬片六臂雪花中是否有兩片在任意旋轉或反射後相同，輸出指定英文句。",
+    "hints": [
+      "先辨識核心為「十二種方向的規範表示雜湊」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "枚舉每片雪花兩個方向各六個起點，取字典序最小的六元組作旋轉／反射不變的規範表示。兩片等價當且僅當規範表示相同，放入雜湊集合即可判重。期望時間 O(N)，空間 O(N)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nusing Snowflake=array<int,6>;Snowflake canonical(const Snowflake&s){ // TODO: choose minimum among six rotations in both directions\nreturn s;}\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n;cin>>n;set<Snowflake>seen;bool twins=false;while(n--){Snowflake s;for(int&x:s)cin>>x;auto key=canonical(s);// TODO: detect duplicate canonical representation\ntwins|=!seen.insert(key).second;}cout<<(twins?\"Twin snowflakes found.\":\"No two snowflakes are alike.\")<<'\\n';}\n",
+    "solution": "#include<cstdio>\n#include<algorithm>\n\nstruct Snowflake{\n\tint armLen[6];\n};\n\nconst int HASH_MAX=1000000,EMPTY=-1;\n\nint hash(const Snowflake& snowflake){\n\tint sum=0;\n\tfor(int armIndex=0;armIndex<6;armIndex++)\n\t\tsum+=snowflake.armLen[armIndex];\n\treturn sum%HASH_MAX;\n}\n\nbool equals(const Snowflake& left,const Snowflake& right){\n\tfor(int shift=0;shift<6;shift++){\n\t\tint same=true;\n\t\tfor(int armIndex=0;armIndex<6;armIndex++)\n\t\t\tif(left.armLen[armIndex]!=right.armLen[(armIndex+shift)%6])\n\t\t\t\tsame=false;\n\t\tif(same)\n\t\t\treturn true;\n\t\tsame=true;\n\t\tfor(int armIndex=0;armIndex<6;armIndex++)\n\t\t\tif(left.armLen[armIndex]!=right.armLen[(5-armIndex+shift)%6])\n\t\t\t\tsame=false;\n\t\tif(same)\n\t\t\treturn true;\n\t}\n\treturn false;\n}\n\nbool twinsExist(int existIndex,int newIndex,Snowflake snowflakes[],int next[]){\n\tif(equals(snowflakes[existIndex],snowflakes[newIndex]))\n\t\treturn true;\n\tif(next[existIndex]==EMPTY){\n\t\tnext[existIndex]=newIndex;\n\t\treturn false;\n\t}\n\treturn twinsExist(next[existIndex],newIndex,snowflakes,next);\n}\n\nint main(){\n\tint snowflakeNum;\n\tscanf(\"%d\",&snowflakeNum);\n\tSnowflake *snowflakes=new Snowflake[snowflakeNum];\n\tint *hashTable=new int[HASH_MAX];\n\tstd::fill(hashTable,hashTable+HASH_MAX,EMPTY);\n\tint *next=new int[snowflakeNum];\n\tstd::fill(next,next+snowflakeNum,EMPTY);\n\tbool twinFound=false;\n\tfor(int snowflakeIndex=0;snowflakeIndex<snowflakeNum;snowflakeIndex++){\n\t\tfor(int armIndex=0;armIndex<6;armIndex++)\n\t\t\tscanf(\"%d\",snowflakes[snowflakeIndex].armLen+armIndex);\n\t\tif(twinFound)\n\t\t\tcontinue;\n\t\tint hashCode=hash(snowflakes[snowflakeIndex]);\n\t\tif(hashTable[hashCode]==EMPTY)\n\t\t\thashTable[hashCode]=snowflakeIndex;\n\t\telse\n\t\t\ttwinFound=twinsExist(hashTable[hashCode],snowflakeIndex,snowflakes,next);\n\t}\n\tif(twinFound)\n\t\tprintf(\"Twin snowflakes found.\\n\");\n\telse\n\t\tprintf(\"No two snowflakes are alike.\\n\");\n\tdelete[] next;\n\tdelete[] hashTable;\n\tdelete[] snowflakes;\n\treturn 0;\n}"
+  },
+  {
+    "id": "洛谷-p1308",
+    "title": "统计单词数",
+    "origin": "洛谷-P1308",
+    "originalUrl": "https://vjudge.net/problem/洛谷-P1308",
+    "moduleId": "strengthening-searching",
+    "section": "3.2 字串匹配／訓練1 統計單詞數",
+    "summary": "忽略大小寫，在含字母與空格的文章中精確匹配獨立單詞，輸出次數及首次字元 0-based 位置，無則 -1。",
+    "hints": [
+      "先辨識核心為「轉小寫後按詞界掃描」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "先把目標詞與文章轉成同一大小寫，再按空格切出完整單詞；只比較整個 token，因而不會把子字串誤算，並記錄第一個 token 起點。時間 O(|文章|)，空間 O(|文章|)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);string word,text;getline(cin,word);getline(cin,text);// TODO: normalize case, split at word boundaries, count matches and first offset\nint count=0,first=-1;if(!count)cout<<-1;else cout<<count<<' '<<first;cout<<'\\n';}\n",
+    "solution": "#include<bits/stdc++.h>\nusing namespace std;int main(){string w,s;getline(cin,w);getline(cin,s);for(char&c:w)c=tolower(c);for(char&c:s)c=tolower(c);int cnt=0,first=-1;for(int i=0;i<(int)s.size();){while(i<(int)s.size()&&s[i]==' ')i++;int st=i;while(i<(int)s.size()&&s[i]!=' ')i++;if(s.substr(st,i-st)==w){if(first<0)first=st;cnt++;}}if(first<0)cout<<-1;else cout<<cnt<<' '<<first;}"
+  },
+  {
+    "id": "洛谷-p3375",
+    "title": "KMP",
+    "origin": "洛谷-P3375",
+    "originalUrl": "https://vjudge.net/problem/洛谷-P3375",
+    "moduleId": "strengthening-searching",
+    "section": "3.2 字串匹配／訓練2 字串匹配",
+    "summary": "輸出模式在文本的所有 1-based 起點，最後輸出模式每個前綴的最長 border 長度。",
+    "hints": [
+      "先辨識核心為「KMP 前綴函數」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "前綴函數記錄模式每個前綴的最長 border；匹配失敗時沿 border 回退，不重掃文本。到達模式長度即得到一次匹配並繼續回退以保留重疊答案。時間 O(|S|+|P|)，空間 O(|P|)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nvector<int>prefixFunction(const string&p){ // TODO: compute KMP border lengths\nreturn vector<int>(p.size());}\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);string text,pattern;cin>>text>>pattern;auto pi=prefixFunction(pattern);// TODO: scan text with failure links and print every 1-based match\nfor(int x:pi)cout<<x<<' ';cout<<'\\n';}\n",
+    "solution": "#include<bits/stdc++.h>\nusing namespace std;int main(){string s,p;cin>>s>>p;vector<int>f(p.size());for(int i=1,j=0;i<(int)p.size();i++){while(j&&p[i]!=p[j])j=f[j-1];if(p[i]==p[j])j++;f[i]=j;}for(int i=0,j=0;i<(int)s.size();i++){while(j&&s[i]!=p[j])j=f[j-1];if(s[i]==p[j])j++;if(j==(int)p.size())cout<<i-j+2<<'\\n',j=f[j-1];}for(int x:f)cout<<x<<' ';}"
+  },
+  {
+    "id": "poj-2503",
+    "title": "Babelfish",
+    "origin": "POJ-2503",
+    "originalUrl": "https://vjudge.net/problem/POJ-2503",
+    "moduleId": "strengthening-searching",
+    "section": "3.3 Trie／訓練 單詞翻譯",
+    "summary": "空行前為英文 外語字典，空行後逐行查外語；輸出英文或 eh，最多各十萬行。",
+    "hints": [
+      "先辨識核心為「雜湊映射」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "空行前建立「外語→英語」雜湊表，之後每個查詢直接查表；存在時映射唯一給出翻譯，否則輸出 eh。期望時間 O(字典與查詢總字元數)，空間 O(字典總字元數)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);unordered_map<string,string>dictionary;string line;while(getline(cin,line)&&!line.empty()){istringstream in(line);string english,foreign;in>>english>>foreign;// TODO: store foreign-to-English mapping\n}string word;while(cin>>word){auto it=dictionary.find(word);cout<<(it==dictionary.end()?\"eh\":it->second)<<'\\n';}}\n",
+    "solution": "#include<bits/stdc++.h>\nusing namespace std;int main(){ios::sync_with_stdio(0);cin.tie(0);unordered_map<string,string>m;string s,a,b;while(getline(cin,s)&&!s.empty()){stringstream q(s);q>>a>>b;m[b]=a;}while(cin>>s)cout<<(m.count(s)?m[s]:\"eh\")<<'\\n';}"
+  },
+  {
+    "id": "poj-3481",
+    "title": "Double Queue",
+    "origin": "POJ-3481",
+    "originalUrl": "https://vjudge.net/problem/POJ-3481",
+    "moduleId": "strengthening-balanced-trees",
+    "section": "4.2 AVL／訓練 雙重隊列",
+    "summary": "命令 1 加入唯一優先權客戶，2/3 取出最高/最低優先權客戶，空時輸出 0，命令 0 結束。",
+    "hints": [
+      "先辨識核心為「map 取首尾」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "以 priority 為鍵的有序 map 保存客戶；最高與最低優先權分別位於尾端與首端，取出後刪除即可，唯一優先權使鍵不衝突。每操作 O(log N)，空間 O(N)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);map<int,int>clients;int op;while(cin>>op&&op){if(op==1){int id,priority;cin>>id>>priority;// TODO: insert client by unique priority\n}else{int answer=0;// TODO: remove highest priority for op=2 or lowest for op=3\ncout<<answer<<'\\n';}}}\n",
+    "solution": "#include<iostream>\n#include<stdio.h>\n#include<stdlib.h>\n#define MAXN 100010\nusing namespace std;\nstruct Node{\n    int key,val,pri;\n    int ch[2];\n    void set(int x, int y, int z) {\n        key = x, val = y, pri = z, ch[0]=ch[1]=-1;\n    }\n} T[MAXN];\nint cnt=0,rt=-1;\nvoid rotate(int &x,int f)\n{\n    int y=T[x].ch[f];\n    T[x].ch[f]=T[y].ch[!f];\n    T[y].ch[!f]=x;\n    x=y;\n}\nvoid insert(int &x,int key,int val){\n    if(x==-1) T[x=cnt++].set(key,val,rand());\n    else{\n        int f=key>T[x].key;\n        insert(T[x].ch[f],key,val);\n        if(T[x].pri>T[T[x].ch[f]].pri) rotate(x,f);\n    }\n}\nvoid del(int &x,int key)\n{\n    if ( T[x].key == key ) {\n        if ( T[x].ch[0]==-1 || T[x].ch[1]==-1 ) {\n            if ( T[x].ch[0]==-1 ) x = T[x].ch[1];\n            else x = T[x].ch[0];\n        } else {\n            int f = T[T[x].ch[0]].pri > T[T[x].ch[1]].pri;\n            rotate (x,f);\n            del(T[x].ch[!f], key);\n        }\n    } else {\n        int f = T[x].key < key;\n        del(T[x].ch[f], key);\n    }     \n}\nint get(int x,int f){\n    if(x==-1) return -1;\n    while(T[x].ch[f]!=-1) x=T[x].ch[f];\n    return x;\n}\n\nint cmd,k,p;\n\nint main()\n{\n    while(scanf(\"%d\",&cmd),cmd){\n        if(cmd==2){\n            int x=get(rt,1);\n            if(x!=-1) printf(\"%d\\n\",T[x].val),del(rt,T[x].key);\n            else printf(\"0\\n\");\n            //get largest \n        }else if(cmd==3){\n            //get lowest\n            int x=get(rt,0);\n            if(x!=-1) printf(\"%d\\n\",T[x].val),del(rt,T[x].key);\n            else printf(\"0\\n\");\n        }else{\n            scanf(\"%d%d\",&k,&p);\n            //insert key=p, val=k;\n            insert(rt,p,k);\n        }\n    }\n    return 0;\n}\n"
+  },
+  {
+    "id": "hdu-4585",
+    "title": "Shaolin",
+    "origin": "HDU-4585",
+    "originalUrl": "https://vjudge.net/problem/HDU-4585",
+    "moduleId": "strengthening-balanced-trees",
+    "section": "4.3 Treap／訓練 少林功夫",
+    "summary": "多組至 n=0；新僧依輸入順序挑已入寺且戰力差最小者，平手挑較低戰力，輸出雙方 id 後再加入。",
+    "hints": [
+      "先辨識核心為「有序 map 找前驅後繼」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "map 依戰力排序；lower_bound 找第一個不小於新僧者，其與前驅是距離可能最小的唯一候選，按差值並在平手取較低戰力。每位新僧 O(log N)，空間 O(N)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n;while(cin>>n&&n){map<int,int>monks;monks[1000000000]=1;while(n--){int id,power;cin>>id>>power;int opponent=1;// TODO: compare lower_bound with predecessor and apply tie rule\ncout<<id<<' '<<opponent<<'\\n';monks[power]=id;}}}\n",
+    "solution": "#include<bits/stdc++.h>\nusing namespace std;int main(){int n,id,x;while(cin>>n&&n){map<int,int>m;m[1000000000]=1;while(n--){cin>>id>>x;auto r=m.lower_bound(x),l=r;if(r==m.begin())cout<<id<<' '<<r->second<<'\\n';else{--l;cout<<id<<' '<<(x-l->first<=r->first-x?l->second:r->second)<<'\\n';}m[x]=id;}}}"
+  },
+  {
+    "id": "hdu-3487",
+    "title": "Play with Chain",
+    "origin": "HDU-3487",
+    "originalUrl": "https://vjudge.net/problem/HDU-3487",
+    "moduleId": "strengthening-balanced-trees",
+    "section": "4.4 Splay／訓練1 玩鏈子",
+    "summary": "多組資料；每組 n,m≤300000，初始鏈為 1..n。CUT a b c 把位置 [a,b] 剪下後插在剩餘序列第 c 個元素後（c 可為 0），FLIP a b 原地反轉區段；以兩個負數結束，每組輸出最終序列一行。",
+    "hints": [
+      "先辨識核心為「帶翻轉標記隱式 Treap」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "隱式 Treap 的中序序列代表鏈。用子樹大小 split 可精確切出 [a,b]，CUT 將該樹合併到刪除後序列的第 c 個元素後；FLIP 只切換該段 rev 懶標記。split/merge 均保序，故操作正確。每次期望 O(log N)，空間 O(N)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nstruct ImplicitTreap{struct Node{int value,size,left,right;bool reverse;};vector<Node>t;int root=0;pair<int,int>split(int r,int k){ // TODO: split by first k positions\nreturn {r,0};}int merge(int a,int b){ // TODO: randomized merge and lazy propagation\nreturn a?a:b;}void cut(int a,int b,int c){ // TODO: isolate [a,b] and insert after c in remaining sequence\n}void flip(int a,int b){ // TODO: toggle reversal on isolated interval\n}vector<int>values(){ // TODO: inorder traversal with push-down\nreturn {};}};\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,m;while(cin>>n>>m&&n>=0&&m>=0){ImplicitTreap seq;/* TODO: initialize 1..n */while(m--){string op;int a,b,c;cin>>op>>a>>b;if(op==\"CUT\"){cin>>c;seq.cut(a,b,c);}else seq.flip(a,b);}auto answer=seq.values();for(int i=0;i<n;i++)cout<<answer[i]<<(i+1==n?'\\n':' ');}}\n",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;struct N{int l=0,r=0,s=1,v;unsigned p;bool rev=false;}t[600005];unsigned z=123456789;unsigned rnd(){z^=z<<13;z^=z>>17;return z^=z<<5;}int S(int x){return x?t[x].s:0;}void P(int x){if(x)t[x].s=S(t[x].l)+S(t[x].r)+1;}void R(int x){if(x)swap(t[x].l,t[x].r),t[x].rev^=1;}void D(int x){if(x&&t[x].rev)R(t[x].l),R(t[x].r),t[x].rev=0;}int M(int a,int b){if(!a||!b)return a|b;if(t[a].p<t[b].p){D(a);t[a].r=M(t[a].r,b);P(a);return a;}D(b);t[b].l=M(a,t[b].l);P(b);return b;}void Q(int x,int k,int&a,int&b){if(!x){a=b=0;return;}D(x);if(S(t[x].l)>=k)Q(t[x].l,k,a,t[x].l),b=x,P(b);else Q(t[x].r,k-S(t[x].l)-1,t[x].r,b),a=x,P(a);}void out(int x,vector<int>&a){if(!x)return;D(x);out(t[x].l,a);a.push_back(t[x].v);out(t[x].r,a);}int main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,m;while(cin>>n>>m&&n>=0&&m>=0){int root=0;for(int i=1;i<=n;i++){t[i]=N();t[i].v=i;t[i].p=rnd();root=M(root,i);}while(m--){string op;int a,b,c,x,y,w;cin>>op>>a>>b;if(op[0]=='C'){cin>>c;Q(root,b,x,w);Q(x,a-1,x,y);root=M(x,w);Q(root,c,x,w);root=M(M(x,y),w);}else{Q(root,b,x,w);Q(x,a-1,x,y);R(y);root=M(M(x,y),w);}}vector<int>a;out(root,a);for(int i=0;i<n;i++)cout<<a[i]<<(i+1==n?'\\n':' ');}}\n"
+  },
+  {
+    "id": "poj-3580",
+    "title": "SuperMemo",
+    "origin": "POJ-3580",
+    "originalUrl": "https://vjudge.net/problem/POJ-3580",
+    "moduleId": "strengthening-balanced-trees",
+    "section": "4.4 Splay／訓練2 超強記憶",
+    "summary": "單組動態序列，初長 n≤100000、操作數 m≤100000。支援 ADD 區間加、REVERSE 反轉、REVOLVE 循環右移、INSERT 在位置後插值、DELETE 刪位置、MIN 查區間最小；每次 MIN 輸出一行答案。",
+    "hints": [
+      "先辨識核心為「帶加法翻轉與最小值的隱式 Treap」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "隱式 Treap 節點保存大小、最小值、區間加與反轉標記。split 隔離操作區間，ADD/REVERSE/MIN 直接作用該根；REVOLVE 拆成尾段加首段；INSERT/DELETE 以位置切合。懶標記保持聚合值，故所有操作正確。每次期望 O(log N)，空間 O(N+M)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nstruct SequenceTreap{struct Node{long long value,minimum,lazyAdd;int size,left,right;bool reverse;};int root=0;pair<int,int>split(int r,int k){ // TODO: split by position and push lazy tags\nreturn {r,0};}int merge(int a,int b){ // TODO: merge while maintaining size and minimum\nreturn a?a:b;}void rangeAdd(int l,int r,long long d){ // TODO: isolate range and apply addition tag\n}void rangeReverse(int l,int r){ // TODO: isolate range and toggle reverse tag\n}void revolve(int l,int r,int times){ // TODO: split tail and rotate it to front\n}void insertAfter(int x,long long v){ // TODO: insert a new node\n}void erase(int x){ // TODO: remove position x\n}long long rangeMin(int l,int r){ // TODO: return aggregate minimum of isolated range\nreturn 0;}};\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n;cin>>n;SequenceTreap s;for(int i=0;i<n;i++){long long x;cin>>x;s.insertAfter(i,x);}int q;cin>>q;while(q--){string op;int x,y,t;long long d;cin>>op;if(op==\"ADD\"){cin>>x>>y>>d;s.rangeAdd(x,y,d);}else if(op==\"REVERSE\"){cin>>x>>y;s.rangeReverse(x,y);}else if(op==\"REVOLVE\"){cin>>x>>y>>t;s.revolve(x,y,t);}else if(op==\"INSERT\"){cin>>x>>d;s.insertAfter(x,d);}else if(op==\"DELETE\"){cin>>x;s.erase(x);}else{cin>>x>>y;cout<<s.rangeMin(x,y)<<'\\n';}}}\n",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;using ll=long long;const ll INF=(1LL<<60);struct N{int l=0,r=0,s=1;ll v=0,mn=0,add=0;unsigned p=0;bool rev=false;}t[300005];unsigned z=2463534242u;unsigned rnd(){z^=z<<13;z^=z>>17;return z^=z<<5;}int S(int x){return x?t[x].s:0;}ll MN(int x){return x?t[x].mn:INF;}void P(int x){if(x)t[x].s=S(t[x].l)+S(t[x].r)+1,t[x].mn=min(t[x].v,min(MN(t[x].l),MN(t[x].r)));}void A(int x,ll d){if(x)t[x].v+=d,t[x].mn+=d,t[x].add+=d;}void R(int x){if(x)swap(t[x].l,t[x].r),t[x].rev^=1;}void D(int x){if(!x)return;if(t[x].add)A(t[x].l,t[x].add),A(t[x].r,t[x].add),t[x].add=0;if(t[x].rev)R(t[x].l),R(t[x].r),t[x].rev=0;}int M(int a,int b){if(!a||!b)return a|b;if(t[a].p<t[b].p){D(a);t[a].r=M(t[a].r,b);P(a);return a;}D(b);t[b].l=M(a,t[b].l);P(b);return b;}void Q(int x,int k,int&a,int&b){if(!x){a=b=0;return;}D(x);if(S(t[x].l)>=k)Q(t[x].l,k,a,t[x].l),b=x,P(b);else Q(t[x].r,k-S(t[x].l)-1,t[x].r,b),a=x,P(a);}int main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n;if(!(cin>>n))return 0;int root=0,tot=0;auto node=[&](ll v){++tot;t[tot]=N();t[tot].v=t[tot].mn=v;t[tot].p=rnd();return tot;};for(int i=0;i<n;i++){ll v;cin>>v;root=M(root,node(v));}int q;cin>>q;while(q--){string op;int x,y,a,b,c;ll d;cin>>op;if(op==\"INSERT\"){cin>>x>>d;Q(root,x,a,b);root=M(M(a,node(d)),b);}else if(op==\"DELETE\"){cin>>x;Q(root,x,a,c);Q(a,x-1,a,b);root=M(a,c);}else{cin>>x>>y;Q(root,y,a,c);Q(a,x-1,a,b);if(op==\"ADD\")cin>>d,A(b,d);else if(op==\"REVERSE\")R(b);else if(op==\"MIN\")cout<<MN(b)<<'\\n';else{cin>>d;int len=y-x+1,k=(int)((d%len+len)%len);if(k){int u,v;Q(b,len-k,u,v);b=M(v,u);}}root=M(M(a,b),c);}}}\n"
+  },
+  {
+    "id": "poj-3352",
+    "title": "Road Construction",
+    "origin": "POJ-3352",
+    "originalUrl": "https://vjudge.net/problem/POJ-3352",
+    "moduleId": "strengthening-graph-advanced",
+    "section": "5.4 Tarjan／訓練1 道路建設",
+    "summary": "連通簡單無向圖中最少加幾條路，使任意一條路封閉後仍全圖連通。",
+    "hints": [
+      "先辨識核心為「找橋縮成樹後葉數加一除二」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "Tarjan 找橋並把所有非橋邊連成邊雙連通分量；縮點後得到一棵橋樹。新增一條邊可同時消除其兩端葉到路徑上的橋，配對 L 個葉即可且至少需要 ceil(L/2) 條。時間 O(N+M)，空間 O(N+M)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nstruct Edge{int to,id;};void tarjan(int u,int parentEdge,const vector<vector<Edge>>&g,vector<int>&dfn,vector<int>&low,vector<char>&bridge){ // TODO: mark every bridge by edge id\n}\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,m;cin>>n>>m;vector<vector<Edge>>g(n+1);for(int i=0,a,b;i<m;i++){cin>>a>>b;g[a].push_back({b,i});g[b].push_back({a,i});}vector<int>dfn(n+1),low(n+1),component(n+1),degree(n+1);vector<char>bridge(m);tarjan(1,-1,g,dfn,low,bridge);// TODO: flood non-bridge components, build bridge tree, and count leaves\nint leaves=0;cout<<(leaves+1)/2<<'\\n';}\n",
+    "solution": "#include <iostream>\n#include <vector>\n#include <string.h>\n#include <utility>\n#include <stack>\n#include <algorithm>\n#include <stdio.h>\nusing namespace std;\ntypedef pair<int,int> PII;\nconst int N = 1010;\nint n,r;\nvector<int> g[N];\nvector<PII> bridges;\nint bcc[N];\nint b_cnt;\nint num;\nint dfn[N],low[N];\nint degree[N];\nvoid dfs(int u,int f){\n    dfn[u] = low[u] = num++;\n    for(int i=0;i<g[u].size();i++){\n        int v = g[u][i];\n        if(v==f) continue;\n        if(dfn[v]==0){\n            dfs(v,u);\n            low[u] = min(low[u],low[v]);\n            if(low[v]>dfn[u]) bridges.push_back(make_pair(u,v));\n            //son\n        }else if(dfn[v]<dfn[u]){\n            //frond\n            low[u] = min(low[u],dfn[v]);\n        }\n    }\n    \n}\nvoid dfs1(int u,int b){\n    bcc[u] = b;\n    for(int i=0;i<g[u].size();i++){\n        int v = g[u][i];\n        if(bcc[v]==-1) dfs1(v,b);\n    }\n}\n\nint main(){\n    scanf(\"%d%d\",&n,&r);\n    int u,v;\n    for(int i=0;i<r;i++){\n        scanf(\"%d%d\",&u,&v);\n        g[u].push_back(v);\n        g[v].push_back(u);\n    }\n    b_cnt = 0;\n    num = 1;\n    memset(bcc,-1,sizeof(bcc));\n    dfs(1,0);\n    for(int i=0;i<bridges.size();i++){\n        u = bridges[i].first;\n        v = bridges[i].second;\n        g[u].erase(find(g[u].begin(),g[u].end(),v));\n        g[v].erase(find(g[v].begin(),g[v].end(),u));\n    }\n    for(int i=1;i<=n;i++){\n        if(bcc[i]==-1) dfs1(i,b_cnt++);\n    }\n    for(int i=0;i<bridges.size();i++){\n        u = bridges[i].first;\n        v = bridges[i].second;\n        degree[bcc[u]] ++;\n        degree[bcc[v]] ++;\n    }\n    \n    \n    int res = 0;\n    for(int i=0;i<b_cnt;i++)\n        if(degree[i]==1) res++;\n    printf(\"%d\\n\",(res+1)/2);\n    \n    return 0;\n    \n}\n"
+  },
+  {
+    "id": "poj-1236",
+    "title": "Network of Schools",
+    "origin": "POJ-1236",
+    "originalUrl": "https://vjudge.net/problem/POJ-1236",
+    "moduleId": "strengthening-graph-advanced",
+    "section": "5.4 Tarjan／訓練2 校園網絡",
+    "summary": "有向學校網路，輸出讓軟體覆蓋全圖的最少初始學校數，以及使任意起點皆覆蓋全圖的最少新增邊數。",
+    "hints": [
+      "先辨識核心為「SCC 縮點的零入度與零出度」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "Tarjan 求 SCC 並縮成 DAG。要從若干學校覆蓋全圖，至少且只需選每個零入度 SCC；要使圖強連通，單 SCC 時為 0，否則至少且可用 max(零入度數,零出度數) 條邊串接。時間 O(N+M)，空間 O(N+M)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nstruct SCC{vector<vector<int>>g;vector<int>dfn,low,stack,component;vector<char>inside;int timer=0,count=0;SCC(vector<vector<int>> graph):g(move(graph)),dfn(g.size()),low(g.size()),component(g.size()),inside(g.size()){}void dfs(int u){ // TODO: Tarjan DFS and component extraction\n}void run(){ // TODO: visit every node\n}};\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n;cin>>n;vector<vector<int>>g(n);for(int i=0,x;i<n;i++)while(cin>>x&&x)g[i].push_back(x-1);SCC scc(g);scc.run();// TODO: count zero-indegree and zero-outdegree SCCs\nint sources=1,needed=0;cout<<sources<<'\\n'<<needed<<'\\n';}\n",
+    "solution": "/*\n * POJ 1236: Network of Schools\n * 题意：给n个可连通的学校装软件，每个学校有自己的传输下继。求最少给多少个学校发送首批软件，经过若干次传输拷贝后所有学校最终都可以得到。另外还要求当随机某点已有软件时，还需要在传输下继名单增加多少个学校。\n * 类型：强连通分量\n * 算法：用2次DFS进行强连通分量分解，缩点得到有向无环图。第1次DFS时选取任意未访问结点，回溯时顺序标号。第2次DFS时先将图中边反向，每次从未遍历的标号最大的点出发。得到DAG后，入度为0的点数为答案1。由于将入度为0的点和出度为0的点连接可使得DAG变为SCC，所以将出度和入度为0的点数的更大者为答案2。\n */\n\n#include <cstdio>\n#include <cstring>\n#include <vector>\n#include <algorithm>\n\nusing namespace std;\n\nvector<int> e[110];\nvector<int> re[110];\nvector<int> id;\n\nint tot;\nint tp[110];\n\nbool vis[110];\nbool mat[110][110];\n\nint in[110], out[110];\n\n\nvoid Dfs(int i) {\n  vis[i] = 1;\n  for (vector<int>::iterator it = e[i].begin(); it != e[i].end(); ++it) {\n    if (!vis[*it]) {\n      Dfs(*it);\n    }\n  }\n  id.push_back(i);\n}\n\nvoid RDfs(int i) {\n  vis[i] = 1;\n  tp[i] = tot;\n  for (vector<int>::iterator it = re[i].begin(); it != re[i].end(); ++it) {\n    if (!vis[*it]) {\n      RDfs(*it);\n    }\n  }\n}\n\nint main() {\n  int n;\n  scanf(\"%d\", &n);\n  for (int i = 1; i <= n; ++i) {\n    int j;\n    while (scanf(\"%d\", &j) != EOF && j) {\n      e[i].push_back(j);\n      re[j].push_back(i);\n    }\n  }\n\n  memset(vis, 0, sizeof(vis));\n  for (int i = 1; i <= n; ++i) {\n    if (!vis[i]) Dfs(i);\n  }\n\n  memset(vis, 0, sizeof(vis));\n  for (vector<int>::iterator it = id.end() - 1; it >= id.begin(); --it) {\n    if (!vis[*it]) {\n      RDfs(*it);\n      ++tot;\n    }\n  }\n\n  if (tot == 1) {\n    printf(\"1\\n0\\n\");  // 只有1个scc时特判\n    return 0;\n  }\n\n  for (int i = 1; i <= n; ++i) {\n    int t = tp[i];\n    for (vector<int>::iterator it = e[i].begin(); it != e[i].end(); ++it) {\n      int s = tp[*it];\n      if (t != s && !mat[t][s]) {\n        ++out[t];\n        ++in[s];\n        mat[t][s] = 1;\n      }\n    }\n  }\n\n  int ans1, ans2;\n  ans1 = ans2 = 0;\n  for (int i = 0; i < tot; ++i) {\n    if (in[i] == 0) {\n      ++ans1;\n    }\n    if (out[i] == 0) {\n      ++ans2;\n    }\n  }\n\n  printf(\"%d\\n%d\\n\", ans1, max(ans1, ans2));\n\n  return 0;\n}\n"
+  },
+  {
+    "id": "poj-1251",
+    "title": "Jungle Roads",
+    "origin": "POJ-1251",
+    "originalUrl": "https://vjudge.net/problem/POJ-1251",
+    "moduleId": "strengthening-graph-algorithms",
+    "section": "6.1 最小生成樹／訓練1 從林之路",
+    "summary": "多組以大寫字母表示村莊的無向加權圖，0 結束；輸出連通全部村莊的最小維護費。",
+    "hints": [
+      "先辨識核心為「Kruskal」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "將所有道路按費用排序，Kruskal 依序加入連接不同分量的邊。切割性質保證每次選的最輕可用邊屬於某棵 MST，直到 N−1 邊所得總費最小。時間 O(E log E)，空間 O(E+N)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nstruct Edge{int u,v,w;bool operator<(const Edge&o)const{return w<o.w;}};struct DSU{vector<int>p;DSU(int n):p(n){iota(p.begin(),p.end(),0);}int find(int x){ // TODO: path compression\nreturn x;}bool unite(int a,int b){ // TODO: merge different components\nreturn false;}};\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n;while(cin>>n&&n){vector<Edge>edges;for(int i=0,k,w;i<n-1;i++){char a,b;cin>>a>>k;while(k--){cin>>b>>w;edges.push_back({a-'A',b-'A',w});}}sort(edges.begin(),edges.end());DSU dsu(n);int answer=0;// TODO: Kruskal-select n-1 edges\ncout<<answer<<'\\n';}}\n",
+    "solution": "#include<bits/stdc++.h>\nusing namespace std;struct E{int a,b,w;bool operator<(const E&o)const{return w<o.w;}};int p[30];int F(int x){return p[x]==x?x:p[x]=F(p[x]);}int main(){int n;while(cin>>n&&n){vector<E>e;for(int i=0,k,w;i<n-1;i++){char a,b;cin>>a>>k;while(k--)cin>>b>>w,e.push_back({a-'A',b-'A',w});}sort(e.begin(),e.end());iota(p,p+n,0);int s=0;for(auto x:e){int a=F(x.a),b=F(x.b);if(a!=b)p[a]=b,s+=x.w;}cout<<s<<'\\n';}}"
+  },
+  {
+    "id": "poj-1287",
+    "title": "Networking",
+    "origin": "POJ-1287",
+    "originalUrl": "https://vjudge.net/problem/POJ-1287",
+    "moduleId": "strengthening-graph-algorithms",
+    "section": "6.1 最小生成樹／訓練2 聯網",
+    "summary": "多組可含重邊的連通無向圖，P=0 結束；輸出最小纜線總長。",
+    "hints": [
+      "先辨識核心為「Kruskal」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "同樣以 Kruskal 排序所有邊（重邊也可直接保留），並查集只接受跨分量的最輕邊；交換／切割性質證明結果為 MST。時間 O(E log E)，空間 O(E+V)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nstruct Edge{int u,v,w;bool operator<(const Edge&o)const{return w<o.w;}};struct DSU{vector<int>p;DSU(int n):p(n+1){iota(p.begin(),p.end(),0);}int find(int x){ // TODO: path compression\nreturn x;}bool unite(int a,int b){ // TODO: merge components\nreturn false;}};\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n;while(cin>>n&&n){int m;cin>>m;vector<Edge>edges(m);for(auto&e:edges)cin>>e.u>>e.v>>e.w;sort(edges.begin(),edges.end());DSU dsu(n);int cost=0;// TODO: run Kruskal, naturally handling parallel edges\ncout<<cost<<'\\n';}}\n",
+    "solution": "#include<iostream>\n#include<vector>\n#include<string.h>\n#include<stdio.h>\n#include<stack>\n#include<algorithm>\n#include<stdlib.h>\n#include<queue>\n#include<utility>\n#include<float.h>\n#include<math.h>\n#include<sstream>\n#include<stdlib.h>\n#include<limits.h>\n#include<string>\n#include<assert.h>\n#include<numeric>\n#include<map>\nusing namespace std;\nconst int N = 105;\nconst int INF = 0x3f3f3f3f;\nint n,m;\nint g[N][N];\nint vis[N];\nint dist[N];\nint prim(){\n    memset(vis,0,sizeof(vis));\n    memset(dist,0x3f,sizeof(dist));\n    dist[1] = 0;\n    int cost = 0;\n    int id,best;\n    for(int k=0;k<n;k++){\n        best = INF;\n        for(int i=1;i<=n;i++) if(!vis[i] && dist[i]<best) best = dist[i],id=i;\n        cost += dist[id];\n        vis[id] = 1;\n        for(int i=1;i<=n;i++) if(!vis[i] && g[id][i]<dist[i]) dist[i]=g[id][i];\n    }\n    return cost;\n}\nint main(){\n    int u,v,w;\n    while(scanf(\"%d\",&n),n){\n        scanf(\"%d\",&m);\n        memset(g,0x3f,sizeof(g));\n        for(int i=0;i<m;i++){\n            scanf(\"%d%d%d\",&u,&v,&w);\n            g[u][v] = min(g[u][v],w);\n            g[v][u] = min(g[v][u],w);\n        }\n        printf(\"%d\\n\",prim());\n    }\n    return 0;\n}\n"
+  },
+  {
+    "id": "poj-1797",
+    "title": "Heavy Transportation",
+    "origin": "POJ-1797",
+    "originalUrl": "https://vjudge.net/problem/POJ-1797",
+    "moduleId": "strengthening-graph-algorithms",
+    "section": "6.2 最短路／訓練1 重型運輸",
+    "summary": "T 個無向圖，求 1 到 n 路徑瓶頸容量的最大值；按 Scenario #i:、答案及空行輸出。",
+    "hints": [
+      "先辨識核心為「最大瓶頸 Dijkstra」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "把 Dijkstra 的距離改為「從 1 到此點可達的最大瓶頸」，鬆弛為 max(d[v],min(d[u],w))，每次取目前瓶頸最大者。已取出頂點不可能再被較小瓶頸路徑改善，故答案正確。時間 O((N+M)log N)，空間 O(N+M)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nint widestPath(const vector<vector<pair<int,int>>>&g,int source,int target){ // TODO: maximum-priority Dijkstra with min(capacity, edge)\nreturn 0;}\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int T;cin>>T;for(int cs=1;cs<=T;cs++){int n,m;cin>>n>>m;vector<vector<pair<int,int>>>g(n+1);while(m--){int a,b,w;cin>>a>>b>>w;g[a].push_back({b,w});g[b].push_back({a,w});}cout<<\"Scenario #\"<<cs<<\":\\n\"<<widestPath(g,1,n)<<\"\\n\\n\";}}\n",
+    "solution": "#include<bits/stdc++.h>\nusing namespace std;int main(){int T;cin>>T;for(int z=1;z<=T;z++){int n,m;cin>>n>>m;vector<vector<pair<int,int>>>g(n+1);while(m--){int a,b,w;cin>>a>>b>>w;g[a].push_back({b,w});g[b].push_back({a,w});}vector<int>d(n+1);priority_queue<pair<int,int>>q;d[1]=INT_MAX;q.push({d[1],1});while(q.size()){auto [du,u]=q.top();q.pop();if(du!=d[u])continue;for(auto[v,w]:g[u])if(d[v]<min(du,w))d[v]=min(du,w),q.push({d[v],v});}cout<<\"Scenario #\"<<z<<\":\\n\"<<d[n]<<\"\\n\\n\";}}"
+  },
+  {
+    "id": "poj-1860",
+    "title": "Currency Exchange",
+    "origin": "POJ-1860",
+    "originalUrl": "https://vjudge.net/problem/POJ-1860",
+    "moduleId": "strengthening-graph-algorithms",
+    "section": "6.2 最短路／訓練2 貨幣兌換",
+    "summary": "給雙向匯率與手續費，判斷從持有貨幣 S 出發能否交換後回 S 且資產增加，輸出 YES/NO。",
+    "hints": [
+      "先辨識核心為「Bellman-Ford 最大資產鬆弛判正環」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "Bellman-Ford 式鬆弛保存每種貨幣可達最大金額，交換後為 (money−commission)×rate。若 N 輪後仍能改善，存在可達增益環；反之所有可達交換序列皆已達固定點。時間 O(NM)，空間 O(N+M)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nstruct Exchange{int from,to;double rate,commission;};bool profitable(int n,int source,double initial,const vector<Exchange>&edges){vector<double>money(n);money[source]=initial;// TODO: maximize reachable money and detect a further profitable relaxation\nreturn false;}\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,m,s;double v;cin>>n>>m>>s>>v;vector<Exchange>edges;while(m--){int a,b;double rab,cab,rba,cba;cin>>a>>b>>rab>>cab>>rba>>cba;edges.push_back({a-1,b-1,rab,cab});edges.push_back({b-1,a-1,rba,cba});}cout<<(profitable(n,s-1,v,edges)?\"YES\":\"NO\")<<'\\n';}\n",
+    "solution": "#include<iostream>\n#include<stdio.h>\nusing namespace std;\ndouble rate[100][100];\ndouble commission[100][100];\ndouble money[100];\nint n,M,S;\ndouble V;\nint main()\n{\n    int a,b;\n    double rab,cab,rba,cba;\n    scanf(\"%d%d%d%lf\",&n,&M,&S,&V);\n    S--;\n    for(int i=0;i<M;i++)\n    {\n        scanf(\"%d%d%lf%lf%lf%lf\",&a,&b,&rab,&cab,&rba,&cba);\n        a--,b--;\n        rate[a][b]=rab;\n        rate[b][a]=rba;\n        commission[a][b]=cab;\n        commission[b][a]=cba;\n    }\n    money[S]=V;\n    for(int k=0;k<n;k++)\n        for(int i=0;i<n;i++)\n            for(int j=0;j<n;j++)\n                if(rate[i][j]!=0 && money[i]>commission[i][j]) money[j]=max(money[j],rate[i][j]*(money[i]-commission[i][j]));\n    for(int i=0;i<n;i++)\n        for(int j=0;j<n;j++)\n            if(rate[i][j]*(money[i]-commission[i][j])>money[j]){\n                printf(\"YES\\n\");\n                return 0;\n            }\n    printf(\"NO\\n\");\n    return 0;\n}\n"
+  },
+  {
+    "id": "poj-3259",
+    "title": "Wormholes",
+    "origin": "POJ-3259",
+    "originalUrl": "https://vjudge.net/problem/POJ-3259",
+    "moduleId": "strengthening-graph-algorithms",
+    "section": "6.2 最短路／訓練3 蟲洞",
+    "summary": "F 組農場；道路為正權雙向、蟲洞為負權單向，判斷任意處是否存在負環，輸出 YES/NO。",
+    "hints": [
+      "先辨識核心為「超級源 Bellman-Ford 判負環」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "把所有點視為由零權超級源可達，對雙向道路加入兩條正邊、蟲洞加入負邊。Bellman-Ford 第 N 輪仍可鬆弛當且僅當某分量存在負環。時間 O(NM)，空間 O(N+M)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nstruct Edge{int from,to,weight;};bool hasNegativeCycle(int n,const vector<Edge>&edges){vector<int>distance(n,0);// TODO: Bellman-Ford from an implicit super-source\nreturn false;}\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int F;cin>>F;while(F--){int n,m,w;cin>>n>>m>>w;vector<Edge>edges;while(m--){int a,b,t;cin>>a>>b>>t;--a;--b;edges.push_back({a,b,t});edges.push_back({b,a,t});}while(w--){int a,b,t;cin>>a>>b>>t;edges.push_back({a-1,b-1,-t});}cout<<(hasNegativeCycle(n,edges)?\"YES\":\"NO\")<<'\\n';}}\n",
+    "solution": "#include<cstdio>\n#include<algorithm>\n\nconst int FIELD_NUM_MAX=500,PATH_NUM_MAX=2500,WORMHOLE_NUM_MAX=200,DISTANCE_MAX=100000000;\n\nstruct Edge{\n\tint from,to,weight;\n};\n\nbool bellmanFord(int vertexNum,int source,int edgeNum,Edge edges[]){\n\tint distances[FIELD_NUM_MAX];\n\tstd::fill(distances,distances+vertexNum,DISTANCE_MAX);\n\tdistances[source]=0;\n\tfor(int i=0;i<vertexNum;i++){\n\t\tfor(int edgeID=0;edgeID<edgeNum;edgeID++)\n\t\t\tif(distances[edges[edgeID].to]>distances[edges[edgeID].from]+edges[edgeID].weight)\n\t\t\t\tdistances[edges[edgeID].to]=distances[edges[edgeID].from]+edges[edgeID].weight;\n\t}\n\tfor(int edgeID=0;edgeID<edgeNum;edgeID++)\n\t\tif(distances[edges[edgeID].to]>distances[edges[edgeID].from]+edges[edgeID].weight)\n\t\t\treturn false;\n\treturn true;\n}\n\nint main(){\n\tint farmNum;\n\tscanf(\"%d\",&farmNum);\n\twhile(farmNum--){\n\t\tint fieldNum,pathNum,wormholeNum;\n\t\tscanf(\"%d%d%d\",&fieldNum,&pathNum,&wormholeNum);\n\t\tint vertexNum=fieldNum,edgeNum=2*pathNum+wormholeNum;\n\t\tEdge edges[2*PATH_NUM_MAX+WORMHOLE_NUM_MAX];\n\t\tint edgeID=0;\n\t\twhile(pathNum-->0){\n\t\t\tscanf(\"%d%d%d\",&edges[edgeID].from,&edges[edgeID].to,&edges[edgeID].weight);\n\t\t\t/*\n\t\t\tedges[edgeID+1].from=edges[edgeID].to;\n\t\t\tedges[edgeID+1].to=edges[edgeID].from;\n\t\t\tedges[edgeID+1].weight=edges[edgeID].weight;\n\t\t\t*/\n\t\t\tedges[edgeID+1]=edges[edgeID];\n\t\t\tstd::swap(edges[edgeID+1].from,edges[edgeID+1].to);\n\t\t\tedgeID+=2;\n\t\t}\n\t\twhile(wormholeNum-->0){\n\t\t\tscanf(\"%d%d%d\",&edges[edgeID].from,&edges[edgeID].to,&edges[edgeID].weight);\n\t\t\tedges[edgeID].weight*=-1;\n\t\t\tedgeID++;\n\t\t}\n\t\tfor(edgeID=0;edgeID<edgeNum;edgeID++){\n\t\t\tedges[edgeID].from--;\n\t\t\tedges[edgeID].to--;\n\t\t}\n\t\tprintf(\"%s\\n\",bellmanFord(vertexNum,0,edgeNum,edges)?\"NO\":\"YES\");\n\t}\n\treturn 0;\n}"
+  },
+  {
+    "id": "poj-2367",
+    "title": "Genealogical tree",
+    "origin": "POJ-2367",
+    "originalUrl": "https://vjudge.net/problem/POJ-2367",
+    "moduleId": "strengthening-graph-algorithms",
+    "section": "6.3 拓撲排序／訓練1 家族樹",
+    "summary": "每人的孩子表以 0 結束，輸出任一祖先均早於後代的排列。",
+    "hints": [
+      "先辨識核心為「Kahn 拓撲排序」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "計算入度並反覆取入度零節點，輸出後刪除其出邊。每個節點被輸出時所有祖先都已先輸出，因此序列合法；DAG 必能處理全部節點。時間 O(N+M)，空間 O(N+M)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n;cin>>n;vector<vector<int>>g(n+1);vector<int>indegree(n+1);for(int u=1,v;u<=n;u++)while(cin>>v&&v){g[u].push_back(v);indegree[v]++;}queue<int>ready;// TODO: enqueue all zero-indegree nodes and perform Kahn topological sort\nvector<int>order;for(size_t i=0;i<order.size();i++)cout<<order[i]<<(i+1==order.size()?'\\n':' ');}\n",
+    "solution": "#include<iostream>\n#include<map>\n#include<set>\n#include<string>\n#include <vector>\n#include <stdlib.h>\n#include <climits>\n#include <utility>\n#include <stdio.h>\n#include <assert.h>\n#include <stack>\n#include <string.h>\nusing namespace std;\nconst int N = 101;\nint n;\nint g[N][N];\nstack<int> S;\nint visited[N];\nvoid dfs(int i){\n    visited[i] = 1;\n    for(int j=1;j<=n;j++)\n        if(g[i][j] && !visited[j]) dfs(j);\n    S.push(i);\n}\nint main(){\n    scanf(\"%d\",&n);\n    for(int i=1;i<=n;i++){\n        int j;\n        while(scanf(\"%d\",&j),j){\n            g[i][j] = 1;\n        }\n    }\n    for(int i=1;i<=n;i++)\n        if(!visited[i]) dfs(i);\n    printf(\"%d\",S.top());\n    S.pop();\n    while(!S.empty()){\n        printf(\" %d\",S.top());\n        S.pop();\n    }\n    printf(\"\\n\");\n}\n"
+  },
+  {
+    "id": "poj-3687",
+    "title": "Labeling Balls",
+    "origin": "POJ-3687",
+    "originalUrl": "https://vjudge.net/problem/POJ-3687",
+    "moduleId": "strengthening-graph-algorithms",
+    "section": "6.3 拓撲排序／訓練2 標籤球",
+    "summary": "第一行測資數；每組 N≤200 個標籤與 M≤40000 條 a 比 b 輕的限制，重量恰為 1..N 且互異。按標籤 1..N 輸出字典序最小的重量配置；若限制有環則輸出 -1，重複限制不得重複計入度。",
+    "hints": [
+      "先辨識核心為「反圖最大堆逆拓撲指派大重量」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "將限制 a<b 反向建邊 b→a，從零入度中每次取標籤最大的節點並依 N 到 1 配重量。這會把大標籤儘量放到較重位置，等價於依標籤 1、2…使重量字典序最小；處理不足 N 點即有環。時間 O((N+M)log N)，空間 O(N²+M)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int T;cin>>T;while(T--){int n,m;cin>>n>>m;vector<vector<int>>reverseGraph(n+1);vector<vector<char>>seen(n+1,vector<char>(n+1));vector<int>indegree(n+1),weight(n+1);while(m--){int a,b;cin>>a>>b;if(!seen[b][a]){seen[b][a]=1;reverseGraph[b].push_back(a);indegree[a]++;}}priority_queue<int>ready;// TODO: reverse topological sort, assigning weights n down to 1\nbool acyclic=false;if(!acyclic)cout<<-1;else for(int i=1;i<=n;i++)cout<<weight[i]<<(i==n?'\\n':' ');if(!acyclic)cout<<'\\n';}}\n",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;int main(){ios::sync_with_stdio(false);cin.tie(nullptr);int T;cin>>T;while(T--){int n,m;cin>>n>>m;vector<vector<int>>g(n+1);vector<int>in(n+1),ans(n+1);vector<vector<char>>seen(n+1,vector<char>(n+1));while(m--){int a,b;cin>>a>>b;if(!seen[b][a])seen[b][a]=1,g[b].push_back(a),in[a]++;}priority_queue<int>q;for(int i=1;i<=n;i++)if(!in[i])q.push(i);int w=n,cnt=0;while(!q.empty()){int u=q.top();q.pop();ans[u]=w--;cnt++;for(int v:g[u])if(!--in[v])q.push(v);}if(cnt<n)cout<<-1;else for(int i=1;i<=n;i++)cout<<ans[i]<<(i==n?'\\n':' ');if(cnt<n)cout<<'\\n';}}\n"
+  },
+  {
+    "id": "hdu-4109",
+    "title": "Instrction Arrangement",
+    "origin": "HDU-4109",
+    "originalUrl": "https://vjudge.net/problem/HDU-4109",
+    "moduleId": "strengthening-graph-algorithms",
+    "section": "6.4 關鍵路徑／訓練1 指令安排",
+    "summary": "多組至 EOF；每條 X Y Z 要求 Y 在 X 後且安全距離 Z，輸出所有指令完成的最短整體時間。",
+    "hints": [
+      "先辨識核心為「DAG 最長路再加一」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "限制邊 X→Y、權 Z 表示 start[Y]≥start[X]+Z。在 DAG 拓撲序中以 max 鬆弛即可得到每點滿足所有前置限制的最早時間；最大值加題目的一個時間單位即總工期。時間 O(N+M)，空間 O(N+M)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,m;while(cin>>n>>m){vector<vector<pair<int,int>>>g(n);vector<int>indegree(n),earliest(n);while(m--){int x,y,z;cin>>x>>y>>z;g[x].push_back({y,z});indegree[y]++;}queue<int>ready;// TODO: topologically maximize each instruction's earliest start\nint answer=0;cout<<answer+1<<'\\n';}}\n",
+    "solution": "#include<bits/stdc++.h>\nusing namespace std;int main(){int n,m;while(cin>>n>>m){vector<vector<pair<int,int>>>g(n);vector<int>in(n),d(n);while(m--){int a,b,w;cin>>a>>b>>w;g[a].push_back({b,w});in[b]++;}queue<int>q;for(int i=0;i<n;i++)if(!in[i])q.push(i);int ans=0;while(q.size()){int u=q.front();q.pop();ans=max(ans,d[u]);for(auto[v,w]:g[u]){d[v]=max(d[v],d[u]+w);if(!--in[v])q.push(v);}}cout<<ans+1<<'\\n';}}"
+  },
+  {
+    "id": "poj-1949",
+    "title": "Chores",
+    "origin": "POJ-1949",
+    "originalUrl": "https://vjudge.net/problem/POJ-1949",
+    "moduleId": "strengthening-graph-algorithms",
+    "section": "6.4 關鍵路徑／訓練2 家務瑣事",
+    "summary": "依編號給每項工作耗時與較早編號前置工作，可平行執行，輸出完成全部的最短時間。",
+    "hints": [
+      "先辨識核心為「依拓撲序 DP 最早完成時間」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "因前置工作編號較小，可依輸入順序計算 finish[i]=duration[i]+max(finish[pre])。任何排程都不能早於此下界，而讓工作在所有前置完成後立即開始可達到它；答案為最大 finish。時間 O(N+M)，空間 O(N)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n;cin>>n;vector<int>finish(n+1);int answer=0;for(int i=1;i<=n;i++){int duration,k;cin>>duration>>k;int latest=0;while(k--){int pre;cin>>pre;// TODO: maximize latest over prerequisite finish times\n}finish[i]=latest+duration;answer=max(answer,finish[i]);}cout<<answer<<'\\n';}\n",
+    "solution": "#include <vector>\n#include <list>\n#include <map>\n#include <set>\n#include <deque>\n#include <stack>\n#include <bitset>\n#include <algorithm>\n#include <functional>\n#include <numeric>\n#include <utility>\n#include <sstream>\n#include <iostream>\n#include <iomanip>\n#include <cstdio>\n#include <cmath>\n#include <cstdlib>\n#include <string.h>\n#include <ctime>\n#include <climits>\nusing namespace std;\nconst int N = 10001;\nvector<int> prerequisite[N];\nint cost[N];\nint shortest[N];\nint n,k,b;\nint main()\n{\n    scanf(\"%d\",&n);\n    for(int i=1;i<=n;i++){\n        scanf(\"%d\",cost+i);\n        scanf(\"%d\",&k);\n        for(int j=0;j<k;j++){\n            scanf(\"%d\",&b);\n            prerequisite[b].push_back(i);\n        }\n    }\n    memset(shortest,0,sizeof(shortest));\n    int best = cost[1];\n    for(int i=1;i<=n;i++){\n        for(int j=0;j<prerequisite[i].size();j++){\n            b = prerequisite[i][j];\n            shortest[b] = max(shortest[i]+cost[i],shortest[b]);\n            best = max(best,shortest[b]+cost[b]);\n        }\n    }\n    printf(\"%d\\n\",best);\n    return 0;\n}\n"
+  },
+  {
+    "id": "poj-2676",
+    "title": "Sudoku",
+    "origin": "POJ-2676",
+    "originalUrl": "https://vjudge.net/problem/POJ-2676",
+    "moduleId": "strengthening-search-advanced",
+    "section": "7.1 剪枝／訓練1 數獨遊戲",
+    "summary": "T 個 9×9 數獨，0 為空格；輸出任一合法完成盤，每列九位無空格。",
+    "hints": [
+      "先辨識核心為「位元遮罩加最少候選回溯」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "以行、列、九宮格位罩維護已用數字，每步挑候選最少的空格並枚舉其合法位。所有分支只放合法數，完整盤必合法；任一解在每格都有對應分支，故不漏解。最壞 O(9^E)，剪枝後通常遠小於此；空間 O(E)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nstruct Sudoku{array<array<int,9>,9>board{};array<int,9>row{},col{},box{};bool solve(int remaining){ // TODO: choose the empty cell with fewest candidates and backtrack\nreturn remaining==0;}};\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int T;cin>>T;while(T--){Sudoku s;int empty=0;for(int r=0;r<9;r++){string line;cin>>line;for(int c=0;c<9;c++){s.board[r][c]=line[c]-'0';if(!s.board[r][c])empty++;/* TODO: initialize masks */}}s.solve(empty);for(auto&row:s.board){for(int x:row)cout<<x;cout<<'\\n';}}}\n",
+    "solution": "#include<cstdio>\n#include<algorithm>\nusing namespace std;\n\n//#define DEBUG\n\nvoid analyzePossibility(bool possible[10],const int row,const int col,const int board[9][9]){\n\tfill(possible,possible+10,true);\n\tfor(int i=0;i<9;i++)\n\t\tpossible[board[row][i]]=possible[board[i][col]]=false;\n\tint smallRow=row/3,smallCol=col/3;\n\tfor(int i=smallRow*3;i<smallRow*3+3;i++)\n\t\tfor(int j=smallCol*3;j<smallCol*3+3;j++)\n\t\t\tpossible[board[i][j]]=false;\n}\n\nbool fillBoard(int board[9][9],const int position){\n\tif(position>=9*9)\n\t\treturn true;\n\tint row=position/9,col=position%9;\n\tif(board[row][col]!=0)\n\t\treturn fillBoard(board,position+1);\n\tbool possible[10];\n\tanalyzePossibility(possible,row,col,board);\n\tfor(int i=1;i<=9;i++)\n\t\tif(possible[i]){\n\t\t\tboard[row][col]=i;\n\t\t\tif(fillBoard(board,position+1))\n\t\t\t\treturn true;\n\t\t}\n\tboard[row][col]=0;\n\treturn false;\n}\n\nint main(){\n\tint caseNum;\n\tscanf(\"%d\",&caseNum);\n\twhile(caseNum-->0){\n\t\tint board[9][9];\n\t\tfor(int row=0;row<9;row++){\n\t\t\tgetchar();\n\t\t\tfor(int col=0;col<9;col++)\n\t\t\t\tboard[row][col]=getchar()-'0';\n\t\t}\n#ifdef DEBUG\n\t\tfor(int row=0;row<9;row++){\n\t\t\tfor(int col=0;col<9;col++)\n\t\t\t\tputchar(board[row][col]+'0');\n\t\t\tputchar('\\n');\n\t\t}\n#endif\n\t\tfillBoard(board,0);\n\t\tfor(int row=0;row<9;row++){\n\t\t\tfor(int col=0;col<9;col++)\n\t\t\t\tputchar(board[row][col]+'0');\n\t\t\tputchar('\\n');\n\t\t}\n\t}\n\treturn 0;\n}"
+  },
+  {
+    "id": "洛谷-p1120",
+    "title": "小木棍",
+    "origin": "洛谷-P1120",
+    "originalUrl": "https://vjudge.net/problem/洛谷-P1120",
+    "moduleId": "strengthening-search-advanced",
+    "section": "7.1 剪枝／訓練2 小木棍",
+    "summary": "n≤65 段長 1..50，原木棍等長，輸出可能的最小原長。",
+    "hints": [
+      "先辨識核心為「由小到大枚舉因數並降序 DFS 剪枝」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "總長必可被原棒長 L 整除，從最大碎片起遞增枚舉 L。碎片降序 DFS 組每根棒，跳過同長重複、首段失敗與恰好填滿失敗等對稱狀態；首次成功的 L 即最小答案。最壞 O(2^N)，空間 O(N)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nbool buildSticks(const vector<int>&pieces,vector<char>&used,int target,int completed,int current,int start){ // TODO: DFS with duplicate, empty-stick, and exact-fill pruning\nreturn false;}\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n;while(cin>>n&&n){vector<int>a(n);int sum=0;for(int&x:a){cin>>x;sum+=x;}sort(a.rbegin(),a.rend());int answer=sum;for(int length=a[0];length<=sum;length++)if(sum%length==0){vector<char>used(n);if(buildSticks(a,used,length,0,0,0)){answer=length;break;}}cout<<answer<<'\\n';}}\n",
+    "solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nclass Solution\n{\npublic:\n    int solve(vector<int> a, int s)\n    {\n        sort(a.begin(), a.end(), greater<int>());\n        this->a = a;\n        n = a.size();\n        for (int x = a[0]; x * 2 <= s; ++x)\n        {\n            if (s % x)\n                continue;\n            v.assign(n, 0);\n            if (dfs(0, 0, 0, x))\n                return x;\n        }\n        return s;\n    }\nprivate:\n    vector<int> a;\n    vector<bool> v;\n    int n;\n    bool dfs(int k, int pre, int s, int x)\n    {\n        if (k >= n)\n            return 1;\n        for (int i = pre; i < n; ++i)\n        {\n            if (v[i])\n                continue;\n            if (i && a[i] == a[i - 1] && !v[i - 1])\n                continue;\n            v[i] = 1;\n            if (s + a[i] < x)\n            {\n                if (dfs(k + 1, i + 1, s + a[i], x))\n                    return 1;\n            }\n            else if (s + a[i] == x)\n            {\n                if (dfs(k + 1, 0, 0, x))\n                    return 1;\n            }\n            v[i] = 0;\n            if (s == 0)\n                break;\n        }\n        return 0;\n    }\n};\n\nint main()\n{\n    int n;\n    while (cin >> n && n)\n    {\n        vector<int> a;\n        int s = 0;\n        for (int i = 0; i < n; ++i)\n        {\n            int x;\n            cin >> x;\n            a.push_back(x);\n            s += x;\n        }\n        cout << Solution().solve(a, s) << endl;\n    }\n    return 0;\n}\n"
+  },
+  {
+    "id": "poj-1475",
+    "title": "Pushing Boxes",
+    "origin": "POJ-1475",
+    "originalUrl": "https://vjudge.net/problem/POJ-1475",
+    "moduleId": "strengthening-search-advanced",
+    "section": "7.2 嵌套 BFS／訓練 推箱子",
+    "summary": "多個≤20×20 迷宮至 0 0；先最少推箱、再最少總移動，輸出大小寫方向路徑或 Impossible.，含 Maze # 與空行格式。",
+    "hints": [
+      "先辨識核心為「箱子狀態外層 Dijkstra、人物可達內層 BFS」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "狀態為（人位置、箱位置），以推箱次數為第一成本、總步數為第二成本做 Dijkstra；走到空格成本 (0,1)，推箱成本 (1,1)。非負字典序成本使首次到目標箱位置者最優，並依指定方向序記錄路徑。狀態 O((RC)²)，時間 O((RC)²log(RC))，空間 O((RC)²)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nstruct State{int player,box,pushes,moves;string path;};string solveMaze(const vector<string>&grid,int player,int box,int target){ // TODO: search states by (pushes, moves), checking player reachability around the box\nreturn \"Impossible.\";}\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int R,C,cs=0;while(cin>>R>>C&&(R||C)){vector<string>g(R);int s=0,b=0,t=0;for(int i=0;i<R;i++){cin>>g[i];for(int j=0;j<C;j++){if(g[i][j]=='S')s=i*C+j;if(g[i][j]=='B')b=i*C+j;if(g[i][j]=='T')t=i*C+j;}}cout<<\"Maze #\"<<++cs<<'\\n'<<solveMaze(g,s,b,t)<<\"\\n\\n\";}}\n",
+    "solution": "#include<bits/stdc++.h>\nusing namespace std;struct Q{int p,m,b,u;string s;bool operator<(const Q&o)const{return p!=o.p?p>o.p:m>o.m;}};int main(){ios::sync_with_stdio(0);cin.tie(0);int R,C,cs=0,dx[4]={-1,1,0,0},dy[4]={0,0,-1,1};char lo[5]=\"nswe\",up[5]=\"NSWE\";while(cin>>R>>C&&(R||C)){vector<string>a(R);int S,B,T;for(int i=0;i<R;i++){cin>>a[i];for(int j=0;j<C;j++){int v=i*C+j;if(a[i][j]=='S')S=v,a[i][j]='.';else if(a[i][j]=='B')B=v,a[i][j]='.';else if(a[i][j]=='T')T=v,a[i][j]='.';}}int N=R*C,INF=1e9;vector<pair<int,int>>d(N*N,{INF,INF});priority_queue<Q>q;d[S*N+B]={0,0};q.push({0,0,B,S,\"\"});string ans=\"Impossible.\";auto free=[&](int x,int y){return x>=0&&x<R&&y>=0&&y<C&&a[x][y]!='#';};while(q.size()){Q z=q.top();q.pop();if(d[z.u*N+z.b]!=make_pair(z.p,z.m))continue;if(z.b==T){ans=z.s;break;}int ux=z.u/C,uy=z.u%C,bx=z.b/C,by=z.b%C;for(int k=0;k<4;k++){int x=ux+dx[k],y=uy+dy[k],np=z.p,nm=z.m+1,nb=z.b;if(!free(x,y))continue;char ch=lo[k];if(x==bx&&y==by){int xx=bx+dx[k],yy=by+dy[k];if(!free(xx,yy))continue;nb=xx*C+yy;np++;ch=up[k];}int nu=x*C+y,id=nu*N+nb;if(make_pair(np,nm)<d[id])d[id]={np,nm},q.push({np,nm,nb,nu,z.s+ch});}}cout<<\"Maze #\"<<++cs<<\"\\n\"<<ans<<\"\\n\\n\";}}"
+  },
+  {
+    "id": "hdu-3085",
+    "title": "Nightmare Ⅱ",
+    "origin": "HDU-3085",
+    "originalUrl": "https://vjudge.net/problem/HDU-3085",
+    "moduleId": "strengthening-search-advanced",
+    "section": "7.3 雙向 BFS／訓練 魔鬼Ⅱ",
+    "summary": "T 個迷宮；每秒男走三步、女走一步，兩鬼危險半徑每秒增 2，牆不可走；輸出最早相遇秒或 -1。",
+    "hints": [
+      "先辨識核心為「按秒雙向分層 BFS 與即時安全檢查」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "按秒同步擴展兩端：男方每秒三層、女方一層；每次取出與進入格子都檢查其到兩鬼距離是否大於 2t。兩方首次碰到對方已訪區域即是最早安全相遇秒。每格每方至多入隊一次，時間 O(NM)，空間 O(NM)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nstruct Point{int x,y;};bool safe(Point p,int second,const array<Point,2>&ghosts,const vector<string>&grid){ // TODO: check walls, bounds, and expanding ghost distance\nreturn false;}int meetTime(vector<string>grid,Point man,Point girl,array<Point,2>ghosts){ // TODO: expand man three layers and girl one layer per second\nreturn -1;}\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int T;cin>>T;while(T--){int n,m;cin>>n>>m;vector<string>g(n);Point man{},girl{};array<Point,2>ghost{};int z=0;for(int i=0;i<n;i++){cin>>g[i];for(int j=0;j<m;j++)if(g[i][j]=='M')man={i,j};else if(g[i][j]=='G')girl={i,j};else if(g[i][j]=='Z')ghost[z++]={i,j};}cout<<meetTime(g,man,girl,ghost)<<'\\n';}}\n",
+    "solution": "#include<bits/stdc++.h>\nusing namespace std;struct P{int x,y;};int n,m,tim,dx[4]={1,-1,0,0},dy[4]={0,0,1,-1};vector<string>a;P z[2];bool ok(int x,int y){if(x<0||x>=n||y<0||y>=m||a[x][y]=='X')return 0;for(auto p:z)if(abs(x-p.x)+abs(y-p.y)<=2*tim)return 0;return 1;}bool go(queue<P>&q,int k,char me,char he){while(k--){int s=q.size();while(s--){P u=q.front();q.pop();if(!ok(u.x,u.y))continue;for(int d=0;d<4;d++){int x=u.x+dx[d],y=u.y+dy[d];if(!ok(x,y)||a[x][y]==me)continue;if(a[x][y]==he)return 1;a[x][y]=me;q.push({x,y});}}}return 0;}int main(){int T;cin>>T;while(T--){cin>>n>>m;a.resize(n);P M,G;int c=0;for(int i=0;i<n;i++){cin>>a[i];for(int j=0;j<m;j++)if(a[i][j]=='Z')z[c++]={i,j};else if(a[i][j]=='M')M={i,j};else if(a[i][j]=='G')G={i,j};}queue<P>q[2];q[0].push(M);q[1].push(G);tim=0;int ans=-1;while(q[0].size()&&q[1].size()){tim++;if(go(q[0],3,'M','G')||go(q[1],1,'G','M')){ans=tim;break;}}cout<<ans<<'\\n';}}"
+  },
+  {
+    "id": "hdu-1043",
+    "title": "Eight",
+    "origin": "HDU-1043",
+    "originalUrl": "https://vjudge.net/problem/HDU-1043",
+    "moduleId": "strengthening-search-advanced",
+    "section": "7.4 啟發式搜尋／訓練1 八數碼問題",
+    "summary": "多組八數碼盤面直到 EOF，每組九個以空白分隔的 1..8 與 x。輸出一條讓空格移動、把盤面變成 1 2 3 4 5 6 7 8 x 的最短 u/d/l/r 字串；無解輸出 unsolvable，組間不留空行。",
+    "hints": [
+      "先辨識核心為「由目標反向 BFS 預處理全部可達排列」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "從目標盤面反向 BFS 所有可達排列，以 Cantor 展開作 0..9!−1 索引；每個新狀態記錄回到父狀態的反向移動。BFS 首次到達保證步數最短，沿父鏈輸出即為原狀態到目標的最短路；未訪問即無解。預處理 O(9!·9)，空間 O(9!)，每筆輸出 O(答案長度)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nint cantor(const array<char,9>&state){ // TODO: rank this permutation in [0,9!)\nreturn 0;}struct Parent{int previous=-2;char move=0;};vector<Parent>precompute(){vector<Parent>parent(362880);// TODO: reverse BFS from 12345678x and store inverse moves\nreturn parent;}\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);auto parent=precompute();char c;while(cin>>c){array<char,9>s;s[0]=c;for(int i=1;i<9;i++)cin>>s[i];int id=cantor(s);if(parent[id].previous==-2)cout<<\"unsolvable\";else{// TODO: follow parent links and print moves to the goal\n}cout<<'\\n';}}\n",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;int fac[10];int rankp(const array<char,9>&a){int r=0;for(int i=0;i<9;i++){int c=0;for(int j=i+1;j<9;j++)c+=a[j]<a[i];r+=c*fac[8-i];}return r;}struct State{array<char,9>a;int zero,id;};int main(){ios::sync_with_stdio(false);cin.tie(nullptr);fac[0]=1;for(int i=1;i<=9;i++)fac[i]=fac[i-1]*i;vector<int>par(fac[9],-2);vector<char>mv(fac[9]);array<char,9>goal={'1','2','3','4','5','6','7','8','0'};int gid=rankp(goal);par[gid]=-1;queue<State>q;q.push({goal,8,gid});int dx[4]={-1,1,0,0},dy[4]={0,0,-1,1};char back[4]={'d','u','r','l'};while(!q.empty()){auto s=q.front();q.pop();int x=s.zero/3,y=s.zero%3;for(int k=0;k<4;k++){int nx=x+dx[k],ny=y+dy[k];if(nx<0||nx>=3||ny<0||ny>=3)continue;auto a=s.a;int nz=nx*3+ny;swap(a[s.zero],a[nz]);int id=rankp(a);if(par[id]==-2)par[id]=s.id,mv[id]=back[k],q.push({a,nz,id});}}char c;while(cin>>c){array<char,9>a;a[0]=c=='x'?'0':c;for(int i=1;i<9;i++){cin>>c;a[i]=c=='x'?'0':c;}int id=rankp(a);if(par[id]==-2)cout<<\"unsolvable\\n\";else{while(id!=gid){cout<<mv[id];id=par[id];}cout<<'\\n';}}}\n"
+  },
+  {
+    "id": "poj-2449",
+    "title": "Remmarguts' Date",
+    "origin": "POJ-2449",
+    "originalUrl": "https://vjudge.net/problem/POJ-2449",
+    "moduleId": "strengthening-search-advanced",
+    "section": "7.4 啟發式搜尋／訓練2 第 k 短路徑",
+    "summary": "有向正權圖，求 S 到 T 第 K 短路徑長；同長不同路仍分開，路可重複節點，S=T 時空路不計，不存在 -1。",
+    "hints": [
+      "先辨識核心為「反圖 Dijkstra 作估價的 A*」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "先在反圖 Dijkstra 求 h[u]=u 到 T 的最短距離，作為 A* 一致且不高估的估價。按 g+h 取狀態，每個節點第 k 次出隊對應到達它的第 k 短走法，因此 T 第 K 次出隊即答案；S=T 時排除空路。時間最壞 O(KM log(KM))，空間 O(N+M+KM)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nconst long long INF=4e18;vector<long long>reverseDijkstra(int target,const vector<vector<pair<int,int>>>&reverseGraph){ // TODO: shortest distances to target as an admissible heuristic\nreturn vector<long long>(reverseGraph.size(),INF);}long long kthPath(int source,int target,int k,const vector<vector<pair<int,int>>>&g,const vector<long long>&h){ // TODO: A*; stop when target is popped for the kth time\nreturn -1;}\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,m;cin>>n>>m;vector<vector<pair<int,int>>>g(n+1),rg(n+1);while(m--){int a,b,w;cin>>a>>b>>w;g[a].push_back({b,w});rg[b].push_back({a,w});}int s,t,k;cin>>s>>t>>k;auto h=reverseDijkstra(t,rg);cout<<kthPath(s,t,k,g,h)<<'\\n';}\n",
+    "solution": "#include<bits/stdc++.h>\nusing namespace std;const long long I=4e18;struct N{long long f,g;int u;bool operator<(const N&o)const{return f>o.f;}};int main(){ios::sync_with_stdio(0);cin.tie(0);int n,m;cin>>n>>m;vector<vector<pair<int,int>>>g(n+1),r(n+1);while(m--){int a,b,w;cin>>a>>b>>w;g[a].push_back({b,w});r[b].push_back({a,w});}int S,T,K;cin>>S>>T>>K;vector<long long>d(n+1,I);priority_queue<pair<long long,int>,vector<pair<long long,int>>,greater<pair<long long,int>>>dq;d[T]=0;dq.push({0,T});while(dq.size()){auto[du,u]=dq.top();dq.pop();if(du!=d[u])continue;for(auto[v,w]:r[u])if(d[v]>du+w)d[v]=du+w,dq.push({d[v],v});}if(d[S]==I){cout<<-1<<'\\n';return 0;}if(S==T)K++;priority_queue<N>q;q.push({d[S],0,S});vector<int>cnt(n+1);while(q.size()){auto x=q.top();q.pop();if(++cnt[x.u]>K)continue;if(x.u==T&&cnt[x.u]==K){cout<<x.g<<'\\n';return 0;}for(auto[v,w]:g[x.u])if(d[v]<I)q.push({x.g+w+d[v],x.g+w,v});}cout<<-1<<'\\n';}"
+  },
+  {
+    "id": "poj-1463",
+    "title": "Strategic game",
+    "origin": "POJ-1463",
+    "originalUrl": "https://vjudge.net/problem/POJ-1463",
+    "moduleId": "strengthening-dp",
+    "section": "8.1 樹形 DP／訓練1 戰略遊戲",
+    "summary": "多組至 EOF 的樹，邊只輸入一次；求最小頂點覆蓋，即最少士兵使每條邊至少一端有士兵。",
+    "hints": [
+      "先辨識核心為「樹 DP 選或不選」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "樹 DP：dp[u][1]=1+Σmin(dp[v][0],dp[v][1])，dp[u][0]=Σdp[v][1]。若 u 不選，每條子邊迫使子節點選；若 u 選，子節點任選較小者，兩式窮盡且互斥。時間 O(N)，空間 O(N)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\npair<int,int>treeDP(int u,int parent,const vector<vector<int>>&g){ // TODO: return costs when u is excluded/included in the vertex cover\nreturn {0,1};}\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n;while(cin>>n){vector<vector<int>>g(n);for(int i=0,u,k;i<n;i++){char colon,open,close;cin>>u>>colon>>open>>k>>close;while(k--){int v;cin>>v;g[u].push_back(v);g[v].push_back(u);}}auto [out,in]=treeDP(0,-1,g);cout<<min(out,in)<<'\\n';}}\n",
+    "solution": "#include<iostream>\n#include<stdio.h>\n#include<string.h>\n#include<utility>\n#include<vector>\n#include<map>\n#include<set>\n#include<algorithm>\n#include<math.h>\n#include<limits.h>\nusing namespace std;\nconst int N = 1500;\nint n;\nvector<int> g[N];\nint dp[N][2];\nvoid dfs(int u,int f){\n    int kid = 0;\n    for(int i=0;i<g[u].size();i++){\n        int v = g[u][i];\n        if(v==f) continue;\n        dfs(v,u);\n        kid ++;\n        \n    }\n    if(!kid) dp[u][1]=1, dp[u][0] = 0;\n    else{\n        dp[u][0] = 0;\n        for(int i=0;i<g[u].size();i++){\n            int v = g[u][i];\n            if(v==f)continue;\n            dp[u][0] += dp[v][1];\n        }\n        dp[u][1] = 1;\n        for(int i=0;i<g[u].size();i++){\n            int v = g[u][i];\n            if(v==f) continue;\n            dp[u][1] += min(dp[v][1],dp[v][0]);\n        }\n    }\n}\nint main()\n{\n    int u,v,cnt;\n    while(scanf(\"%d\",&n)!=EOF){\n        for(int i=0;i<n;i++) g[i].clear();\n        for(int i=0;i<n;i++){\n            //g[i].clear();\n            scanf(\"%d:(%d)\",&u,&cnt);\n            for(int j=0;j<cnt;j++)\n                scanf(\"%d\",&v), g[u].push_back(v),g[v].push_back(u);\n        }\n        dfs(0,-1);\n        printf(\"%d\\n\",min(dp[0][0],dp[0][1]));\n    }\n    return 0;\n}\n"
+  },
+  {
+    "id": "uva-12186",
+    "title": "Another Crisis",
+    "origin": "UVA-12186",
+    "originalUrl": "https://vjudge.net/problem/UVA-12186",
+    "moduleId": "strengthening-dp",
+    "section": "8.1 樹形 DP／訓練2 工人請願書",
+    "summary": "多組資料至 0 0；每組 N≤100000、門檻 T%，下一行第 i 個數是員工 i 的直屬上司（0 為老闆且 Bi<i）。主管收到至少 ceil(T%×直屬人數) 份下屬請願才上呈；逐組輸出讓老闆收到請願所需的最少基層員工數。",
+    "hints": [
+      "先辨識核心為「子樹成本排序取最小所需個」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "令 dp[u] 為使 u 上呈所需最少基層簽署數；葉節點為 1。非葉需 ceil(kT/100) 名直屬下屬上呈，選其 dp 最小的指定數量最優，交換任一較大選項都不會更好。由編號逆序計算。時間 O(N log N)（各子表排序），空間 O(N)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,percent;while(cin>>n>>percent&&(n||percent)){vector<vector<int>>children(n+1);for(int i=1,boss;i<=n;i++){cin>>boss;children[boss].push_back(i);}vector<int>dp(n+1,1);for(int u=n;u>=0;u--){if(children[u].empty())continue;vector<int>cost;for(int v:children[u])cost.push_back(dp[v]);sort(cost.begin(),cost.end());int need=(int(cost.size())*percent+99)/100;// TODO: sum the cheapest 'need' child costs\n}cout<<dp[0]<<'\\n';}}\n",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;int main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,T;while(cin>>n>>T&&(n||T)){vector<vector<int>>ch(n+1);for(int i=1,p;i<=n;i++)cin>>p,ch[p].push_back(i);vector<int>dp(n+1,1);for(int u=n;u>=0;u--){if(ch[u].empty()){dp[u]=1;continue;}vector<int>v;for(int x:ch[u])v.push_back(dp[x]);sort(v.begin(),v.end());int need=((int)v.size()*T+99)/100;dp[u]=accumulate(v.begin(),v.begin()+need,0);}cout<<dp[0]<<'\\n';}}\n"
+  },
+  {
+    "id": "poj-3254",
+    "title": "Corn Fields",
+    "origin": "POJ-3254",
+    "originalUrl": "https://vjudge.net/problem/POJ-3254",
+    "moduleId": "strengthening-dp",
+    "section": "8.2 狀態壓縮 DP／訓練2 玉米田",
+    "summary": "M,N≤12 的肥沃 0/1 網格，選格不可共邊，空選亦算；輸出方案數 mod 100000000。",
+    "hints": [
+      "先辨識核心為「逐列合法位罩 DP」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "先列出每列不含相鄰 1 且只落在肥沃格的位罩。dp[row][mask] 累加上一列與 mask 無共同位元的狀態；這兩條條件分別保證水平、垂直不相鄰，且每種合法配置有唯一逐列狀態序列。時間 O(M·S²)，空間 O(S)，S≤2^N。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int rows,cols;cin>>rows>>cols;vector<int>fertile(rows);for(int r=0;r<rows;r++)for(int c=0,x;c<cols;c++){cin>>x;if(x)fertile[r]|=1<<c;}vector<int>valid;for(int mask=0;mask<(1<<cols);mask++)if(!(mask&(mask<<1)))valid.push_back(mask);vector<int>dp(1<<cols),next(1<<cols);dp[0]=1;for(int r=0;r<rows;r++){fill(next.begin(),next.end(),0);// TODO: transition between disjoint valid masks contained in fertile[r]\ndp.swap(next);}int answer=0;for(int x:dp)answer=(answer+x)%100000000;cout<<answer<<'\\n';}\n",
+    "solution": "/*\n * POJ 3254: Corn Fields\n * 题意：m行n列的01矩阵内，挑选若干不相邻且为1的格子。求有多少种选法。\n * 类型：状态DP\n * 算法：二进制表示某行被选的状态，它由与它异或后的状态的无相邻1的子集转移来。利用滚动数组节约内存。\n */\n\n\n#include <cstdio>\n#include <cstring>\n\nusing namespace std;\n\nconst int MOD = 100000000;\n\nint d[2][1 << 12];\nint cur;\nint mat[13];\nint s1[1 << 12], s2[1 << 12];\nint c1, c2;\nint m, n;\n\nint ADD(int a, int b) {\n  return (a + b) % MOD;\n}\n\nvoid gao(int a, int *s, int &c) {\n  int b[12];\n  int c1 = 0;\n  while (a) {\n    b[c1++] = a & -a;\n    a -= a & -a;\n  }\n  c = 0;\n  for (int i = (1 << c1) - 1; i >= 0; --i) {\n    int t = 0, ti = i;\n    for (int j = 0; j < c1 && ti; ++j) {\n      if (ti & 1) {\n        t |= b[j];\n      }\n      ti >>= 1;\n    }\n    int tt = t;\n    while (tt) {\n      if ((tt & 1) && (tt >> 1 & 1)) break;\n      tt >>= 1;\n    }\n    if (tt == 0) s[c++] = t;\n  }\n}\n\nint main() {\n  int t, x, y;\n  scanf(\"%d%d\", &m, &n);\n  for (int i = 0; i < m; ++i) {\n    for (int j = 0; j < n; ++j) {\n      scanf(\"%d\", &t);\n      mat[i] <<= 1;\n      mat[i] |= t;\n    }\n  }\n  mat[m++] = 0;\n  cur = 0;\n  d[cur][0] = 1;\n  for (int i = 0; i < m; ++i) {\n    gao(mat[i], s1, c1);\n    for (int j = 0; j < c1; ++j) {\n      x = s1[j];\n      gao(((1 << n) - 1) ^ x, s2, c2);\n      for (int k = 0; k < c2; ++k) {\n        y = s2[k];\n        d[1 - cur][x] = ADD(d[1 - cur][x], d[cur][y]);\n      }\n    }\n    cur = 1 - cur;\n    memset(d[1 - cur], 0, sizeof(d[0]));\n  }\n  printf(\"%d\\n\", d[cur][0]);\n\n  return 0;\n}\n"
+  },
+  {
+    "id": "hdu-1423",
+    "title": "Greatest Common Increasing Subsequence",
+    "origin": "HDU-1423",
+    "originalUrl": "https://vjudge.net/problem/HDU-1423",
+    "moduleId": "strengthening-dp",
+    "section": "8.3 DP 優化／訓練1 最長公共上升子序列",
+    "summary": "T 組兩序列，各長≤500，輸出最長嚴格遞增公共子序列長度，資料組答案間空一行。",
+    "hints": [
+      "先辨識核心為「O(nm) LCIS DP」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "一維 dp[j] 表示以 B[j] 結尾的 LCIS 長度。掃每個 A[i] 時維護 B[j]<A[i] 的最大舊 dp；遇 B[j]=A[i] 便以 best+1 更新。best 只來自較小值且更新前狀態，故同時滿足公共與嚴格遞增。時間 O(NM)，空間 O(M)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nint lcis(const vector<int>&a,const vector<int>&b){vector<int>dp(b.size());// TODO: for each a[i], track best dp at smaller b[j] and update equal values\nreturn dp.empty()?0:*max_element(dp.begin(),dp.end());}\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int T;cin>>T;for(int cs=0;cs<T;cs++){int n,m;cin>>n;vector<int>a(n);for(int&x:a)cin>>x;cin>>m;vector<int>b(m);for(int&x:b)cin>>x;if(cs)cout<<'\\n';cout<<lcis(a,b)<<'\\n';}}\n",
+    "solution": "#include<bits/stdc++.h>\nusing namespace std;int main(){int T;cin>>T;for(int z=0;z<T;z++){int n,m;cin>>n;vector<int>a(n);for(int&x:a)cin>>x;cin>>m;vector<int>b(m),d(m);for(int&x:b)cin>>x;for(int x:a){int best=0;for(int j=0;j<m;j++){if(b[j]<x)best=max(best,d[j]);else if(b[j]==x)d[j]=max(d[j],best+1);}}if(z)cout<<'\\n';cout<<*max_element(d.begin(),d.end())<<'\\n';}}"
+  },
+  {
+    "id": "洛谷-p1886",
+    "title": "单调队列 / 滑动窗口",
+    "origin": "洛谷-P1886",
+    "originalUrl": "https://vjudge.net/problem/洛谷-P1886",
+    "moduleId": "strengthening-dp",
+    "section": "8.3 DP 優化／訓練2 滑動窗口",
+    "summary": "n≤10^6 序列與窗長 k；第一行輸出各窗最小值，第二行各窗最大值，單空格分隔。",
+    "hints": [
+      "先辨識核心為「遞增與遞減單調雙端佇列」。",
+      "依原題的多測資終止條件重設所有狀態，並逐字核對輸出格式。"
+    ],
+    "analysis": "遞增 deque 保存仍在窗內且可能成為最小值的索引；新值進入時刪除尾端不優者，窗左移時刪過期首端，首端即最小。遞減 deque 同理求最大。每個索引各進出一次，時間 O(N)，空間 O(K)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\nvector<int>windowExtrema(const vector<int>&a,int k,bool maximum){deque<int>candidate;vector<int>answer;// TODO: expire old indices and maintain a monotone deque\nreturn answer;}\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,k;cin>>n>>k;vector<int>a(n);for(int&x:a)cin>>x;for(bool maximum:{false,true}){auto answer=windowExtrema(a,k,maximum);for(size_t i=0;i<answer.size();i++)cout<<answer[i]<<(i+1==answer.size()?'\\n':' ');}}\n",
+    "solution": "#include<bits/stdc++.h>\nusing namespace std;int main(){ios::sync_with_stdio(0);cin.tie(0);int n,k;cin>>n>>k;vector<int>a(n);for(int&x:a)cin>>x;for(int z=0;z<2;z++){deque<int>q;for(int i=0;i<n;i++){while(q.size()&&q.front()<=i-k)q.pop_front();while(q.size()&&(z?a[q.back()]<=a[i]:a[q.back()]>=a[i]))q.pop_back();q.push_back(i);if(i>=k-1)cout<<a[q.front()]<<(i==n-1?'\\n':' ');}}}"
+  }
+]

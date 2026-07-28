@@ -13,6 +13,7 @@ import {
 import { kProblemById } from '@/lib/data';
 import { countTopics, type TrainingCampPhase, type TrainingCampTopic } from '@/lib/trainingCamp';
 import { getTrainingCampNote } from '@/lib/trainingCampNotes';
+import { kTrainingCampProblems, trainingCampProblemsForModule } from '@/lib/trainingCampProblems';
 import { InlineMarkdown } from '@/components/MarkdownBlock';
 import { CodeReveal } from '@/components/CodeReveal';
 import type { Problem } from '@/lib/types';
@@ -111,7 +112,11 @@ export function TrainingCampOverview({
     { label: '訓練區域', value: stats.phaseCount, icon: Route },
     { label: '解題關卡', value: stats.moduleCount, icon: BookOpen },
     { label: '訓練節點', value: stats.topicCount, icon: ListChecks },
-    { label: 'LeetCode 題', value: stats.leetcodeProblemCount, icon: LeetIcon }
+    {
+      label: '章節練習題',
+      value: kTrainingCampProblems.length + stats.leetcodeProblemCount,
+      icon: LeetIcon
+    }
   ];
 
   return (
@@ -189,6 +194,7 @@ export function TrainingCampOverview({
                   const topic_count = countTopics(module.topics);
                   const note = getTrainingCampNote(module.id);
                   const module_title = trainingModuleName(module.id, module.title);
+                  const training_problems = trainingCampProblemsForModule(module.id);
                   const leetcode_problems = (module.leetcodeProblemIds ?? [])
                     .map((problem_id) => kProblemById.get(problem_id))
                     .filter((problem): problem is Problem => Boolean(problem));
@@ -196,6 +202,7 @@ export function TrainingCampOverview({
                   return (
                     <details
                       key={module.id}
+                      id={module.id}
                       className="group rounded-2xl border border-border bg-card/80 shadow-card"
                     >
                       <summary className="grid cursor-pointer list-none gap-3 p-4 marker:hidden sm:grid-cols-[auto_1fr_auto] sm:items-center sm:p-5">
@@ -212,7 +219,7 @@ export function TrainingCampOverview({
                         </div>
 
                         <p className="text-sm leading-6 text-muted-foreground sm:justify-self-start">
-                          {topic_count} 個訓練節點，{leetcode_problems.length} 題 LeetCode
+                          {topic_count} 個訓練節點，{training_problems.length + leetcode_problems.length} 題練習
                         </p>
 
                         <ChevronDown
@@ -325,6 +332,60 @@ export function TrainingCampOverview({
                                 </ul>
                               </div>
                             ) : null}
+                          </div>
+                        ) : null}
+
+                        {training_problems.length > 0 ? (
+                          <div className="mt-5 border-t border-border pt-4">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <div>
+                                <p className="text-sm font-semibold">原教材章節題單</p>
+                                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                                  每題附題目概要、漸進線索、思路分析、C++ 骨架與完整解答。
+                                </p>
+                              </div>
+                              <span className="rounded-full border border-border bg-background/55 px-3 py-1 text-xs text-muted-foreground">
+                                {training_problems.length} 題
+                              </span>
+                            </div>
+
+                            <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                              {training_problems.map((problem) => (
+                                <div
+                                  key={problem.id}
+                                  className="flex min-h-40 flex-col rounded-2xl border border-border bg-background/55 p-3"
+                                >
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                                      {problem.origin}
+                                    </span>
+                                  </div>
+                                  <p className="mt-3 line-clamp-2 text-sm font-semibold leading-6">
+                                    {problem.title}
+                                  </p>
+                                  <p className="mt-2 line-clamp-2 text-xs leading-5 text-muted-foreground">
+                                    {problem.section}
+                                  </p>
+                                  <div className="mt-auto flex flex-wrap gap-2 pt-3">
+                                    <a
+                                      href={problem.originalUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs text-muted-foreground transition hover:text-foreground"
+                                    >
+                                      原題
+                                      <ExternalLink className="h-3 w-3" aria-hidden />
+                                    </a>
+                                    <Link
+                                      href={`/training-camp/problems/${problem.id}`}
+                                      className="rounded-lg bg-primary px-2.5 py-1.5 text-xs font-medium text-primary-foreground transition hover:bg-primary/90"
+                                    >
+                                      題解
+                                    </Link>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         ) : null}
 

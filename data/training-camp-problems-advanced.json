@@ -1,0 +1,758 @@
+[
+  {
+    "id": "hdu-4417",
+    "title": "Super Mario",
+    "origin": "HDU-4417",
+    "originalUrl": "https://vjudge.net/problem/HDU-4417",
+    "moduleId": "advanced-data-structures",
+    "section": "1.1 分塊算法／訓練1 超級馬里奧；5.1 可持久化線段樹／訓練1 超級馬里奧",
+    "summary": "第一行為測試組數 T。每組給長度 n 的高度序列與 m 次詢問；每次輸入 l、r、h（下標從 0 起），求閉區間 [l,r] 中高度不大於 h 的位置數。n、m 均可達 10^5。每組先輸出「Case X:」，其後每個詢問輸出一行答案。",
+    "hints": [
+      "把值域離散化，區間內「≤h」可轉成某個前綴版本之差。",
+      "依陣列前綴建立可持久化權值線段樹；用 root[r+1]-root[l] 查值域前綴。"
+    ],
+    "analysis": "將每個前綴的高度頻率保存為一棵可持久化線段樹。版本 r+1 與版本 l 在值域 [最小值,h] 的計數差，恰是原陣列 [l,r] 中不高於 h 的元素數，故查詢正確。建樹與每次插入、查詢皆走一條高 O(log n) 的路徑；總時間 O((n+m)log n)，空間 O(n log n)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct PersistentSegmentTree {\n    struct Node { int left = 0, right = 0, count = 0; };\n    vector<Node> tree{{}};\n    int update(int previous, int lo, int hi, int position) {\n        // TODO: Clone the previous node and insert one compressed value.\n        return previous;\n    }\n    int prefixCount(int root, int lo, int hi, int rightBound) const {\n        // TODO: Return the frequency in the compressed value prefix.\n        return 0;\n    }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete HDU-4417 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;\nstruct N{int l=0,r=0,s=0;};\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);\n int T;cin>>T;for(int cs=1;cs<=T;cs++){int n,m;cin>>n>>m;vector<int>a(n),v;for(int&x:a)cin>>x;v=a;sort(v.begin(),v.end());v.erase(unique(v.begin(),v.end()),v.end());\n vector<N>tr(1);vector<int>rt(n+1);function<int(int,int,int,int)> ins=[&](int p,int l,int r,int q){int x=tr.size();tr.push_back(tr[p]);tr[x].s++;if(l<r){int z=(l+r)/2;if(q<=z)tr[x].l=ins(tr[p].l,l,z,q);else tr[x].r=ins(tr[p].r,z+1,r,q);}return x;};\n for(int i=1;i<=n;i++)rt[i]=ins(rt[i-1],0,(int)v.size()-1,lower_bound(v.begin(),v.end(),a[i-1])-v.begin());\n function<int(int,int,int,int)> qry=[&](int p,int l,int r,int q){if(!p||q<l)return 0;if(r<=q)return tr[p].s;int z=(l+r)/2;return qry(tr[p].l,l,z,q)+qry(tr[p].r,z+1,r,q);};\n cout<<\"Case \"<<cs<<\":\\n\";while(m--){int l,r,h;cin>>l>>r>>h;int q=upper_bound(v.begin(),v.end(),h)-v.begin()-1;cout<<qry(rt[r+1],0,v.size()-1,q)-qry(rt[l],0,v.size()-1,q)<<\"\\n\";}\n }}",
+    "moduleIds": [
+      "advanced-data-structures",
+      "advanced-persistent-data-structures"
+    ]
+  },
+  {
+    "id": "hdu-5057",
+    "title": "Argestes and Sequence",
+    "origin": "HDU-5057",
+    "originalUrl": "https://vjudge.net/problem/HDU-5057",
+    "moduleId": "advanced-data-structures",
+    "section": "1.1 分塊算法／訓練2 序列操作",
+    "summary": "第一行 T（最多 50 組）。每組給 n、m、n 個非負 32 位整數及 m 個操作：`S X Y` 把 a[X] 指派為 Y；`Q L R D P` 詢問 [L,R] 中由個位起第 D 位等於 P 的數量。n、m 可達 10^5，D 為 1..10，P 為 0..9；每個 Q 輸出一行。",
+    "hints": [
+      "每一位只有 10 種數字，可把位置分塊並統計每塊的 digit×value 次數。",
+      "修改只重算一個元素在 10 個位數的貢獻；詢問掃兩端零碎區間並整塊累加。"
+    ],
+    "analysis": "以約 sqrt(n) 大小分塊，cnt[塊][位][數字] 保存頻率。指派時先刪除舊值十個數位再加入新值，維持統計不變量；詢問的完整塊直接取頻率，兩端逐項檢查，因此恰好計入 [L,R] 每個元素一次。單次修改 O(10)，查詢 O(sqrt n)，空間 O(n+100sqrt n)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct BlockDecomposition {\n    static constexpr int DIGITS = 10;\n    vector<long long> value;\n    vector<array<array<int, 10>, DIGITS>> frequency;\n    void assignValue(int index, long long newValue) {\n        // TODO: Remove all old digit contributions and add the new ones.\n    }\n    int query(int left, int right, int digit, int wanted) const {\n        // TODO: Scan boundary fragments and aggregate complete blocks.\n        return 0;\n    }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete HDU-5057 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int T;cin>>T;while(T--){int n,m;cin>>n>>m;int B=320,nb=(n+B-1)/B;vector<long long>a(n);vector<array<array<int,10>,10>>c(nb);long long pw[10];pw[0]=1;for(int i=1;i<10;i++)pw[i]=pw[i-1]*10;\n auto put=[&](int i,long long x,int d){for(int k=0;k<10;k++)c[i/B][k][x/pw[k]%10]+=d;};for(int i=0;i<n;i++)cin>>a[i],put(i,a[i],1);\n while(m--){char op;cin>>op;if(op=='S'){int x;long long y;cin>>x>>y;--x;put(x,a[x],-1);a[x]=y;put(x,a[x],1);}else{int l,r,d,p;cin>>l>>r>>d>>p;--l;--r;--d;int ans=0;while(l<=r&&l%B)ans+=a[l++]/pw[d]%10==p;while(l+B-1<=r){ans+=c[l/B][d][p];l+=B;}while(l<=r)ans+=a[l++]/pw[d]%10==p;cout<<ans<<\"\\n\";}}}}"
+  },
+  {
+    "id": "hdu-4006",
+    "title": "The kth great number",
+    "origin": "HDU-4006",
+    "originalUrl": "https://vjudge.net/problem/HDU-4006",
+    "moduleId": "advanced-data-structures",
+    "section": "1.2 跳躍表／訓練1 第 k 大的數",
+    "summary": "輸入含多組資料直到 EOF；每組先給操作數 n 與 k。接著 n 行為 `I x`（插入整數 x）或 `Q`（保證此時至少有 k 個數，輸出目前第 k 大）。每次 Q 輸出一行。",
+    "hints": [
+      "只需保留目前最大的 k 個數。",
+      "用小根堆保存這 k 個數，堆頂就是第 k 大。"
+    ],
+    "analysis": "堆中不變地保存目前所有輸入中最大的 min(k,數量) 個值：未滿時直接加入；滿時只有新值大於堆頂才替換最小者。故滿 k 個後堆頂正是第 k 大。每次插入 O(log k)，查詢 O(1)，空間 O(k)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct KthLargest {\n    int k = 0;\n    priority_queue<int, vector<int>, greater<int>> largest;\n    void insert(int value) {\n        // TODO: Keep exactly the k largest inserted values.\n    }\n    int query() const { return largest.empty() ? 0 : largest.top(); }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete HDU-4006 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,k;while(cin>>n>>k){priority_queue<int,vector<int>,greater<int>>q;while(n--){char op;cin>>op;if(op=='I'){int x;cin>>x;if((int)q.size()<k)q.push(x);else if(x>q.top())q.pop(),q.push(x);}else cout<<q.top()<<\"\\n\";}}}"
+  },
+  {
+    "id": "luogu-p1486",
+    "title": "郁闷的出纳员",
+    "origin": "洛谷-P1486",
+    "originalUrl": "https://vjudge.net/problem/洛谷-P1486",
+    "moduleId": "advanced-data-structures",
+    "section": "1.2 跳躍表／訓練2 鬱悶的出納員",
+    "summary": "給 n 次命令與最低工資 min。`I k` 僅在 k≥min 時新增員工；`A k` 全員加薪；`S k` 全員減薪並立即讓低於 min 者離職；`F k` 輸出目前第 k 高工資，不足則輸出 -1。最後輸出累計離職人數（未被錄用者不算）。n≤3×10^5。",
+    "hints": [
+      "全體加減可用一個全域偏移量 lazy 表示。",
+      "平衡樹可由 Fenwick 加離散化替代：先讀完命令，離散所有可能的「實際值-lazy」。"
+    ],
+    "analysis": "保存員工的標準化工資 key=實際工資-lazy。A/S 僅改 lazy；插入 key=k-lazy。減薪後，實際工資低於 min 等價於 key<min-lazy，可在 multiset 中刪除此前綴；F 由反向迭代取得第 k 大。multiset 操作正確維護所有在職者，但逐一刪除及查第 k 大最壞 O(n^2)，因此完整解答改用 GNU PBDS 次序統計樹，以 (key,序號) 區分重值，所有命令 O(log n)，空間 O(n)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\n#include <ext/pb_ds/assoc_container.hpp>\n#include <ext/pb_ds/tree_policy.hpp>\nusing namespace __gnu_pbds;\nusing OrderedSet = tree<pair<long long,int>, null_type, less<pair<long long,int>>, rb_tree_tag, tree_order_statistics_node_update>;\nstruct Payroll {\n    OrderedSet employees; long long lazy = 0; int serial = 0, departed = 0;\n    void insert(long long wage) { /* TODO: Normalize wage by lazy and insert. */ }\n    void addAll(long long delta) { lazy += delta; }\n    void subtractAll(long long delta, long long minimum) { /* TODO: Remove employees below minimum. */ }\n    long long kthLargest(int k) const { /* TODO: Use find_by_order. */ return -1; }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete 洛谷-P1486 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\n#include <ext/pb_ds/assoc_container.hpp>\n#include <ext/pb_ds/tree_policy.hpp>\nusing namespace std;using namespace __gnu_pbds;\nusing OST=tree<pair<long long,int>,null_type,less<pair<long long,int>>,rb_tree_tag,tree_order_statistics_node_update>;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n;long long mn;if(!(cin>>n>>mn))return 0;OST t;long long add=0;int id=0,left=0;while(n--){char op;long long x;cin>>op>>x;if(op=='I'){if(x>=mn)t.insert({x-add,++id});}else if(op=='A')add+=x;else if(op=='S'){add-=x;long long cut=mn-add;int k=t.order_of_key({cut,INT_MIN});left+=k;while(k--)t.erase(t.begin());}else{if(x>(long long)t.size())cout<<-1<<\"\\n\";else cout<<t.find_by_order(t.size()-x)->first+add<<\"\\n\";}}cout<<left<<\"\\n\";}"
+  },
+  {
+    "id": "hdu-2896",
+    "title": "病毒侵袭",
+    "origin": "HDU-2896",
+    "originalUrl": "https://vjudge.net/problem/HDU-2896",
+    "moduleId": "advanced-string-algorithms",
+    "section": "2.1 AC 自動機／訓練1 病毒侵襲",
+    "summary": "輸入可有多組直到 EOF。每組先給 N 個互異病毒特徵字串（編號 1..N），再給 M 個網站原始碼（編號 1..M）；字元為可見 ASCII，病毒長 20..200、網站長 7000..10000。對每個命中的網站輸出 `web i:` 及升序病毒編號，最後輸出 `total: x`；每站至多命中 3 種。",
+    "hints": [
+      "把所有病毒字串建成涵蓋 128 個 ASCII 字元的 Trie。",
+      "BFS 建 failure link；掃網站時沿 failure 鏈收集終止節點，最後按編號輸出。"
+    ],
+    "analysis": "AC 自動機同時模擬所有模式。掃描每個字元後，目前狀態及其 failure 祖先恰代表所有以當前位置結尾的模式前綴，所以收集其中終止編號可找出且只找出所有病毒；布林陣列去重並按編號掃描保證升序。建機 O(模式總長×字母表)（補轉移），匹配 O(網站總長×failure 鏈；本題每站命中至多 3，實務可接受），空間 O(模式總長×128)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct ACAutomaton {\n    struct Node { array<int,128> next{}; int fail = 0; vector<int> output; };\n    vector<Node> trie{{}};\n    void insert(const string& pattern, int id) { /* TODO: Insert one ASCII pattern. */ }\n    void buildFailureLinks() { /* TODO: BFS and complete automaton transitions. */ }\n    vector<int> match(const string& text) const { /* TODO: Collect distinct pattern ids. */ return {}; }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete HDU-2896 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;\nstruct Node{array<int,128>nx{};int fail=0;vector<int>out;};\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n;while(cin>>n){vector<Node>tr(1);string s;for(int id=1;id<=n;id++){cin>>s;int p=0;for(unsigned char c:s){if(!tr[p].nx[c])tr[p].nx[c]=tr.size(),tr.emplace_back();p=tr[p].nx[c];}tr[p].out.push_back(id);}\n queue<int>q;for(int c=0;c<128;c++)if(tr[0].nx[c])q.push(tr[0].nx[c]);while(q.size()){int u=q.front();q.pop();for(int c=0;c<128;c++){int&v=tr[u].nx[c];if(v)tr[v].fail=tr[tr[u].fail].nx[c],q.push(v);else v=tr[tr[u].fail].nx[c];}}\n int m,total=0;cin>>m;for(int z=1;z<=m;z++){cin>>s;vector<char>hit(n+1);int p=0;for(unsigned char c:s){p=tr[p].nx[c];for(int u=p;u;u=tr[u].fail)for(int id:tr[u].out)hit[id]=1;}bool any=0;for(int i=1;i<=n;i++)any|=hit[i];if(any){total++;cout<<\"web \"<<z<<\":\";for(int i=1;i<=n;i++)if(hit[i])cout<<\" \"<<i;cout<<\"\\n\";}}cout<<\"total: \"<<total<<\"\\n\";}}"
+  },
+  {
+    "id": "poj-2778",
+    "title": "DNA Sequence",
+    "origin": "POJ-2778",
+    "originalUrl": "https://vjudge.net/problem/POJ-2778",
+    "moduleId": "advanced-string-algorithms",
+    "section": "2.1 AC 自動機／訓練2 DNA 序列",
+    "summary": "給禁用字串數 m 與長度 n（n 可達 2×10^9），再給 m 個只含 A/C/G/T 的 DNA 模式。計算長度恰為 n、且不含任何禁用模式作為子字串的 DNA 字串數，答案對 100000 取模，輸出一行。",
+    "hints": [
+      "用 AC 自動機把「目前所有禁字前綴資訊」壓成有限狀態。",
+      "刪除可到達禁字終止狀態的轉移後，長度 n 的合法字串數是轉移矩陣的 n 次方。"
+    ],
+    "analysis": "AC 狀態完整記錄已讀前綴的最長禁字前綴後綴；沿 failure 傳播 bad 標記後，只有起終點皆非 bad 的字元轉移能出現在合法字串中。因此矩陣 M 的 (i,j) 是一步合法轉移數，M^n[0][j] 計數所有合法長 n 路徑，總和即答案。若狀態數 S，時間 O(S^3 log n)，空間 O(S^2)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstatic constexpr int MOD = 100000;\nstruct Matrix { vector<vector<int>> value; };\nstruct ACAutomaton {\n    struct Node { array<int,4> next{}; int fail = 0; bool forbidden = false; };\n    vector<Node> trie{{}};\n    void insert(const string& pattern) { /* TODO: Build the DNA trie. */ }\n    void build() { /* TODO: Build failure links and propagate forbidden states. */ }\n    Matrix transitionMatrix() const { /* TODO: Keep only safe transitions. */ return {}; }\n};\nMatrix multiply(const Matrix&, const Matrix&) { /* TODO: Modular matrix multiplication. */ return {}; }\nMatrix power(Matrix base, long long exponent) { /* TODO: Binary exponentiation. */ return {}; }\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete POJ-2778 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;const int P=100000;\nstruct Mat{int n;vector<vector<int>>a;Mat(int n=0,bool id=0):n(n),a(n,vector<int>(n)){if(id)for(int i=0;i<n;i++)a[i][i]=1;}};\nMat operator*(const Mat&A,const Mat&B){Mat C(A.n);for(int i=0;i<A.n;i++)for(int k=0;k<A.n;k++)if(A.a[i][k])for(int j=0;j<A.n;j++)C.a[i][j]=(C.a[i][j]+A.a[i][k]*B.a[k][j])%P;return C;}\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int m;long long n;if(!(cin>>m>>n))return 0;vector<array<int,4>>go(1);vector<int>f(1),bad(1);auto cv=[](char c){return c=='A'?0:c=='C'?1:c=='G'?2:3;};string s;while(m--){cin>>s;int u=0;for(char c:s){int x=cv(c);if(!go[u][x])go[u][x]=go.size(),go.push_back({}),f.push_back(0),bad.push_back(0);u=go[u][x];}bad[u]=1;}queue<int>q;for(int c=0;c<4;c++)if(go[0][c])q.push(go[0][c]);while(q.size()){int u=q.front();q.pop();bad[u]|=bad[f[u]];for(int c=0;c<4;c++)if(go[u][c])f[go[u][c]]=go[f[u]][c],q.push(go[u][c]);else go[u][c]=go[f[u]][c];}\n Mat A(go.size()),R(go.size(),1);for(int i=0;i<(int)go.size();i++)if(!bad[i])for(int c=0;c<4;c++)if(!bad[go[i][c]])A.a[i][go[i][c]]++;while(n){if(n&1)R=R*A;A=A*A;n>>=1;}int ans=0;for(int x:R.a[0])ans=(ans+x)%P;cout<<ans<<\"\\n\";}"
+  },
+  {
+    "id": "luogu-p2852",
+    "title": "Milk Patterns G",
+    "origin": "洛谷-P2852",
+    "originalUrl": "https://vjudge.net/problem/洛谷-P2852",
+    "moduleId": "advanced-string-algorithms",
+    "section": "2.2 後綴陣列／訓練1 牛奶模式",
+    "summary": "給 N、K 與 N 個整數的樂譜序列，求至少出現 K 次的最長連續子序列長度；各次出現可以重疊。N≤20000；輸出一個整數。K=1 時答案為 N。",
+    "hints": [
+      "固定長度 L 後，對所有長 L 子序列做雙雜湊並排序即可判斷是否有雜湊值出現 K 次。",
+      "可行性對 L 單調，二分最大 L；也可用後綴陣列的 height 滑窗。"
+    ],
+    "analysis": "使用後綴陣列。任意 K 個後綴的共同前綴長度等於它們相鄰 LCP 的最小值；在字典序上，最優的 K 個後綴必為某個連續窗口。因此對 height 陣列做長 K-1 的滑動窗口最小值，最大者就是答案。倍增建 SA O(N log²N)（排序比較），窗口 O(N)，空間 O(N)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct SuffixArray {\n    vector<int> sa, rank, lcp;\n    void build(const vector<int>& sequence) {\n        // TODO: Coordinate-compress, doubling-sort suffixes, then build LCP.\n    }\n};\nbool feasibleLength(const SuffixArray& data, int length, int requirement) {\n    // TODO: Check the relevant LCP groups/window and overlap condition.\n    return false;\n}\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete 洛谷-P2852 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,k;cin>>n>>k;vector<int>a(n),sa(n),r(n),nr(n);for(int&i:a)cin>>i;vector<int>v=a;sort(v.begin(),v.end());v.erase(unique(v.begin(),v.end()),v.end());for(int i=0;i<n;i++)r[i]=lower_bound(v.begin(),v.end(),a[i])-v.begin(),sa[i]=i;\n for(int w=1;;w*=2){sort(sa.begin(),sa.end(),[&](int x,int y){return pair(r[x],x+w<n?r[x+w]:-1)<pair(r[y],y+w<n?r[y+w]:-1);});nr[sa[0]]=0;for(int i=1;i<n;i++)nr[sa[i]]=nr[sa[i-1]]+(pair(r[sa[i-1]],sa[i-1]+w<n?r[sa[i-1]+w]:-1)<pair(r[sa[i]],sa[i]+w<n?r[sa[i]+w]:-1));r=nr;if(r[sa.back()]==n-1)break;}\n if(k==1){cout<<n<<\"\\n\";return 0;}vector<int>pos(n),h(n);for(int i=0;i<n;i++)pos[sa[i]]=i;for(int i=0,z=0;i<n;i++){int p=pos[i];if(p){int j=sa[p-1];while(i+z<n&&j+z<n&&a[i+z]==a[j+z])z++;h[p]=z;if(z)z--;}}\n deque<int>q;int ans=0;for(int i=1;i<n;i++){while(q.size()&&h[q.back()]>=h[i])q.pop_back();q.push_back(i);while(q.front()<i-k+2)q.pop_front();if(i>=k-1)ans=max(ans,h[q.front()]);}cout<<ans<<\"\\n\";}"
+  },
+  {
+    "id": "luogu-p2743",
+    "title": "乐曲主题Musical Themes",
+    "origin": "洛谷-P2743",
+    "originalUrl": "https://vjudge.net/problem/洛谷-P2743",
+    "moduleId": "advanced-string-algorithms",
+    "section": "2.2 後綴陣列／訓練2 音樂主題",
+    "summary": "多組資料；每組先給音符數 N（N≤5000），再給 N 個音高，N=0 結束。主題可整體移調，因此比較相鄰音高差；求兩次互不重疊的最長相同旋律（以音符數計）。若答案少於 5 個音符輸出 0，否則輸出最大長度。",
+    "hints": [
+      "把音高改成長 N-1 的差分序列，移調後相同等價於差分相同。",
+      "二分差分長度 L；在後綴陣列中掃 LCP≥L 的群組，若最大與最小起點距離大於 L 即不重疊。"
+    ],
+    "analysis": "差分中長 L 的相同片段對應 L+1 個音符。對固定 L，SA 中 LCP≥L 的連續後綴形成同前綴群組；群內起點最大差大於 L 等價於兩個差分區間互不重疊。此判定單調，二分最大 L，最後若 L+1≥5 輸出 L+1。建 SA O(N log²N)，每次判定 O(N)，總 O(N log²N)，空間 O(N)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct SuffixArray {\n    vector<int> sa, rank, lcp;\n    void build(const vector<int>& sequence) {\n        // TODO: Coordinate-compress, doubling-sort suffixes, then build LCP.\n    }\n};\nbool feasibleLength(const SuffixArray& data, int length, int requirement) {\n    // TODO: Check the relevant LCP groups/window and overlap condition.\n    return false;\n}\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete 洛谷-P2743 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int N;while(cin>>N&&N){vector<int>x(N);for(int&i:x)cin>>i;if(N<2){cout<<0<<\"\\n\";continue;}int n=N-1;vector<int>a(n),sa(n),r(n),nr(n);for(int i=0;i<n;i++)a[i]=x[i+1]-x[i],sa[i]=i;vector<int>v=a;sort(v.begin(),v.end());v.erase(unique(v.begin(),v.end()),v.end());for(int i=0;i<n;i++)r[i]=lower_bound(v.begin(),v.end(),a[i])-v.begin();\n for(int w=1;;w*=2){sort(sa.begin(),sa.end(),[&](int i,int j){return pair(r[i],i+w<n?r[i+w]:-1)<pair(r[j],j+w<n?r[j+w]:-1);});nr[sa[0]]=0;for(int i=1;i<n;i++)nr[sa[i]]=nr[sa[i-1]]+(pair(r[sa[i-1]],sa[i-1]+w<n?r[sa[i-1]+w]:-1)<pair(r[sa[i]],sa[i]+w<n?r[sa[i]+w]:-1));r=nr;if(r[sa.back()]==n-1)break;}\n vector<int>p(n),h(n);for(int i=0;i<n;i++)p[sa[i]]=i;for(int i=0,z=0;i<n;i++){if(p[i]){int j=sa[p[i]-1];while(i+z<n&&j+z<n&&a[i+z]==a[j+z])z++;h[p[i]]=z;if(z)z--;}}\n auto ok=[&](int L){int mn=sa[0],mx=sa[0];for(int i=1;i<n;i++){if(h[i]>=L)mn=min(mn,sa[i]),mx=max(mx,sa[i]);else mn=mx=sa[i];if(mx-mn>L)return true;}return false;};int l=0,rn=n;while(l<rn){int mid=(l+rn+1)/2;if(ok(mid))l=mid;else rn=mid-1;}cout<<(l+1>=5?l+1:0)<<\"\\n\";}}"
+  },
+  {
+    "id": "hdu-2586",
+    "title": "How far away ？",
+    "origin": "HDU-2586",
+    "originalUrl": "https://vjudge.net/problem/HDU-2586",
+    "moduleId": "advanced-tree-operations",
+    "section": "3.1 樹鏈剖分／訓練1 樹上距離",
+    "summary": "第一行 T。每組給 n、m，接著 n-1 條無向帶權邊，再給 m 個節點對；對每對輸出樹上唯一路徑的權重和。n、m≤40000，邊權≤1000。",
+    "hints": [
+      "從任意根 DFS，記錄每點深度、根到點距離與 2^j 級祖先。",
+      "答案為 dist[u]+dist[v]-2*dist[LCA(u,v)]。"
+    ],
+    "analysis": "樹上 u-v 路徑由 u 到 LCA 與 LCA 到 v 組成，根距離公式扣除共同前綴兩次後恰得路徑長。倍增先把較深點抬平，再由高位同時上跳得到 LCA。預處理 O(n log n)，每問 O(log n)，空間 O(n log n)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct LCA {\n    vector<vector<pair<int,int>>> graph;\n    vector<vector<int>> up; vector<int> depth; vector<long long> rootDistance;\n    void build(int root) { /* TODO: Traverse the tree and fill the binary-lifting table. */ }\n    int query(int u, int v) const { /* TODO: Lift nodes to their lowest common ancestor. */ return 0; }\n    long long distance(int u, int v) const { /* TODO: Use root distances and query(u,v). */ return 0; }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete HDU-2586 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int T;cin>>T;while(T--){int n,m;cin>>n>>m;int L=__lg(n)+1;vector<vector<pair<int,int>>>g(n+1);for(int i=1,u,v,w;i<n;i++)cin>>u>>v>>w,g[u].push_back({v,w}),g[v].push_back({u,w});vector<vector<int>>up(L,vector<int>(n+1));vector<int>d(n+1);vector<long long>ds(n+1);queue<int>q;q.push(1);d[1]=1;while(q.size()){int u=q.front();q.pop();for(auto[v,w]:g[u])if(v!=up[0][u])up[0][v]=u,d[v]=d[u]+1,ds[v]=ds[u]+w,q.push(v);}for(int j=1;j<L;j++)for(int i=1;i<=n;i++)up[j][i]=up[j-1][up[j-1][i]];auto lca=[&](int a,int b){if(d[a]<d[b])swap(a,b);int z=d[a]-d[b];for(int j=0;j<L;j++)if(z>>j&1)a=up[j][a];if(a==b)return a;for(int j=L-1;j>=0;j--)if(up[j][a]!=up[j][b])a=up[j][a],b=up[j][b];return up[0][a];};while(m--){int u,v;cin>>u>>v;int p=lca(u,v);cout<<ds[u]+ds[v]-2*ds[p]<<\"\\n\";}}}"
+  },
+  {
+    "id": "poj-3237",
+    "title": "Tree",
+    "origin": "POJ-3237",
+    "originalUrl": "https://vjudge.net/problem/POJ-3237",
+    "moduleId": "advanced-tree-operations",
+    "section": "3.1 樹鏈剖分／訓練2 樹上操作",
+    "summary": "第一行測試組數 T。每組給 n 與依輸入順序編號的 n-1 條帶權邊，之後處理命令直到 `DONE`：`QUERY a b` 輸出路徑最大邊權，`CHANGE i w` 修改第 i 條邊，`NEGATE a b` 將路徑每條邊權取負。",
+    "hints": [
+      "把每條邊的權放在其較深端節點，重鏈剖分後路徑成 O(log n) 個陣列區間。",
+      "線段樹同時維護最大、最小；取負時 newMax=-oldMin、newMin=-oldMax。"
+    ],
+    "analysis": "HLD 保證每段連續位置對應一條祖先鏈，拆出的區間互斥且聯集恰為路徑邊（最後同鏈時排除 LCA 自身）。線段樹的 max/min 交換取負公式逐值成立，懶標記可合成。預處理 O(n)，每個命令 O(log²n)，空間 O(n)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct SegmentTree {\n    struct Node { int maximum = 0, minimum = 0; bool negate = false; };\n    vector<Node> tree;\n    void pointAssign(int index, int value) { /* TODO: Update one edge value. */ }\n    void rangeNegate(int left, int right) { /* TODO: Swap/negate min and max lazily. */ }\n    int rangeMaximum(int left, int right) { /* TODO: Query a segment maximum. */ return 0; }\n};\nstruct HeavyLightDecomposition {\n    vector<int> parent, depth, size, heavy, head, position; SegmentTree segmentTree;\n    void build(int root) { /* TODO: Run the two HLD traversals. */ }\n    int queryPath(int u, int v) { /* TODO: Split the edge path into heavy segments. */ return 0; }\n    void negatePath(int u, int v) { /* TODO: Negate every heavy segment on the path. */ }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete POJ-3237 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;const int INF=1e9;\nstruct Seg{int n;vector<int>mx,mn,lz;Seg(vector<int>&a):n(a.size()-1),mx(4*n),mn(4*n),lz(4*n){function<void(int,int,int)>b=[&](int p,int l,int r){if(l==r){mx[p]=mn[p]=a[l];return;}int m=(l+r)/2;b(p*2,l,m);b(p*2+1,m+1,r);mx[p]=max(mx[p*2],mx[p*2+1]);mn[p]=min(mn[p*2],mn[p*2+1]);};b(1,1,n);}void flip(int p){int a=mx[p];mx[p]=-mn[p];mn[p]=-a;lz[p]^=1;}void push(int p){if(lz[p])flip(p*2),flip(p*2+1),lz[p]=0;}void upd(int p,int l,int r,int L,int R){if(L<=l&&r<=R){flip(p);return;}push(p);int m=(l+r)/2;if(L<=m)upd(p*2,l,m,L,R);if(R>m)upd(p*2+1,m+1,r,L,R);mx[p]=max(mx[p*2],mx[p*2+1]);mn[p]=min(mn[p*2],mn[p*2+1]);}void setv(int p,int l,int r,int x,int v){if(l==r){mx[p]=mn[p]=v;return;}push(p);int m=(l+r)/2;x<=m?setv(p*2,l,m,x,v):setv(p*2+1,m+1,r,x,v);mx[p]=max(mx[p*2],mx[p*2+1]);mn[p]=min(mn[p*2],mn[p*2+1]);}int qry(int p,int l,int r,int L,int R){if(L<=l&&r<=R)return mx[p];push(p);int m=(l+r)/2,z=-INF;if(L<=m)z=max(z,qry(p*2,l,m,L,R));if(R>m)z=max(z,qry(p*2+1,m+1,r,L,R));return z;}};\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int T;cin>>T;while(T--){int n;cin>>n;vector<vector<pair<int,int>>>g(n+1);vector<int>eu(n),ev(n),ew(n);for(int i=1;i<n;i++)cin>>eu[i]>>ev[i]>>ew[i],g[eu[i]].push_back({ev[i],i}),g[ev[i]].push_back({eu[i],i});vector<int>fa(n+1),dep(n+1),sz(n+1),son(n+1),top(n+1),pos(n+1),at(n),val(n+1);function<void(int)>d1=[&](int u){sz[u]=1;for(auto[v,id]:g[u])if(v!=fa[u])fa[v]=u,dep[v]=dep[u]+1,val[v]=ew[id],d1(v),sz[u]+=sz[v],son[u]=!son[u]||sz[v]>sz[son[u]]?v:son[u];};int tim=0;function<void(int,int)>d2=[&](int u,int t){top[u]=t;pos[u]=++tim;at[tim]=u;if(son[u])d2(son[u],t);for(auto[v,id]:g[u])if(v!=fa[u]&&v!=son[u])d2(v,v);};dep[1]=1;d1(1);d2(1,1);vector<int>a(n+1);for(int i=1;i<=n;i++)a[pos[i]]=val[i];Seg st(a);auto path=[&](int u,int v,bool neg){int ans=-INF;while(top[u]!=top[v]){if(dep[top[u]]<dep[top[v]])swap(u,v);if(neg)st.upd(1,1,n,pos[top[u]],pos[u]);else ans=max(ans,st.qry(1,1,n,pos[top[u]],pos[u]));u=fa[top[u]];}if(dep[u]>dep[v])swap(u,v);if(pos[u]<pos[v]){if(neg)st.upd(1,1,n,pos[u]+1,pos[v]);else ans=max(ans,st.qry(1,1,n,pos[u]+1,pos[v]));}return ans;};string op;while(cin>>op&&op!=\"DONE\"){int x,y;cin>>x>>y;if(op[0]=='Q')cout<<path(x,y,0)<<\"\\n\";else if(op[0]=='N')path(x,y,1);else{int node=dep[eu[x]]>dep[ev[x]]?eu[x]:ev[x];st.setv(1,1,n,pos[node],y);}}}}"
+  },
+  {
+    "id": "poj-1741",
+    "title": "Tree",
+    "origin": "POJ-1741",
+    "originalUrl": "https://vjudge.net/problem/POJ-1741",
+    "moduleId": "advanced-tree-operations",
+    "section": "3.2 點分治／訓練1 樹上兩節點路徑數；3.3 邊分治／訓練2 樹上兩節點路徑數",
+    "summary": "多組帶權樹；每組首行 n、K，接 n-1 條邊，`0 0` 結束。計算無序節點對 (u,v)，u≠v，且路徑權重和不超過 K 的對數，輸出一行。n≤10000，邊權為正。",
+    "hints": [
+      "對一組距離排序後，用雙指標計算和≤K 的配對數。",
+      "在每個重心計入所有經重心的配對，再減去端點同在某個子樹的配對，遞迴處理各子樹。"
+    ],
+    "analysis": "每對節點在重心分治樹中第一次被分到不同分量的重心處唯一計入。`count(all distances)` 計入經重心或同子樹的候選，逐子樹相減去除後者，故只剩路徑經重心者；遞迴補上未經者。每層距離收集與排序 O(s log s)，深度 O(log n)，總 O(n log²n)，空間 O(n)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct CentroidDecomposition {\n    vector<vector<pair<int,int>>> graph; vector<int> subtreeSize; vector<bool> removed; long long answer = 0; int limit = 0;\n    int findCentroid(int start) { /* TODO: Compute sizes and locate the centroid. */ return start; }\n    void collectDistances(int node, int parent, int distance, vector<int>& out) { /* TODO: Collect active-component distances. */ }\n    long long countPairs(vector<int> distances) const { /* TODO: Sort and use two pointers. */ return 0; }\n    void decompose(int start) { /* TODO: Inclusion-exclusion at the centroid, then recurse. */ }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete POJ-1741 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;using ll=long long;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,K;while(cin>>n>>K&&(n||K)){vector<vector<pair<int,int>>>g(n);for(int i=1,u,v,w;i<n;i++)cin>>u>>v>>w,--u,--v,g[u].push_back({v,w}),g[v].push_back({u,w});vector<int>sz(n);vector<char>dead(n);ll ans=0;function<int(int,int)>gs=[&](int u,int p){sz[u]=1;for(auto[v,w]:g[u])if(v!=p&&!dead[v])sz[u]+=gs(v,u);return sz[u];};function<int(int,int,int)>gc=[&](int u,int p,int s){for(auto[v,w]:g[u])if(v!=p&&!dead[v]&&sz[v]>s/2)return gc(v,u,s);return u;};function<void(int,int,int,vector<int>&)>col=[&](int u,int p,int d,vector<int>&v){v.push_back(d);for(auto[x,w]:g[u])if(x!=p&&!dead[x])col(x,u,d+w,v);};auto cnt=[&](vector<int>v){sort(v.begin(),v.end());ll z=0;for(int l=0,r=v.size()-1;l<r;)if(v[l]+v[r]<=K)z+=r-l,l++;else r--;return z;};function<void(int)>solve=[&](int s){int c=gc(s,-1,gs(s,-1));dead[c]=1;vector<int>all{0};for(auto[v,w]:g[c])if(!dead[v]){vector<int>x;col(v,c,w,x);ans-=cnt(x);all.insert(all.end(),x.begin(),x.end());}ans+=cnt(all);for(auto[v,w]:g[c])if(!dead[v])solve(v);};solve(0);cout<<ans<<\"\\n\";}}"
+  },
+  {
+    "id": "poj-2114",
+    "title": "Boatherds",
+    "origin": "POJ-2114",
+    "originalUrl": "https://vjudge.net/problem/POJ-2114",
+    "moduleId": "advanced-tree-operations",
+    "section": "3.2 點分治／訓練2 遊船之旅",
+    "summary": "多組有根描述的帶權樹。先讀 N；接 N 行，第 i 行是若干 `(子村編號,費用)`，以 0 結束。再讀至多 100 個目標費用，每個一行，以 0 結束；N=0 結束全部輸入。每個目標若存在兩個不同村莊的路徑費用恰等於它，輸出 `AYE`，否則 `NAY`；每組末尾輸出單獨一個 `.`。N≤10000。",
+    "hints": [
+      "可對每個詢問獨立跑點分治；收集一個重心各子樹到重心的距離。",
+      "依序處理子樹，用 hash set 保存先前子樹距離；若 K-d 已存在，就找到跨子樹路徑。"
+    ],
+    "analysis": "在某重心，seen 初含 0；處理一個子樹時先查再加入，故命中的兩端必在不同子樹或一端為重心，路徑恰經重心。任何節點對在分治層級中第一次分離時會被檢查，因此無漏解；找到即可停止。每個詢問 O(n log n) 期望時間、O(n) 空間。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct CentroidDistanceOracle {\n    vector<vector<pair<int,int>>> graph; vector<int> subtreeSize; vector<bool> removed; int target = 0;\n    int findCentroid(int start) { /* TODO: Find the active component centroid. */ return start; }\n    void collect(int node, int parent, int distance, vector<int>& values) { /* TODO: Collect distances no greater than target. */ }\n    bool existsThroughCentroid(int centroid) { /* TODO: Match target-distance across different branches. */ return false; }\n    bool decompose(int start) { /* TODO: Search recursively and stop after a match. */ return false; }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete POJ-2114 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n;while(cin>>n&&n){vector<vector<pair<int,int>>>g(n);for(int i=0;i<n;i++){int v,w;while(cin>>v&&v){cin>>w;--v;g[i].push_back({v,w});g[v].push_back({i,w});}}int K;while(cin>>K&&K){vector<int>sz(n);vector<char>dead(n);bool ok=0;function<int(int,int)>gs=[&](int u,int p){sz[u]=1;for(auto[v,w]:g[u])if(v!=p&&!dead[v])sz[u]+=gs(v,u);return sz[u];};function<int(int,int,int)>gc=[&](int u,int p,int s){for(auto[v,w]:g[u])if(v!=p&&!dead[v]&&sz[v]>s/2)return gc(v,u,s);return u;};function<void(int,int,int,vector<int>&)>col=[&](int u,int p,int d,vector<int>&a){if(d>K)return;a.push_back(d);for(auto[v,w]:g[u])if(v!=p&&!dead[v])col(v,u,d+w,a);};function<void(int)>sol=[&](int s){if(ok)return;int c=gc(s,-1,gs(s,-1));dead[c]=1;unordered_set<int>seen{0};for(auto[v,w]:g[c])if(!dead[v]){vector<int>a;col(v,c,w,a);for(int d:a)if(seen.count(K-d)){ok=1;return;}for(int d:a)seen.insert(d);}for(auto[v,w]:g[c])if(!dead[v])sol(v);};sol(0);cout<<(ok?\"AYE\\n\":\"NAY\\n\");}cout<<\".\\n\";}}"
+  },
+  {
+    "id": "spoj-qtree4",
+    "title": "Query on a tree IV",
+    "origin": "SPOJ-QTREE4",
+    "originalUrl": "https://vjudge.net/problem/SPOJ-QTREE4",
+    "moduleId": "advanced-tree-operations",
+    "section": "3.3 邊分治／訓練1 樹上查詢",
+    "summary": "給一棵最多 10^5 點的帶權樹，邊權可為負。所有點起初為白色。Q 個操作：`C a` 反轉節點顏色；`A` 詢問兩個白點間最大路徑和（允許同一點，故有白點時答案至少 0）。沒有白點時必須輸出 `They have disappeared.`。",
+    "hints": [
+      "建立重心分治；每個點保存到每層重心的距離及它屬於該重心的哪個分支。",
+      "每個重心對每個分支維護白點距離最大值；跨兩個不同分支的兩個最大值之和是經該重心的最佳路徑，再以全域 multiset 維護答案。"
+    ],
+    "analysis": "任意兩點的路徑會經過它們在重心樹上首次分離的重心，且兩點屬不同分支；反之不同分支距離和就是該路徑長。因此每個重心取不同分支的前兩大值，再對所有重心取最大可涵蓋所有白點對；單一白點由 0 候選處理。切色沿 O(log n) 個祖先更新 multiset，總 O(log²n) 每次，建構 O(n log n)，空間 O(n log n)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct AncestorRecord { int centroid = 0, branch = 0; long long distance = 0; };\nstruct DynamicWhiteDiameter {\n    vector<vector<AncestorRecord>> ancestors; vector<vector<multiset<long long>>> branchDistances;\n    vector<multiset<long long>> branchMaximums; multiset<long long> candidates; vector<bool> white;\n    void buildCentroidTree() { /* TODO: Record each node's distance and branch at every centroid ancestor. */ }\n    void toggle(int node) { /* TODO: Update branch maxima and the global candidate multiset. */ }\n    optional<long long> query() const { /* TODO: Return the best white-pair distance, or nullopt. */ return nullopt; }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete SPOJ-QTREE4 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;using ll=long long;const ll NEG=-(1LL<<60);\nstruct Rec{int c,b;ll d;};\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n;cin>>n;vector<vector<pair<int,int>>>g(n);for(int i=1,u,v,w;i<n;i++)cin>>u>>v>>w,--u,--v,g[u].push_back({v,w}),g[v].push_back({u,w});vector<int>sz(n);vector<char>dead(n);vector<vector<Rec>>rec(n);vector<vector<multiset<ll>>>bag(n);\n function<int(int,int)>gs=[&](int u,int p){sz[u]=1;for(auto[v,w]:g[u])if(v!=p&&!dead[v])sz[u]+=gs(v,u);return sz[u];};function<int(int,int,int)>gc=[&](int u,int p,int s){for(auto[v,w]:g[u])if(v!=p&&!dead[v]&&sz[v]>s/2)return gc(v,u,s);return u;};function<void(int,int,ll,int,int)>col=[&](int u,int p,ll d,int c,int b){rec[u].push_back({c,b,d});for(auto[v,w]:g[u])if(v!=p&&!dead[v])col(v,u,d+w,c,b);};function<void(int)>dec=[&](int s){int c=gc(s,-1,gs(s,-1));dead[c]=1;rec[c].push_back({c,0,0});bag[c].resize(1);int b=0;for(auto[v,w]:g[c])if(!dead[v]){bag[c].resize(++b+1);col(v,c,w,c,b);}for(auto[v,w]:g[c])if(!dead[v])dec(v);};dec(0);\n vector<multiset<ll>>tops(n);vector<ll>cand(n,NEG);multiset<ll>global;auto calc=[&](int c){if(tops[c].size()<2)return NEG;auto it=tops[c].end();ll a=*--it,b=*--it;return max(0LL,a+b);};auto touch=[&](int c,int b,ll d,bool add){if(cand[c]!=NEG)global.erase(global.find(cand[c]));if(!bag[c][b].empty())tops[c].erase(tops[c].find(*bag[c][b].rbegin()));if(add)bag[c][b].insert(d);else bag[c][b].erase(bag[c][b].find(d));if(!bag[c][b].empty())tops[c].insert(*bag[c][b].rbegin());cand[c]=calc(c);if(cand[c]!=NEG)global.insert(cand[c]);};vector<char>white(n,1);for(int u=0;u<n;u++)for(auto z:rec[u])touch(z.c,z.b,z.d,1);int whiteCnt=n,Q;cin>>Q;while(Q--){char op;cin>>op;if(op=='A'){if(!whiteCnt)cout<<\"They have disappeared.\\n\";else if(whiteCnt==1)cout<<\"0\\n\";else cout<<max(0LL,*global.rbegin())<<\"\\n\";}else{int u;cin>>u;--u;for(auto z:rec[u])touch(z.c,z.b,z.d,!white[u]);whiteCnt+=white[u]?-1:1;white[u]^=1;}}}"
+  },
+  {
+    "id": "hdu-2966",
+    "title": "In case of failure",
+    "origin": "HDU-2966",
+    "originalUrl": "https://vjudge.net/problem/HDU-2966",
+    "moduleId": "advanced-complex-trees",
+    "section": "4.1 KD 樹／訓練1 最近的取款機",
+    "summary": "第一行測試組數 T（≤15）。每組給 n 個互異二維整數點（2≤n≤10^5，座標 0..10^9）；依原輸入順序，對每個點輸出它到其他點的最小歐氏距離平方。",
+    "hints": [
+      "以 x、y 維度交替取中位數建立 KD 樹，保留原點編號。",
+      "查詢先走與目標同側子樹；只有到切割平面的平方距離不大於目前答案時才走另一側，並排除同編號。"
+    ],
+    "analysis": "KD 樹節點按切割維度分隔兩側；近側必須搜尋，遠側中任一點到查詢點的距離至少為到切割平面的距離，故該下界已大於答案時安全剪枝。每個被訪節點都直接比較且排除自身，所以所得最小值正確。建樹期望 O(n log n)，單問平均 O(sqrt n)、最壞 O(n)，空間 O(n)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct Point { long long coordinate[2]{}; int id = -1; };\nstruct KDTree {\n    vector<Point> points;\n    void build(int left, int right, int dimension) { /* TODO: Place the median and recurse by alternating dimension. */ }\n    void nearest(int left, int right, int dimension, const Point& query, long long& best) const { /* TODO: Search near side, then prune/test far side. */ }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete HDU-2966 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;using ll=long long;struct P{ll x[2];int id;};\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int T;cin>>T;while(T--){int n;cin>>n;vector<P>a(n),orig(n);for(int i=0;i<n;i++)cin>>a[i].x[0]>>a[i].x[1],a[i].id=i,orig[i]=a[i];function<void(int,int,int)>build=[&](int l,int r,int d){if(l>=r)return;int m=(l+r)/2;nth_element(a.begin()+l,a.begin()+m,a.begin()+r,[&](P&A,P&B){return A.x[d]<B.x[d];});build(l,m,d^1);build(m+1,r,d^1);};build(0,n,0);for(P q:orig){ll ans=LLONG_MAX;function<void(int,int,int)>qry=[&](int l,int r,int d){if(l>=r)return;int m=(l+r)/2;ll dx=q.x[0]-a[m].x[0],dy=q.x[1]-a[m].x[1],z=dx*dx+dy*dy;if(q.id!=a[m].id)ans=min(ans,z);ll cut=q.x[d]-a[m].x[d];if(cut<=0){qry(l,m,d^1);if(cut*cut<=ans)qry(m+1,r,d^1);}else{qry(m+1,r,d^1);if(cut*cut<=ans)qry(l,m,d^1);}};qry(0,n,0);cout<<ans<<\"\\n\";}}}"
+  },
+  {
+    "id": "hdu-4347",
+    "title": "The Closest M Points",
+    "origin": "HDU-4347",
+    "originalUrl": "https://vjudge.net/problem/HDU-4347",
+    "moduleId": "advanced-complex-trees",
+    "section": "4.1 KD 樹／訓練2 最近鄰 m 點",
+    "summary": "多組資料直到 EOF。每組給點數 n、維度 K（n≤50000、K≤5）及 n 個 K 維點；再給 t 次詢問，每次給查詢點與 m（m≤10）。輸出 `the closest m points are:`，再依距離由近至遠輸出 m 個點。保證前 m+1 名距離互異，答案唯一。",
+    "hints": [
+      "KD 樹以深度 mod K 的維度切分。",
+      "用最大堆保留目前 m 個最近點；若堆未滿或切割平面距離不大於堆頂，再搜尋遠側。"
+    ],
+    "analysis": "最大堆不變地保留已訪點中距離最小的 m 個。遠側所有點距離至少為切割維座標差平方，若此下界大於目前第 m 小距離便不可能改善答案；否則遞迴。因此無誤剪枝，最後反轉最大堆即由近到遠。建樹 O(n log n) 期望；每問平均 O(m log n)，最壞 O(n log m)，空間 O(n)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct Point { array<int,5> coordinate{}; };\nstruct KDTree {\n    int dimensions = 0; vector<Point> points;\n    void build(int left, int right, int dimension) { /* TODO: Median-partition this K-dimensional range. */ }\n    void nearestM(int left, int right, int dimension, const Point& query, int m, priority_queue<pair<long long,int>>& best) const { /* TODO: Maintain the m nearest points with bounding-plane pruning. */ }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete HDU-4347 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;using ll=long long;struct P{array<int,5>x;};\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,K;while(cin>>n>>K){vector<P>a(n);for(auto&z:a)for(int j=0;j<K;j++)cin>>z.x[j];function<void(int,int,int)>build=[&](int l,int r,int d){if(l>=r)return;int m=(l+r)/2;nth_element(a.begin()+l,a.begin()+m,a.begin()+r,[&](P&A,P&B){return A.x[d]<B.x[d];});build(l,m,(d+1)%K);build(m+1,r,(d+1)%K);};build(0,n,0);int T;cin>>T;while(T--){P q;for(int j=0;j<K;j++)cin>>q.x[j];int M;cin>>M;priority_queue<pair<ll,int>>pq;auto dist=[&](P&p){ll s=0;for(int j=0;j<K;j++){ll d=q.x[j]-p.x[j];s+=d*d;}return s;};function<void(int,int,int)>ask=[&](int l,int r,int d){if(l>=r)return;int m=(l+r)/2;ll z=dist(a[m]);if((int)pq.size()<M)pq.push({z,m});else if(z<pq.top().first)pq.pop(),pq.push({z,m});ll cut=(ll)q.x[d]-a[m].x[d];if(cut<=0){ask(l,m,(d+1)%K);if((int)pq.size()<M||cut*cut<pq.top().first)ask(m+1,r,(d+1)%K);}else{ask(m+1,r,(d+1)%K);if((int)pq.size()<M||cut*cut<pq.top().first)ask(l,m,(d+1)%K);}};ask(0,n,0);vector<int>ans;while(pq.size())ans.push_back(pq.top().second),pq.pop();reverse(ans.begin(),ans.end());cout<<\"the closest \"<<M<<\" points are:\\n\";for(int id:ans){for(int j=0;j<K;j++)cout<<a[id].x[j]<<(j+1==K?'\\n':' ');}}}}"
+  },
+  {
+    "id": "hdu-1512",
+    "title": "Monkey King",
+    "origin": "HDU-1512",
+    "originalUrl": "https://vjudge.net/problem/HDU-1512",
+    "moduleId": "advanced-complex-trees",
+    "section": "4.2 左偏樹／訓練1 猴王",
+    "summary": "多組資料直到 EOF。每組給 N 隻猴子的力量，再給 M 次衝突 x、y。若兩猴已屬同一群輸出 -1；否則各群最強者力量整除 2，再合併兩群，輸出新群最大力量。N、M≤10^5。",
+    "hints": [
+      "每群需要刪最大、重新插入與合併，正是可併堆操作。",
+      "左偏樹根為最大值；取出根、力量減半後分別併回，再合併兩個根。父指標可同時判定群根。"
+    ],
+    "analysis": "左偏樹的 merge 維持根最大與右路徑最短性。每次先將兩根的左右子樹合併，等價刪除最大值，再把減半節點併回，故兩群內容精確更新；最後 merge 得到聯集且根為最大。每次 O(log n) 攤銷，空間 O(n)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct LeftistNode { int left = 0, right = 0, distance = 0, parent = 0, key = 0; };\nstruct MergeableMaxHeap {\n    vector<LeftistNode> node;\n    int findRoot(int x) { /* TODO: Follow/compress heap-parent links. */ return x; }\n    int merge(int a, int b) { /* TODO: Merge two max-leftist heaps. */ return a ? a : b; }\n    int popRoot(int root) { /* TODO: Detach root and merge its children. */ return 0; }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete HDU-1512 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n;while(cin>>n){vector<int>v(n+1),l(n+1),r(n+1),d(n+1),fa(n+1);for(int i=1;i<=n;i++)cin>>v[i],fa[i]=i;function<int(int,int)>merge=[&](int a,int b){if(!a||!b)return a|b;if(v[a]<v[b])swap(a,b);r[a]=merge(r[a],b);if(d[l[a]]<d[r[a]])swap(l[a],r[a]);d[a]=d[r[a]]+1;if(l[a])fa[l[a]]=a;if(r[a])fa[r[a]]=a;return a;};function<int(int)>find=[&](int x){return fa[x]==x?x:fa[x]=find(fa[x]);};auto pop=[&](int x){int z=merge(l[x],r[x]);l[x]=r[x]=d[x]=0;fa[x]=x;if(z)fa[z]=z;return z;};int m;cin>>m;while(m--){int x,y;cin>>x>>y;x=find(x);y=find(y);if(x==y){cout<<-1<<\"\\n\";continue;}int a=pop(x),b=pop(y);v[x]/=2;v[y]/=2;a=merge(a,x);b=merge(b,y);int z=merge(a,b);fa[z]=z;cout<<v[z]<<\"\\n\";}}}"
+  },
+  {
+    "id": "luogu-p3377",
+    "title": "可并堆 1",
+    "origin": "洛谷-P3377",
+    "originalUrl": "https://vjudge.net/problem/洛谷-P3377",
+    "moduleId": "advanced-complex-trees",
+    "section": "4.2 左偏樹／訓練2 小根堆",
+    "summary": "給 n 個初始鍵值與 m 個操作。`1 x y`：若 x、y 均未刪除且不在同一堆，合併兩堆；`2 x`：若 x 已刪輸出 -1，否則輸出 x 所在堆的最小鍵並刪除該節點。鍵相同時編號小者優先。",
+    "hints": [
+      "左偏樹以 (鍵值,節點編號) 作比較即可處理穩定 tie-break。",
+      "以父指標找堆根；刪根後合併左右子樹並把被刪節點標記。"
+    ],
+    "analysis": "merge 每次選較小 `(key,id)` 為根，遞迴合併右子樹並按 npl 交換孩子，故維持小根堆與左偏性。操作 2 的根正是規定最小元素；刪除後左右堆合併包含所有剩餘節點。每次 O(log n) 攤銷，空間 O(n)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct LeftistNode { int left = 0, right = 0, distance = 0, parent = 0, key = 0; bool deleted = false; };\nstruct MergeableMinHeap {\n    vector<LeftistNode> node;\n    int findRoot(int x) { /* TODO: Find the current heap root. */ return x; }\n    int merge(int a, int b) { /* TODO: Compare (key,id) and preserve the leftist invariant. */ return a ? a : b; }\n    int eraseMinimum(int root) { /* TODO: Mark root deleted and merge its children. */ return 0; }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete 洛谷-P3377 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,m;cin>>n>>m;vector<int>key(n+1),l(n+1),r(n+1),ds(n+1),fa(n+1);vector<char>del(n+1);for(int i=1;i<=n;i++)cin>>key[i],fa[i]=i;function<int(int)>find=[&](int x){return fa[x]==x?x:fa[x]=find(fa[x]);};function<int(int,int)>mg=[&](int a,int b){if(!a||!b)return a|b;if(pair(key[a],a)>pair(key[b],b))swap(a,b);r[a]=mg(r[a],b);if(ds[l[a]]<ds[r[a]])swap(l[a],r[a]);ds[a]=ds[r[a]]+1;if(l[a])fa[l[a]]=a;if(r[a])fa[r[a]]=a;return a;};while(m--){int op,x,y;cin>>op>>x;if(op==1){cin>>y;if(del[x]||del[y])continue;x=find(x);y=find(y);if(x!=y){int z=mg(x,y);fa[z]=z;}}else{if(del[x]){cout<<-1<<\"\\n\";continue;}x=find(x);cout<<key[x]<<\"\\n\";del[x]=1;int z=mg(l[x],r[x]);if(z)fa[z]=z;fa[x]=z?z:x;}}}"
+  },
+  {
+    "id": "luogu-p3690",
+    "title": "动态树（LCT）",
+    "origin": "洛谷-P3690",
+    "originalUrl": "https://vjudge.net/problem/洛谷-P3690",
+    "moduleId": "advanced-complex-trees",
+    "section": "4.3 動態樹／訓練1 動態樹的異或和",
+    "summary": "給 n、m、每點權值及 m 個操作：`0 x y` 查路徑點權 XOR；`1 x y` 若不連通則加邊；`2 x y` 若邊存在則刪邊；`3 x y` 把點 x 權改為 y。保證初始為 n 個孤點，操作按題意合法或需忽略。n,m≤10^5。",
+    "hints": [
+      "Link-Cut Tree 的 access+makeroot 能把任意樹路徑變成一棵輔助 Splay。",
+      "每個 Splay 維護子樹 XOR；split(x,y) 後 y 的聚合值就是路徑 XOR。"
+    ],
+    "analysis": "LCT 維護偏好路徑而不改變代表森林。makeroot(x);access(y);splay(y) 後 y 的 Splay 中序序列恰為 x-y 路徑，因此其 XOR 正確。findroot 判連通；link/cut 只在條件成立時改虛邊。每操作攤銷 O(log n)，空間 O(n)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct LinkCutTree {\n    struct Node { int child[2]{}, parent = 0, value = 0, aggregate = 0; bool reversed = false; }; vector<Node> node;\n    bool isAuxRoot(int x) const { /* TODO: Test whether x is a splay root. */ return true; }\n    void push(int x) { /* TODO: Propagate path reversal. */ } void pull(int x) { /* TODO: Recompute XOR aggregate. */ }\n    void rotate(int x) { /* TODO: Rotate in the auxiliary splay. */ } void splay(int x) { /* TODO: Push ancestors and splay x. */ }\n    void access(int x) { /* TODO: Expose the preferred path. */ } void makeRoot(int x) { /* TODO: Expose and reverse. */ }\n    int findRoot(int x) { /* TODO: Return represented-tree root. */ return x; } void split(int x,int y) { /* TODO: Expose x-y at y. */ }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete 洛谷-P3690 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;\nstruct LCT{vector<array<int,2>>c;vector<int>f,v,s;vector<char>rv;LCT(int n):c(n+1),f(n+1),v(n+1),s(n+1),rv(n+1){}bool root(int x){return !f[x]||(c[f[x]][0]!=x&&c[f[x]][1]!=x);}void pull(int x){s[x]=s[c[x][0]]^s[c[x][1]]^v[x];}void rev(int x){if(x)swap(c[x][0],c[x][1]),rv[x]^=1;}void push(int x){if(rv[x])rev(c[x][0]),rev(c[x][1]),rv[x]=0;}void rot(int x){int y=f[x],z=f[y],k=c[y][1]==x,w=c[x][!k];if(!root(y))c[z][c[z][1]==y]=x;f[x]=z;c[x][!k]=y;f[y]=x;c[y][k]=w;if(w)f[w]=y;pull(y);pull(x);}void splay(int x){vector<int>a{x};for(int y=x;!root(y);)a.push_back(y=f[y]);while(a.size())push(a.back()),a.pop_back();while(!root(x)){int y=f[x],z=f[y];if(!root(y))rot((c[y][1]==x)==(c[z][1]==y)?y:x);rot(x);}}void access(int x){for(int y=0;x;x=f[y=x])splay(x),c[x][1]=y,pull(x);}void makeroot(int x){access(x);splay(x);rev(x);}int findroot(int x){access(x);splay(x);push(x);while(c[x][0])x=c[x][0],push(x);splay(x);return x;}void split(int x,int y){makeroot(x);access(y);splay(y);}};\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,m;cin>>n>>m;LCT t(n);for(int i=1;i<=n;i++)cin>>t.v[i],t.s[i]=t.v[i];while(m--){int op,x,y;cin>>op>>x>>y;if(op==0)t.split(x,y),cout<<t.s[y]<<\"\\n\";else if(op==1){t.makeroot(x);if(t.findroot(y)!=x)t.f[x]=y;}else if(op==2){t.makeroot(x);t.access(y);t.splay(y);if(t.c[y][0]==x&&!t.c[x][1])t.c[y][0]=t.f[x]=0,t.pull(y);}else t.splay(x),t.v[x]=y,t.pull(x);}}"
+  },
+  {
+    "id": "hdu-4010",
+    "title": "Query on The Trees",
+    "origin": "HDU-4010",
+    "originalUrl": "https://vjudge.net/problem/HDU-4010",
+    "moduleId": "advanced-complex-trees",
+    "section": "4.3 動態樹／訓練2 動態樹的最值",
+    "summary": "多組直到 EOF。每組給 n、初始 n-1 條邊、n 個點權及 Q 個操作：`1 x y` 只在不連通時連邊；`2 x y` 若連通且 x≠y，先以 x 為根再切掉 y 與其父的邊；`3 w x y` 對連通路徑加 w；`4 x y` 查連通路徑最大點權。任何非法操作輸出 -1；每組輸出後空一行。n,Q≤300000。",
+    "hints": [
+      "LCT 需維護 Splay 子樹最大值與路徑加法 lazy。",
+      "操作 2 的語意正好是 makeroot(x)、access(y)、splay(y)，再切掉 y 的左子樹中最靠近 y 的那條邊。"
+    ],
+    "analysis": "split(x,y) 將路徑暴露為 y 的 Splay，區間加與最大值皆可對根套懶標記。操作 2 暴露 x-y 後，y 的左孩子代表 y 往 x 方向的整段；斷開此孩子即刪 y 與新根方向父節點的邊。findroot 先驗證合法性。各操作攤銷 O(log n)，空間 O(n)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct LinkCutTree {\n    struct Node { int child[2]{}, parent=0, value=0, maximum=0, add=0; bool reversed=false; }; vector<Node> node;\n    void push(int x) { /* TODO: Propagate reverse and path-add tags. */ } void pull(int x) { /* TODO: Recompute path maximum. */ }\n    void splay(int x) { /* TODO: Standard auxiliary-tree splay. */ } void access(int x) { /* TODO: Expose preferred path. */ }\n    void makeRoot(int x) { /* TODO: Reverse the exposed root path. */ } int findRoot(int x) { /* TODO: Find represented-tree root. */ return x; }\n    void split(int x,int y) { /* TODO: Expose x-y for add/query. */ } bool link(int x,int y) { /* TODO: Link only distinct trees. */ return false; }\n    bool cutParentAfterRooting(int x,int y) { /* TODO: Apply operation-2 semantics. */ return false; }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete HDU-4010 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;const int NEG=-1e9;\nstruct L{vector<array<int,2>>c;vector<int>f,v,mx,ad;vector<char>rv;L(int n):c(n+1),f(n+1),v(n+1),mx(n+1,NEG),ad(n+1),rv(n+1){}bool rt(int x){return !f[x]||(c[f[x]][0]!=x&&c[f[x]][1]!=x);}void pull(int x){mx[x]=max(v[x],max(mx[c[x][0]],mx[c[x][1]]));}void add(int x,int z){if(x)v[x]+=z,mx[x]+=z,ad[x]+=z;}void rev(int x){if(x)swap(c[x][0],c[x][1]),rv[x]^=1;}void push(int x){if(rv[x])rev(c[x][0]),rev(c[x][1]),rv[x]=0;if(ad[x])add(c[x][0],ad[x]),add(c[x][1],ad[x]),ad[x]=0;}void rot(int x){int y=f[x],z=f[y],k=c[y][1]==x,w=c[x][!k];if(!rt(y))c[z][c[z][1]==y]=x;f[x]=z;c[x][!k]=y;f[y]=x;c[y][k]=w;if(w)f[w]=y;pull(y);pull(x);}void sp(int x){vector<int>a{x};for(int y=x;!rt(y);)a.push_back(y=f[y]);while(a.size())push(a.back()),a.pop_back();while(!rt(x)){int y=f[x],z=f[y];if(!rt(y))rot((c[y][1]==x)==(c[z][1]==y)?y:x);rot(x);}}void ac(int x){for(int y=0;x;x=f[y=x])sp(x),c[x][1]=y,pull(x);}void mr(int x){ac(x);sp(x);rev(x);}int fr(int x){ac(x);sp(x);push(x);while(c[x][0])x=c[x][0],push(x);sp(x);return x;}void split(int x,int y){mr(x);ac(y);sp(y);}};\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n;while(cin>>n){L t(n);vector<pair<int,int>>e(n-1);for(auto&[x,y]:e)cin>>x>>y;for(int i=1;i<=n;i++)cin>>t.v[i],t.mx[i]=t.v[i];for(auto[x,y]:e)t.mr(x),t.f[x]=y;int q;cin>>q;while(q--){int op,x,y,w;cin>>op;if(op==3)cin>>w>>x>>y;else cin>>x>>y;bool con=t.fr(x)==t.fr(y);if(op==1){if(con)cout<<-1<<\"\\n\";else t.mr(x),t.f[x]=y;}else if(op==2){if(!con||x==y)cout<<-1<<\"\\n\";else{t.mr(x);t.ac(y);t.sp(y);int z=t.c[y][0];t.c[y][0]=0;t.f[z]=0;t.pull(y);}}else if(!con)cout<<-1<<\"\\n\";else if(op==3)t.split(x,y),t.add(y,w);else t.split(x,y),cout<<t.mx[y]<<\"\\n\";}cout<<\"\\n\";}}"
+  },
+  {
+    "id": "luogu-p3380",
+    "title": "树套树",
+    "origin": "洛谷-P3380",
+    "originalUrl": "https://vjudge.net/problem/洛谷-P3380",
+    "moduleId": "advanced-complex-trees",
+    "section": "4.4 樹套樹／訓練1 動態區間問題",
+    "summary": "給長度 n 序列與 m 次操作：1 l r k 求 k 在區間內的排名（小於 k 的數量+1）；2 l r k 求第 k 小；3 pos k 單點修改；4/5 l r k 求嚴格前驅／後繼。值域在 ±10^8，保證前後驅存在；n,m≤50000。",
+    "hints": [
+      "線段樹每個節點保存覆蓋區間的 ordered multiset；區間小於某值的數量可分解後相加。",
+      "第 k 小可在值域二分；前驅、後繼也可由各覆蓋節點的有序容器合併答案。"
+    ],
+    "analysis": "每個元素被存入其根到葉的 O(log n) 個 multiset。查詢區間拆成互斥節點，對各容器 lower_bound 得到的計數相加，恰為整區間計數；排名與值域二分據此正確，第 k 小取最小使 `≤x` 至少 k 的 x。修改沿路刪舊加新。使用 multiset 時每次計數無法 O(log n) 取 order，故解答以 PBDS ordered tree 存 (值,位置)。操作 1/3/4/5 為 O(log²n)，操作 2 為 O(log值域·log²n)，空間 O(n log n)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\n#include <ext/pb_ds/assoc_container.hpp>\n#include <ext/pb_ds/tree_policy.hpp>\nusing namespace __gnu_pbds;\nusing OrderedSet = tree<pair<int,int>, null_type, less<pair<int,int>>, rb_tree_tag, tree_order_statistics_node_update>;\nstruct SegmentTreeOfOrderedSets {\n    vector<OrderedSet> tree; vector<int> value;\n    void assign(int position, int newValue) { /* TODO: Erase/insert along the segment-tree path. */ }\n    int countLess(int left,int right,int key) const { /* TODO: Sum order_of_key over covering nodes. */ return 0; }\n    int kth(int left,int right,int k) const { /* TODO: Binary-search the value domain using countLess. */ return 0; }\n    int predecessor(int left,int right,int key) const { /* TODO: Merge predecessor candidates. */ return 0; }\n    int successor(int left,int right,int key) const { /* TODO: Merge successor candidates. */ return 0; }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete 洛谷-P3380 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\n#include <ext/pb_ds/assoc_container.hpp>\n#include <ext/pb_ds/tree_policy.hpp>\nusing namespace std;using namespace __gnu_pbds;using O=tree<pair<int,int>,null_type,less<pair<int,int>>,rb_tree_tag,tree_order_statistics_node_update>;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,m;cin>>n>>m;vector<int>a(n+1);vector<O>st(4*n);function<void(int,int,int,int,int,bool)>chg=[&](int p,int l,int r,int x,int v,bool in){if(in)st[p].insert({v,x});else st[p].erase({v,x});if(l<r){int z=(l+r)/2;x<=z?chg(p*2,l,z,x,v,in):chg(p*2+1,z+1,r,x,v,in);}};for(int i=1;i<=n;i++)cin>>a[i],chg(1,1,n,i,a[i],1);function<int(int,int,int,int,int,int)>cnt=[&](int p,int l,int r,int L,int R,int v){if(L<=l&&r<=R)return (int)st[p].order_of_key({v,INT_MIN});int z=(l+r)/2,s=0;if(L<=z)s+=cnt(p*2,l,z,L,R,v);if(R>z)s+=cnt(p*2+1,z+1,r,L,R,v);return s;};function<int(int,int,int,int,int,int)>pre=[&](int p,int l,int r,int L,int R,int v){if(L<=l&&r<=R){auto it=st[p].lower_bound({v,INT_MIN});return it==st[p].begin()?-100000001:(--it)->first;}int z=(l+r)/2,s=-100000001;if(L<=z)s=max(s,pre(p*2,l,z,L,R,v));if(R>z)s=max(s,pre(p*2+1,z+1,r,L,R,v));return s;};function<int(int,int,int,int,int,int)>nxt=[&](int p,int l,int r,int L,int R,int v){if(L<=l&&r<=R){auto it=st[p].upper_bound({v,INT_MAX});return it==st[p].end()?100000001:it->first;}int z=(l+r)/2,s=100000001;if(L<=z)s=min(s,nxt(p*2,l,z,L,R,v));if(R>z)s=min(s,nxt(p*2+1,z+1,r,L,R,v));return s;};while(m--){int op,l,r,k;cin>>op;if(op==3){cin>>l>>k;chg(1,1,n,l,a[l],0);a[l]=k;chg(1,1,n,l,a[l],1);continue;}cin>>l>>r>>k;if(op==1)cout<<cnt(1,1,n,l,r,k)+1<<\"\\n\";else if(op==2){int lo=-100000000,hi=100000000;while(lo<hi){int z=lo+(hi-lo)/2;if(cnt(1,1,n,l,r,z+1)>=k)hi=z;else lo=z+1;}cout<<lo<<\"\\n\";}else if(op==4)cout<<pre(1,1,n,l,r,k)<<\"\\n\";else cout<<nxt(1,1,n,l,r,k)<<\"\\n\";}}"
+  },
+  {
+    "id": "hdu-4819",
+    "title": "Mosaic",
+    "origin": "HDU-4819",
+    "originalUrl": "https://vjudge.net/problem/HDU-4819",
+    "moduleId": "advanced-complex-trees",
+    "section": "4.4 樹套樹／訓練2 打馬賽克",
+    "summary": "第一行 T（≤5）。每組給 n×n 色值矩陣（5<n<800）及 Q 次操作（≤10^5）；每次 x,y,L 指以 (x,y) 為中心、邊長 L 的正方形（超出圖邊者截斷），取其中最大 A、最小 B，以 floor((A+B)/2) 覆寫中心並輸出新值。每組先輸出 `Case #t:`。",
+    "hints": [
+      "需要動態二維矩形 min/max 與單點修改。",
+      "用四分樹把矩形同時沿兩維切分；整塊命中直接取節點 min/max，單點更新只走一條根到葉路徑。"
+    ],
+    "analysis": "四分樹節點保存其矩形所有值的 min/max，由四子矩形合併而得；矩形查詢只對有交集節點遞迴，完全包含時直接採用，故每個相關格子被正確涵蓋且不重複。更新沿唯一包含該點的孩子後重新 pull。建構 O(n²)，單點更新 O(log n)，矩形查詢與邊界相交節點數相關，典型 O(sqrt(n²))，空間 O(n²)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct QuadNode { int minimum = INT_MAX, maximum = INT_MIN; int child[4]{}; };\nstruct QuadTree {\n    vector<QuadNode> tree{{}};\n    int build(int x1,int x2,int y1,int y2,const vector<vector<int>>& image) { /* TODO: Split the rectangle into up to four children. */ return 0; }\n    pair<int,int> query(int root,int x1,int x2,int y1,int y2,int qx1,int qx2,int qy1,int qy2) const { /* TODO: Aggregate min/max over intersecting rectangles. */ return {0,0}; }\n    void update(int root,int x1,int x2,int y1,int y2,int x,int y,int value) { /* TODO: Update one leaf and pull ancestors. */ }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete HDU-4819 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;struct N{int a=INT_MAX,b=INT_MIN,ch[4]{};};\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int T;cin>>T;for(int cs=1;cs<=T;cs++){int n;cin>>n;vector<vector<int>>a(n+1,vector<int>(n+1));for(int i=1;i<=n;i++)for(int j=1;j<=n;j++)cin>>a[i][j];vector<N>tr(1);function<int(int,int,int,int)>build=[&](int x1,int x2,int y1,int y2){int p=tr.size();tr.emplace_back();if(x1==x2&&y1==y2){tr[p].a=tr[p].b=a[x1][y1];return p;}int xm=(x1+x2)/2,ym=(y1+y2)/2,z=0;for(int xa:{x1,xm+1})for(int ya:{y1,ym+1}){int xb=xa==x1?xm:x2,yb=ya==y1?ym:y2;if(xa<=xb&&ya<=yb){int q=build(xa,xb,ya,yb);tr[p].ch[z++]=q;tr[p].a=min(tr[p].a,tr[q].a);tr[p].b=max(tr[p].b,tr[q].b);}}return p;};int root=build(1,n,1,n);function<pair<int,int>(int,int,int,int,int,int,int,int,int)>qry=[&](int p,int x1,int x2,int y1,int y2,int X1,int X2,int Y1,int Y2){if(X1<=x1&&x2<=X2&&Y1<=y1&&y2<=Y2)return pair(tr[p].a,tr[p].b);int xm=(x1+x2)/2,ym=(y1+y2)/2,lo=INT_MAX,hi=INT_MIN,z=0;for(int xa:{x1,xm+1})for(int ya:{y1,ym+1}){int xb=xa==x1?xm:x2,yb=ya==y1?ym:y2;if(xa<=xb&&ya<=yb){int c=tr[p].ch[z++];if(max(xa,X1)<=min(xb,X2)&&max(ya,Y1)<=min(yb,Y2)){auto [u,v]=qry(c,xa,xb,ya,yb,X1,X2,Y1,Y2);lo=min(lo,u);hi=max(hi,v);}}}return pair(lo,hi);};function<void(int,int,int,int,int,int,int,int)>upd=[&](int p,int x1,int x2,int y1,int y2,int x,int y,int v){if(x1==x2&&y1==y2){tr[p].a=tr[p].b=v;return;}int xm=(x1+x2)/2,ym=(y1+y2)/2,z=0;for(int xa:{x1,xm+1})for(int ya:{y1,ym+1}){int xb=xa==x1?xm:x2,yb=ya==y1?ym:y2;if(xa<=xb&&ya<=yb){int c=tr[p].ch[z++];if(xa<=x&&x<=xb&&ya<=y&&y<=yb)upd(c,xa,xb,ya,yb,x,y,v);}}tr[p].a=INT_MAX;tr[p].b=INT_MIN;for(int c:tr[p].ch)if(c)tr[p].a=min(tr[p].a,tr[c].a),tr[p].b=max(tr[p].b,tr[c].b);};cout<<\"Case #\"<<cs<<\":\\n\";int Q;cin>>Q;while(Q--){int x,y,L;cin>>x>>y>>L;int d=L/2;auto [lo,hi]=qry(root,1,n,1,n,max(1,x-d),min(n,x+d),max(1,y-d),min(n,y+d));int v=(lo+hi)/2;cout<<v<<\"\\n\";upd(root,1,n,1,n,x,y,v);}}}"
+  },
+  {
+    "id": "hdu-4348",
+    "title": "To the moon",
+    "origin": "HDU-4348",
+    "originalUrl": "https://vjudge.net/problem/HDU-4348",
+    "moduleId": "advanced-persistent-data-structures",
+    "section": "5.1 可持久化線段樹／訓練2 記憶重現",
+    "summary": "多組直到 EOF。每組給 n、m、初始陣列及 m 個操作：`C l r d` 區間加並建立下一時間版本；`Q l r` 查目前版本區間和；`H l r t` 查時間 t 的區間和；`B t` 回退到版本 t，且較新的版本此後不可再存取。n,m≤10^5，答案須 64 位元；每次查詢直接輸出一行。",
+    "hints": [
+      "持久化線段樹每次區間修改只複製被訪問的節點。",
+      "lazy 不必下推：節點 sum 已含自身標記，查詢往下時把祖先標記累加；部分更新 pull 時加回本節點 lazy×區間長。"
+    ],
+    "analysis": "root[t] 完整代表時間 t。更新複製路徑，未觸及子樹沿用舊節點，故歷史不變；全覆蓋直接調 sum/lazy，部分覆蓋後 `sum=left+right+lazy*len` 維持區間和。查詢把祖先 lazy 對交集長度補入，得到該版本真實和。每操作 O(log n)，總空間 O(n+m log n)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct PersistentLazyTree {\n    struct Node { int left=0,right=0; long long sum=0,lazy=0; }; vector<Node> tree{{}}; vector<int> root;\n    int build(int left,int right,const vector<long long>& initial) { /* TODO: Build version zero. */ return 0; }\n    int add(int previous,int left,int right,int ql,int qr,long long delta) { /* TODO: Clone touched nodes and preserve lazy sums. */ return previous; }\n    long long query(int root,int left,int right,int ql,int qr,long long inherited=0) const { /* TODO: Query one historical version. */ return 0; }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete HDU-4348 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;using ll=long long;struct N{int l=0,r=0;ll s=0,z=0;};\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,m;while(cin>>n>>m){vector<ll>a(n+1);for(int i=1;i<=n;i++)cin>>a[i];vector<N>tr(1);function<int(int,int)>build=[&](int l,int r){int p=tr.size();tr.emplace_back();if(l==r){tr[p].s=a[l];return p;}int z=(l+r)/2;tr[p].l=build(l,z);tr[p].r=build(z+1,r);tr[p].s=tr[tr[p].l].s+tr[tr[p].r].s;return p;};vector<int>root(m+2);root[0]=build(1,n);function<int(int,int,int,int,int,ll)>upd=[&](int o,int l,int r,int L,int R,ll d){int p=tr.size();tr.push_back(tr[o]);if(L<=l&&r<=R){tr[p].s+=d*(r-l+1);tr[p].z+=d;return p;}int z=(l+r)/2;if(L<=z)tr[p].l=upd(tr[o].l,l,z,L,R,d);if(R>z)tr[p].r=upd(tr[o].r,z+1,r,L,R,d);tr[p].s=tr[tr[p].l].s+tr[tr[p].r].s+tr[p].z*(r-l+1);return p;};function<ll(int,int,int,int,int,ll)>qry=[&](int p,int l,int r,int L,int R,ll z){if(L<=l&&r<=R)return tr[p].s+z*(r-l+1);z+=tr[p].z;int m=(l+r)/2;ll s=0;if(L<=m)s+=qry(tr[p].l,l,m,L,R,z);if(R>m)s+=qry(tr[p].r,m+1,r,L,R,z);return s;};int now=0;while(m--){char op;cin>>op;if(op=='C'){int l,r;ll d;cin>>l>>r>>d;root[now+1]=upd(root[now],1,n,l,r,d);now++;}else if(op=='B')cin>>now;else{int l,r,t=now;cin>>l>>r;if(op=='H')cin>>t;cout<<qry(root[t],1,n,l,r,0)<<\"\\n\";}}}}"
+  },
+  {
+    "id": "luogu-p4735",
+    "title": "最大异或和",
+    "origin": "洛谷-P4735",
+    "originalUrl": "https://vjudge.net/problem/洛谷-P4735",
+    "moduleId": "advanced-persistent-data-structures",
+    "section": "5.2 可持久化字典樹／訓練 最大異或和",
+    "summary": "先給 n、m 與初始序列。操作 `A x` 在末尾加入 x；`Q l r x` 要在 l≤p≤r 中最大化 `x XOR a[p] XOR ... XOR a[current_n]` 並輸出。初始與操作總長≤6×10^5，數值小於 2^24。",
+    "hints": [
+      "令前綴 XOR s[i]=a1 xor...xor ai，則目標是 `(x xor s[n]) xor s[p-1]`。",
+      "對每個前綴版本建立持久化二進位 Trie；詢問候選 s[l-1..r-1]，用版本計數差貪心走相反位。"
+    ],
+    "analysis": "代數轉換把每個 p 對應到唯一 s[p-1]。Trie 版本 i 含 s[0..i]；版本 r-1 減版本 l-2（實作以 root[l-1] 的插入數界線）精確限制候選。由最高位起，若相反位在區間中有元素就選它，字典序貪心即最大 XOR。每次新增/查詢 O(24)，空間 O((n+m)24)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct PersistentBinaryTrie {\n    struct Node { int child[2]{}, count=0; }; vector<Node> tree{{}}; vector<int> root;\n    int insert(int previous,int value) { /* TODO: Clone one node per bit and increment counts. */ return previous; }\n    int maximumXor(int rightRoot,int beforeLeftRoot,int value) const { /* TODO: Greedily choose an available opposite bit. */ return 0; }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete 洛谷-P4735 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;struct N{int c[2]{},s=0;};\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,m;cin>>n>>m;vector<N>tr(1);vector<int>rt(n+m+2);auto ins=[&](int old,int v){int root=tr.size();tr.push_back(tr[old]);tr[root].s++;int p=root,o=old;for(int b=24;b>=0;b--){int z=v>>b&1,q=tr.size();tr.push_back(tr[tr[o].c[z]]);tr[q].s++;tr[p].c[z]=q;p=q;o=tr[o].c[z];}return root;};int sx=0;rt[0]=ins(0,0);for(int i=1,x;i<=n;i++)cin>>x,sx^=x,rt[i]=ins(rt[i-1],sx);while(m--){char op;cin>>op;if(op=='A'){int x;cin>>x;sx^=x;++n;rt[n]=ins(rt[n-1],sx);}else{int l,r,x;cin>>l>>r>>x;x^=sx;int A=rt[r-1],B=l>=2?rt[l-2]:0,ans=0;for(int b=24;b>=0;b--){int want=((x>>b)&1)^1;if(tr[tr[A].c[want]].s-tr[tr[B].c[want]].s>0)ans|=1<<b,A=tr[A].c[want],B=tr[B].c[want];else want^=1,A=tr[A].c[want],B=tr[B].c[want];}cout<<ans<<\"\\n\";}}}"
+  },
+  {
+    "id": "hdu-1532",
+    "title": "Drainage Ditches",
+    "origin": "HDU-1532",
+    "originalUrl": "https://vjudge.net/problem/HDU-1532",
+    "moduleId": "advanced-graph-algorithms",
+    "section": "6.1 EK 演算法／訓練 排水系統",
+    "summary": "多組直到 EOF。每組首行為溝渠數 m 與節點數 n，接 m 條有向邊 u、v、容量；求從 1 到 n 的最大流並輸出一行。重邊須累加處理，n≤200、m≤1000。",
+    "hints": [
+      "在殘量網路反覆 BFS 找增廣路就是 Edmonds–Karp。",
+      "每次以路徑瓶頸增流，同時增加反向殘量；無增廣路時由最大流最小割定理結束。"
+    ],
+    "analysis": "每次 BFS 得到邊數最少的殘量增廣路並合法增加流量，流守恆且不超容量；終止時源無法到匯，源可達集合與其補集形成容量等於目前流量的割，故流為最大。EK 時間 O(VE²)，空間 O(V²)，符合本題小圖。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct Dinic {\n    struct Edge { int to=0, capacity=0, reverse=0; }; vector<vector<Edge>> graph; vector<int> level,current;\n    explicit Dinic(int n):graph(n),level(n),current(n){}\n    void addEdge(int from,int to,int capacity) { /* TODO: Add forward and residual edges. */ }\n    bool buildLevels(int source,int sink) { /* TODO: BFS residual level graph. */ return false; }\n    int send(int node,int sink,int flow) { /* TODO: DFS one blocking-flow augmentation. */ return 0; }\n    int maxFlow(int source,int sink) { /* TODO: Repeat level graphs and blocking flows. */ return 0; }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete HDU-1532 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int m,n;while(cin>>m>>n){vector<vector<int>>c(n+1,vector<int>(n+1));while(m--){int u,v,w;cin>>u>>v>>w;c[u][v]+=w;}int flow=0;while(1){vector<int>p(n+1,-1);queue<int>q;q.push(1);p[1]=0;while(q.size()&&p[n]<0){int u=q.front();q.pop();for(int v=1;v<=n;v++)if(p[v]<0&&c[u][v])p[v]=u,q.push(v);}if(p[n]<0)break;int f=INT_MAX;for(int v=n;v!=1;v=p[v])f=min(f,c[p[v]][v]);for(int v=n;v!=1;v=p[v])c[p[v]][v]-=f,c[v][p[v]]+=f;flow+=f;}cout<<flow<<\"\\n\";}}"
+  },
+  {
+    "id": "poj-1459",
+    "title": "Power Network",
+    "origin": "POJ-1459",
+    "originalUrl": "https://vjudge.net/problem/POJ-1459",
+    "moduleId": "advanced-graph-algorithms",
+    "section": "6.2 Dinic 演算法／訓練 電力網路",
+    "summary": "多組直到 EOF。每組給 n、發電站數 np、消費站數 nc、內部邊數 m；內部邊格式 `(u,v)c`，發電／消費端格式 `(u)c`。求整個網路最大可供電量並輸出一行。節點編號 0..n-1。",
+    "hints": [
+      "加入超級源連所有發電站、所有消費站連超級匯。",
+      "保留題目有向容量邊後跑 Dinic；`cin >> char` 可直接解析括號與逗號。"
+    ],
+    "analysis": "超級源邊容量等於各站供給上限、匯邊等於需求上限，因此原網路任一合法供電恰對應擴充圖的一個 s-t 流，反之亦然。Dinic 反覆在層次圖推阻塞流，終止時即最大流。時間 O(V²E) 上界，空間 O(V+E)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct Dinic {\n    struct Edge { int to=0, capacity=0, reverse=0; }; vector<vector<Edge>> graph; vector<int> level,current;\n    explicit Dinic(int n):graph(n),level(n),current(n){}\n    void addEdge(int from,int to,int capacity) { /* TODO: Add forward and residual edges. */ }\n    bool buildLevels(int source,int sink) { /* TODO: BFS residual level graph. */ return false; }\n    int send(int node,int sink,int flow) { /* TODO: DFS one blocking-flow augmentation. */ return 0; }\n    int maxFlow(int source,int sink) { /* TODO: Repeat level graphs and blocking flows. */ return 0; }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete POJ-1459 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;struct E{int v,c,r;};struct D{vector<vector<E>>g;vector<int>d,it;D(int n):g(n),d(n),it(n){}void add(int u,int v,int c){E a{v,c,(int)g[v].size()},b{u,0,(int)g[u].size()};g[u].push_back(a);g[v].push_back(b);}int dfs(int u,int t,int f){if(u==t)return f;for(int&i=it[u];i<(int)g[u].size();i++){E&e=g[u][i];if(e.c&&d[e.v]==d[u]+1){int z=dfs(e.v,t,min(f,e.c));if(z){e.c-=z;g[e.v][e.r].c+=z;return z;}}}return 0;}int flow(int s,int t){int F=0,z;while(1){fill(d.begin(),d.end(),-1);queue<int>q;q.push(s);d[s]=0;while(q.size()){int u=q.front();q.pop();for(auto&e:g[u])if(e.c&&d[e.v]<0)d[e.v]=d[u]+1,q.push(e.v);}if(d[t]<0)return F;fill(it.begin(),it.end(),0);while((z=dfs(s,t,1e9)))F+=z;}}};\nint main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,np,nc,m;while(cin>>n>>np>>nc>>m){D f(n+2);char a,b;for(int i=0,u,v,c;i<m;i++)cin>>a>>u>>b>>v>>a>>c,f.add(u,v,c);for(int i=0,u,c;i<np;i++)cin>>a>>u>>a>>c,f.add(n,u,c);for(int i=0,u,c;i<nc;i++)cin>>a>>u>>a>>c,f.add(u,n+1,c);cout<<f.flow(n,n+1)<<\"\\n\";}}"
+  },
+  {
+    "id": "luogu-p2891",
+    "title": "Dining G",
+    "origin": "洛谷-P2891",
+    "originalUrl": "https://vjudge.net/problem/洛谷-P2891",
+    "moduleId": "advanced-graph-algorithms",
+    "section": "6.3 ISAP 演算法／訓練 美味佳餚",
+    "summary": "給 N 頭牛、F 種食物、D 種飲料。每頭牛列出願意的食物與飲料；每份種類只能供一頭牛，且一頭牛必須同時取得一食一飲才滿足。求最多可滿足牛數並輸出。N≤100、F,D≤100。",
+    "hints": [
+      "把每頭牛拆成 in→out 容量 1，確保至多選一次。",
+      "源→食物→牛in→牛out→飲料→匯皆設容量 1，最大流即答案。"
+    ],
+    "analysis": "每條單位流沿一路徑選定一個食物、一頭接受它且接受某飲料的牛、以及該飲料；容量 1 保證資源與牛不重複。反之任一可行分配可轉成同值整數流，故最大流等於最多滿足數。Dinic 時間 O(V²E)，空間 O(V+E)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct Dinic {\n    struct Edge { int to=0, capacity=0, reverse=0; }; vector<vector<Edge>> graph; vector<int> level,current;\n    explicit Dinic(int n):graph(n),level(n),current(n){}\n    void addEdge(int from,int to,int capacity) { /* TODO: Add forward and residual edges. */ }\n    bool buildLevels(int source,int sink) { /* TODO: BFS residual level graph. */ return false; }\n    int send(int node,int sink,int flow) { /* TODO: DFS one blocking-flow augmentation. */ return 0; }\n    int maxFlow(int source,int sink) { /* TODO: Repeat level graphs and blocking flows. */ return 0; }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete 洛谷-P2891 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;struct E{int v,c,r;};int main(){ios::sync_with_stdio(false);cin.tie(nullptr);int N,F,D;if(!(cin>>N>>F>>D))return 0;int S=0,fo=1,bi=fo+F,bo=bi+N,dr=bo+N,T=dr+D,V=T+1;vector<vector<E>>g(V);auto add=[&](int u,int v,int c){E a{v,c,(int)g[v].size()},b{u,0,(int)g[u].size()};g[u].push_back(a);g[v].push_back(b);};for(int i=0;i<F;i++)add(S,fo+i,1);for(int i=0;i<D;i++)add(dr+i,T,1);for(int i=0;i<N;i++){int a,b;cin>>a>>b;add(bi+i,bo+i,1);while(a--){int x;cin>>x;add(fo+x-1,bi+i,1);}while(b--){int x;cin>>x;add(bo+i,dr+x-1,1);}}vector<int>d(V),it(V);function<int(int,int)>dfs=[&](int u,int f){if(u==T)return f;for(int&i=it[u];i<(int)g[u].size();i++){E&e=g[u][i];if(e.c&&d[e.v]==d[u]+1){int z=dfs(e.v,min(f,e.c));if(z){e.c-=z;g[e.v][e.r].c+=z;return z;}}}return 0;};int ans=0,z;while(1){fill(d.begin(),d.end(),-1);queue<int>q;q.push(S);d[S]=0;while(q.size()){int u=q.front();q.pop();for(auto&e:g[u])if(e.c&&d[e.v]<0)d[e.v]=d[u]+1,q.push(e.v);}if(d[T]<0)break;fill(it.begin(),it.end(),0);while((z=dfs(S,1e9)))ans+=z;}cout<<ans<<\"\\n\";}"
+  },
+  {
+    "id": "luogu-p1894",
+    "title": "完美的牛栏The Perfect Stall",
+    "origin": "洛谷-P1894",
+    "originalUrl": "https://vjudge.net/problem/洛谷-P1894",
+    "moduleId": "advanced-graph-algorithms",
+    "section": "6.4 二分圖匹配／訓練1 完美的牛棚",
+    "summary": "給牛數 n、牛欄數 m；每頭牛一行先給喜歡牛欄數，再列編號。每欄至多一牛、每牛至多一欄，求最大配對數。n,m≤200，輸出一個整數。",
+    "hints": [
+      "逐頭牛嘗試增廣；若喜歡的欄已匹配，就遞迴替原牛找其他欄。",
+      "每次搜尋對牛欄加本輪 visited，避免循環；成功就令匹配數加一。"
+    ],
+    "analysis": "Kuhn 增廣 DFS 找到的交替路徑會把未匹配牛與未匹配欄連起，翻轉後匹配大小加一且仍合法。若對新牛找不到增廣路，依增廣路定理在目前已處理子圖中匹配已最大；逐牛歸納得到全圖最大匹配。時間 O(nE)，空間 O(E+n+m)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct BipartiteMatcher {\n    vector<vector<int>> allowed; vector<int> matchedToCow, seen;\n    bool augment(int cow) { /* TODO: Find an alternating augmenting path. */ return false; }\n    int maximumMatching() { /* TODO: Reset visitation for and augment each cow. */ return 0; }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete 洛谷-P1894 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;int main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,m;while(cin>>n>>m){vector<vector<int>>g(n);for(auto&a:g){int k;cin>>k;while(k--){int x;cin>>x;a.push_back(x-1);}}vector<int>mt(m,-1),vis(m);function<bool(int)>dfs=[&](int u){for(int v:g[u])if(!vis[v]){vis[v]=1;if(mt[v]<0||dfs(mt[v])){mt[v]=u;return true;}}return false;};int ans=0;for(int i=0;i<n;i++)fill(vis.begin(),vis.end(),0),ans+=dfs(i);cout<<ans<<\"\\n\";}}"
+  },
+  {
+    "id": "hdu-3605",
+    "title": "Escape",
+    "origin": "HDU-3605",
+    "originalUrl": "https://vjudge.net/problem/HDU-3605",
+    "moduleId": "advanced-graph-algorithms",
+    "section": "6.4 二分圖匹配／訓練2 逃脫",
+    "summary": "多組直到 EOF。每組給地球人數 n（≤10^5）、星球數 m（≤10），接 n 行 m 個 0/1 表示每人可居住星球，最後一行是各星球容量。若所有人皆能安排輸出 `YES`，否則 `NO`。",
+    "hints": [
+      "m 很小，將每人的可選星球集合壓成 m 位 mask，相同 mask 的人合併。",
+      "源到 mask 容量為人數，mask 到允許星球、星球到匯建流量網路。"
+    ],
+    "analysis": "每位人只由其 mask 決定可選集合，因此合併後的整數流可分解給該類任意個體；源邊限制類別人數，星球匯邊限制容量。故流量 n 當且僅當存在完整安排。節點 O(2^m+m)，邊 O(m2^m)，Dinic 在此圖上很快；讀入 O(nm)，空間 O(m2^m)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct Dinic {\n    struct Edge { int to=0, capacity=0, reverse=0; }; vector<vector<Edge>> graph; vector<int> level,current;\n    explicit Dinic(int n):graph(n),level(n),current(n){}\n    void addEdge(int from,int to,int capacity) { /* TODO: Add forward and residual edges. */ }\n    bool buildLevels(int source,int sink) { /* TODO: BFS residual level graph. */ return false; }\n    int send(int node,int sink,int flow) { /* TODO: DFS one blocking-flow augmentation. */ return 0; }\n    int maxFlow(int source,int sink) { /* TODO: Repeat level graphs and blocking flows. */ return 0; }\n};\nint encodeChoices(const vector<int>& choices) { /* TODO: Convert at most ten planet flags into a bitmask. */ return 0; }\nvoid buildCompressedNetwork(const vector<int>& typeCount,const vector<int>& capacity,Dinic& flow) {\n    // TODO: source -> mask type -> compatible planet -> sink.\n}\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete HDU-3605 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;struct E{int v,c,r;};int main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,m;while(cin>>n>>m){int M=1<<m,S=M+m,T=S+1;vector<int>cnt(M);for(int i=0;i<n;i++){int s=0,x;for(int j=0;j<m;j++)cin>>x,s|=x<<j;cnt[s]++;}vector<vector<E>>g(T+1);auto add=[&](int u,int v,int c){E a{v,c,(int)g[v].size()},b{u,0,(int)g[u].size()};g[u].push_back(a);g[v].push_back(b);};for(int s=0;s<M;s++)if(cnt[s]){add(S,s,cnt[s]);for(int j=0;j<m;j++)if(s>>j&1)add(s,M+j,cnt[s]);}for(int j=0,c;j<m;j++)cin>>c,add(M+j,T,c);vector<int>d(T+1),it(T+1);function<int(int,int)>dfs=[&](int u,int f){if(u==T)return f;for(int&i=it[u];i<(int)g[u].size();i++){E&e=g[u][i];if(e.c&&d[e.v]==d[u]+1){int z=dfs(e.v,min(f,e.c));if(z){e.c-=z;g[e.v][e.r].c+=z;return z;}}}return 0;};int flow=0,z;while(1){fill(d.begin(),d.end(),-1);queue<int>q;q.push(S);d[S]=0;while(q.size()){int u=q.front();q.pop();for(auto&e:g[u])if(e.c&&d[e.v]<0)d[e.v]=d[u]+1,q.push(e.v);}if(d[T]<0)break;fill(it.begin(),it.end(),0);while((z=dfs(S,1e9)))flow+=z;}cout<<(flow==n?\"YES\\n\":\"NO\\n\");}}"
+  },
+  {
+    "id": "hdu-3251",
+    "title": "Being a Hero",
+    "origin": "HDU-3251",
+    "originalUrl": "https://vjudge.net/problem/HDU-3251",
+    "moduleId": "advanced-graph-algorithms",
+    "section": "6.5 最大流最小割／訓練1 最小邊割集",
+    "summary": "第一行 T（≤20）。每組給城市數 n、單向道路數 m、可取得城市數 f；m 條道路有摧毀成本並按 1..m 編號，f 個城市各有價值。選取的城市必須從首都 1 不可達；最大化城市總價值減摧路成本。輸出 `Case X: 收益`，下一行先輸出割道路數，再依序列出其編號；多解任一。",
+    "hints": [
+      "保留道路容量=摧毀成本；每個可選城市以容量=價值連到超級匯。",
+      "總價值減 1→匯最小割；最大流後從源沿正殘量標記，原道路由可達指向不可達者就是方案。"
+    ],
+    "analysis": "一個割可選擇支付道路成本把城市隔離，或切城市→匯邊表示放棄其價值；割容量正是總價值減實得收益，故最小割最大化收益。殘量源可達集合定義一個最小割，跨出的原道路即需摧毀。Dinic O(V²E) 上界，空間 O(V+E)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct Dinic {\n    struct Edge { int to=0, capacity=0, reverse=0; }; vector<vector<Edge>> graph; vector<int> level,current;\n    explicit Dinic(int n):graph(n),level(n),current(n){}\n    void addEdge(int from,int to,int capacity) { /* TODO: Add forward and residual edges. */ }\n    bool buildLevels(int source,int sink) { /* TODO: BFS residual level graph. */ return false; }\n    int send(int node,int sink,int flow) { /* TODO: DFS one blocking-flow augmentation. */ return 0; }\n    int maxFlow(int source,int sink) { /* TODO: Repeat level graphs and blocking flows. */ return 0; }\n};\nvector<bool> residualReachable(const Dinic& flow,int source) { /* TODO: Traverse positive residual edges. */ return {}; }\nvector<int> cutRoadIds(const vector<bool>& reachable,const vector<pair<int,int>>& roads) { /* TODO: Select original S-side to T-side roads. */ return {}; }\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete HDU-3251 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;struct E{int v,c,r;};int main(){ios::sync_with_stdio(false);cin.tie(nullptr);int TT;cin>>TT;for(int cs=1;cs<=TT;cs++){int n,m,f;cin>>n>>m>>f;int T=n+1;vector<vector<E>>g(n+2);auto add=[&](int u,int v,int c){E a{v,c,(int)g[v].size()},b{u,0,(int)g[u].size()};g[u].push_back(a);g[v].push_back(b);};vector<int>U(m+1),V(m+1);for(int i=1,w;i<=m;i++)cin>>U[i]>>V[i]>>w,add(U[i],V[i],w);int sum=0;while(f--){int u,w;cin>>u>>w;sum+=w;add(u,T,w);}vector<int>d(n+2),it(n+2);function<int(int,int)>dfs=[&](int u,int z){if(u==T)return z;for(int&i=it[u];i<(int)g[u].size();i++){E&e=g[u][i];if(e.c&&d[e.v]==d[u]+1){int q=dfs(e.v,min(z,e.c));if(q){e.c-=q;g[e.v][e.r].c+=q;return q;}}}return 0;};int flow=0,z;while(1){fill(d.begin(),d.end(),-1);queue<int>q;q.push(1);d[1]=0;while(q.size()){int u=q.front();q.pop();for(auto&e:g[u])if(e.c&&d[e.v]<0)d[e.v]=d[u]+1,q.push(e.v);}if(d[T]<0)break;fill(it.begin(),it.end(),0);while((z=dfs(1,1e9)))flow+=z;}vector<char>vis(n+2);queue<int>q;q.push(1);vis[1]=1;while(q.size()){int u=q.front();q.pop();for(auto&e:g[u])if(e.c&&!vis[e.v])vis[e.v]=1,q.push(e.v);}vector<int>ans;for(int i=1;i<=m;i++)if(vis[U[i]]&&!vis[V[i]])ans.push_back(i);cout<<\"Case \"<<cs<<\": \"<<sum-flow<<\"\\n\"<<ans.size();for(int x:ans)cout<<\" \"<<x;cout<<\"\\n\";}}"
+  },
+  {
+    "id": "hdu-3491",
+    "title": "Thieves",
+    "origin": "HDU-3491",
+    "originalUrl": "https://vjudge.net/problem/HDU-3491",
+    "moduleId": "advanced-graph-algorithms",
+    "section": "6.5 最大流最小割／訓練2 最小點割集",
+    "summary": "多組直到 EOF。每組給城市數 n、雙向道路數 m，下一行起點 S、博物館 H；再給 n 個在各城市部署監控的成本及 m 條雙向道路。求切斷 S 到 H 所有路徑的最小城市成本，輸出一行。n≤200、m≤20000。",
+    "hints": [
+      "點割轉邊割：把城市 i 拆為 i_in→i_out，容量為監控成本。",
+      "每條原雙向路以無限容量連 u_out→v_in 與 v_out→u_in；從 S_in 到 H_out 跑最小割。"
+    ],
+    "analysis": "任何 S-H 路徑必經所使用城市的 in→out 邊；切掉這條邊等同選該城市付成本。道路設無限容量使有限最小割不會切道路。故擴充圖有限割與原問題城市割一一對應且成本相同，最大流值即最小成本。Dinic O(V²E) 上界，空間 O(V+E)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct Dinic {\n    struct Edge { int to=0, capacity=0, reverse=0; }; vector<vector<Edge>> graph; vector<int> level,current;\n    explicit Dinic(int n):graph(n),level(n),current(n){}\n    void addEdge(int from,int to,int capacity) { /* TODO: Add forward and residual edges. */ }\n    bool buildLevels(int source,int sink) { /* TODO: BFS residual level graph. */ return false; }\n    int send(int node,int sink,int flow) { /* TODO: DFS one blocking-flow augmentation. */ return 0; }\n    int maxFlow(int source,int sink) { /* TODO: Repeat level graphs and blocking flows. */ return 0; }\n};\nstruct SplitVertexNetwork {\n    Dinic* flow = nullptr;\n    int in(int city) const { return city; } int out(int city,int n) const { return city+n; }\n    void addCityCost(int city,int n,int cost) { /* TODO: Add in(city)->out(city) with vertex cost. */ }\n    void addUndirectedRoad(int u,int v,int n) { /* TODO: Add infinite-capacity cross edges. */ }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete HDU-3491 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;struct E{int v,c,r;};int main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,m;while(cin>>n>>m){int S,T;cin>>S>>T;int N=2*n+1;vector<vector<E>>g(N);auto add=[&](int u,int v,int c){E a{v,c,(int)g[v].size()},b{u,0,(int)g[u].size()};g[u].push_back(a);g[v].push_back(b);};for(int i=1,c;i<=n;i++)cin>>c,add(i,i+n,c);while(m--){int u,v;cin>>u>>v;add(u+n,v,1e9);add(v+n,u,1e9);}int s=S,t=T+n;vector<int>d(N),it(N);function<int(int,int)>dfs=[&](int u,int f){if(u==t)return f;for(int&i=it[u];i<(int)g[u].size();i++){E&e=g[u][i];if(e.c&&d[e.v]==d[u]+1){int z=dfs(e.v,min(f,e.c));if(z){e.c-=z;g[e.v][e.r].c+=z;return z;}}}return 0;};int ans=0,z;while(1){fill(d.begin(),d.end(),-1);queue<int>q;q.push(s);d[s]=0;while(q.size()){int u=q.front();q.pop();for(auto&e:g[u])if(e.c&&d[e.v]<0)d[e.v]=d[u]+1,q.push(e.v);}if(d[t]<0)break;fill(it.begin(),it.end(),0);while((z=dfs(s,1e9)))ans+=z;}cout<<ans<<\"\\n\";}}"
+  },
+  {
+    "id": "luogu-p2762",
+    "title": "太空飞行计划问题",
+    "origin": "洛谷-P2762",
+    "originalUrl": "https://vjudge.net/problem/洛谷-P2762",
+    "moduleId": "advanced-graph-algorithms",
+    "section": "6.5 最大流最小割／訓練3 最大收益",
+    "summary": "第一行實驗數 m、儀器數 n。接著 m 行各為實驗收益及該實驗需要的若干儀器編號（行末結束），最後一行給 n 個儀器成本。可選任意實驗，但需購齊其儀器；最大化收益減成本。依序輸出被選實驗編號一行、被選儀器編號一行、最大淨收益一行；空集合行可為空。",
+    "hints": [
+      "這是最大權閉合子圖：源→實驗容量收益，實驗→必要儀器容量 INF，儀器→匯容量成本。",
+      "最大收益=總正收益-最小割；殘量網路中源可達的實驗與儀器就是一組最優閉合集。"
+    ],
+    "analysis": "INF 邊保證有限割不會把已選實驗留在源側而把其儀器放匯側；切源→實驗表示放棄收益，切儀器→匯表示支付成本。因此割容量是總收益與方案淨利之差，最小割給最大利潤。殘量源可達集合即相應閉合方案。Dinic 多項式時間，空間 O(mn)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct Dinic {\n    struct Edge { int to=0, capacity=0, reverse=0; }; vector<vector<Edge>> graph; vector<int> level,current;\n    explicit Dinic(int n):graph(n),level(n),current(n){}\n    void addEdge(int from,int to,int capacity) { /* TODO: Add forward and residual edges. */ }\n    bool buildLevels(int source,int sink) { /* TODO: BFS residual level graph. */ return false; }\n    int send(int node,int sink,int flow) { /* TODO: DFS one blocking-flow augmentation. */ return 0; }\n    int maxFlow(int source,int sink) { /* TODO: Repeat level graphs and blocking flows. */ return 0; }\n};\nstruct MaximumWeightClosure {\n    void addExperiment(int id,int profit,const vector<int>& requiredInstruments) { /* TODO: Add source/profit and infinite dependency edges. */ }\n    void addInstrument(int id,int cost) { /* TODO: Add instrument/cost edge to sink. */ }\n    long long solve() { /* TODO: total profit minus minimum cut. */ return 0; }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete 洛谷-P2762 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;struct E{int v,c,r;};int main(){ios::sync_with_stdio(false);cin.tie(nullptr);int m,n;cin>>m>>n;string line;getline(cin,line);int S=0,T=m+n+1;vector<vector<E>>g(T+1);auto add=[&](int u,int v,int c){E a{v,c,(int)g[v].size()},b{u,0,(int)g[u].size()};g[u].push_back(a);g[v].push_back(b);};int sum=0;for(int i=1;i<=m;i++){getline(cin,line);stringstream ss(line);int w,x;ss>>w;sum+=w;add(S,i,w);while(ss>>x)add(i,m+x,1e9);}for(int i=1,c;i<=n;i++)cin>>c,add(m+i,T,c);vector<int>d(T+1),it(T+1);function<int(int,int)>dfs=[&](int u,int f){if(u==T)return f;for(int&i=it[u];i<(int)g[u].size();i++){E&e=g[u][i];if(e.c&&d[e.v]==d[u]+1){int z=dfs(e.v,min(f,e.c));if(z){e.c-=z;g[e.v][e.r].c+=z;return z;}}}return 0;};int flow=0,z;while(1){fill(d.begin(),d.end(),-1);queue<int>q;q.push(S);d[S]=0;while(q.size()){int u=q.front();q.pop();for(auto&e:g[u])if(e.c&&d[e.v]<0)d[e.v]=d[u]+1,q.push(e.v);}if(d[T]<0)break;fill(it.begin(),it.end(),0);while((z=dfs(S,1e9)))flow+=z;}vector<char>v(T+1);queue<int>q;q.push(S);v[S]=1;while(q.size()){int u=q.front();q.pop();for(auto&e:g[u])if(e.c&&!v[e.v])v[e.v]=1,q.push(e.v);}for(int i=1;i<=m;i++)if(v[i])cout<<i<<\" \";cout<<\"\\n\";for(int i=1;i<=n;i++)if(v[m+i])cout<<i<<\" \";cout<<\"\\n\"<<sum-flow<<\"\\n\";}"
+  },
+  {
+    "id": "poj-2135",
+    "title": "Farm Tour",
+    "origin": "POJ-2135",
+    "originalUrl": "https://vjudge.net/problem/POJ-2135",
+    "moduleId": "advanced-graph-algorithms",
+    "section": "6.6 最小費用最大流／訓練1 農場之旅",
+    "summary": "給 n 個農場、m 條無向道路及距離。要從 1 到 n 再返回 1，且每條道路至多使用一次；求最短總距離。n≤1000、m≤10000，保證有解，輸出一行。",
+    "hints": [
+      "往返可視為兩條從 1 到 n 的邊不重複路徑。",
+      "每條無向道路建兩個方向、容量 1、費用為距離，送 2 單位最小費用流。"
+    ],
+    "analysis": "任一合法往返在反向第二段後形成兩條 1→n 路徑；道路不重複對應容量 1。反之兩單位整數流可分解成兩條路徑，將其中一條反走即合法行程。逐次最短增廣路的最小費用流得到所有值為 2 的流中最小費用。SPFA 實作時間 O(FVE)，此處 F=2，空間 O(V+E)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct MinCostMaxFlow {\n    struct Edge { int to=0, capacity=0, cost=0, reverse=0; }; vector<vector<Edge>> graph;\n    void addEdge(int from,int to,int capacity,int cost) { /* TODO: Add residual edge pair. */ }\n    pair<int,long long> run(int source,int sink,int wantedFlow) { /* TODO: Repeated shortest augmenting paths. */ return {0,0}; }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete POJ-2135 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;struct E{int v,c,w,r;};int main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,m;cin>>n>>m;vector<vector<E>>g(n+1);auto add=[&](int u,int v,int c,int w){E a{v,c,w,(int)g[v].size()},b{u,0,-w,(int)g[u].size()};g[u].push_back(a);g[v].push_back(b);};while(m--){int u,v,w;cin>>u>>v>>w;add(u,v,1,w);add(v,u,1,w);}int ans=0;for(int f=0;f<2;f++){vector<int>d(n+1,1e9),pu(n+1),pe(n+1);vector<char>in(n+1);queue<int>q;q.push(1);d[1]=0;while(q.size()){int u=q.front();q.pop();in[u]=0;for(int i=0;i<(int)g[u].size();i++){E&e=g[u][i];if(e.c&&d[e.v]>d[u]+e.w){d[e.v]=d[u]+e.w;pu[e.v]=u;pe[e.v]=i;if(!in[e.v])in[e.v]=1,q.push(e.v);}}}ans+=d[n];for(int v=n;v!=1;v=pu[v]){E&e=g[pu[v]][pe[v]];e.c--;g[v][e.r].c++;}}cout<<ans<<\"\\n\";}"
+  },
+  {
+    "id": "luogu-p2770",
+    "title": "航空路线问题",
+    "origin": "洛谷-P2770",
+    "originalUrl": "https://vjudge.net/problem/洛谷-P2770",
+    "moduleId": "advanced-graph-algorithms",
+    "section": "6.6 最小費用最大流／訓練2 航空路線",
+    "summary": "給由西到東排列的 n 個城市名及 v 條兩城直航。找從最西城市一路向東到最東，再一路向西回起點的路線；除起點外城市至多一次，最大化造訪城市數。若有解先輸出最多城市數，再逐行輸出完整路線（起點最後重複）；否則輸出 `No Solution!`。n<100，Special Judge。",
+    "hints": [
+      "把每條航線定向為較西→較東；目標等價於兩條內部點不相交的 1→n 路徑。",
+      "拆點，內部容量 1、端點容量 2，每通過一城費用 +1，送兩單位最大費用流並由有流航線還原兩路徑。"
+    ],
+    "analysis": "兩條向東路徑合併（一條反向）恰為合法往返；點容量保證除端點外不重複。最大費用計每條路徑經過的城市，端點各重複計兩次，故相異城市數為 cost-2。整數流可分解為兩條路徑。若僅存在 1→n 直航，單一路徑來回是合法特例。圖很小，SPFA 最大費用流 O(FVE)，F≤2。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct MaxCostFlow {\n    struct Edge { int to=0, capacity=0, cost=0, reverse=0; }; vector<vector<Edge>> graph;\n    void addEdge(int from,int to,int capacity,int cost) { /* TODO: Add residual edge pair. */ }\n    pair<int,int> run(int source,int sink,int wantedFlow) { /* TODO: Repeated longest augmenting paths. */ return {0,0}; }\n};\nvector<int> extractUsedPath(int source,int sink,vector<vector<int>>& usedFlights) { /* TODO: Consume one unit-flow path. */ return {}; }\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete 洛谷-P2770 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;struct E{int v,c,w,r;};int main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,m;cin>>n>>m;vector<string>name(n+1);map<string,int>id;for(int i=1;i<=n;i++)cin>>name[i],id[name[i]]=i;int V=2*n+1,S=1,T=2*n;vector<vector<E>>g(V);auto add=[&](int u,int v,int c,int w){E a{v,c,w,(int)g[v].size()},b{u,0,-w,(int)g[u].size()};g[u].push_back(a);g[v].push_back(b);return (int)g[u].size()-1;};for(int i=1;i<=n;i++)add(i,i+n,(i==1||i==n)?2:1,1);vector<tuple<int,int,int>>ref;bool direct=0;while(m--){string a,b;cin>>a>>b;int u=id[a],v=id[b];if(u>v)swap(u,v);direct|=u==1&&v==n;int e=add(u+n,v,1,0);ref.push_back({u+n,e,v});}int flow=0,cost=0;while(flow<2){vector<int>d(V,-1e9),pu(V),pe(V);vector<char>in(V);queue<int>q;q.push(S);d[S]=0;while(q.size()){int u=q.front();q.pop();in[u]=0;for(int i=0;i<(int)g[u].size();i++){E&e=g[u][i];if(e.c&&d[e.v]<d[u]+e.w){d[e.v]=d[u]+e.w;pu[e.v]=u;pe[e.v]=i;if(!in[e.v])in[e.v]=1,q.push(e.v);}}}if(d[T]<0)break;flow++;cost+=d[T];for(int v=T;v!=S;v=pu[v]){E&e=g[pu[v]][pe[v]];e.c--;g[v][e.r].c++;}}if(flow<2){if(direct)cout<<2<<\"\\n\"<<name[1]<<\"\\n\"<<name[n]<<\"\\n\"<<name[1]<<\"\\n\";else cout<<\"No Solution!\\n\";return 0;}vector<vector<int>>nx(n+1);for(auto[u,e,v]:ref)if(g[u][e].c==0)nx[u-n].push_back(v);auto take=[&](){vector<int>p{1};int u=1;while(u!=n){int v=nx[u].back();nx[u].pop_back();p.push_back(v);u=v;}return p;};vector<int>a=take(),b=take();cout<<cost-2<<\"\\n\";for(int x:a)cout<<name[x]<<\"\\n\";for(int i=(int)b.size()-2;i>=0;i--)cout<<name[b[i]]<<\"\\n\";}"
+  },
+  {
+    "id": "hdu-2844",
+    "title": "Coins",
+    "origin": "HDU-2844",
+    "originalUrl": "https://vjudge.net/problem/HDU-2844",
+    "moduleId": "advanced-dp",
+    "section": "7.1.1 多重背包／訓練 硬幣",
+    "summary": "多組資料。每組給硬幣種類 n、上限 m，下一行 n 個面值，再一行各自數量；`0 0` 結束。問 1..m 中有多少金額可由持有硬幣湊出，輸出一行。n≤100、m≤10^5。",
+    "hints": [
+      "用 dp[s] 表示處理目前幣種時，在可達 s 的前提下尚可再用多少枚此幣。",
+      "掃 s=0..m：若舊 dp 可達就重設為數量；否則由 s-value 轉移並減一。"
+    ],
+    "analysis": "每處理一種面值 v，對遞增金額 s：舊狀態可達時不使用新幣並給餘量 c；否則只有 s-v 可達且餘量>0 時可再放一枚。歸納可知 dp[s]≥0 當且僅當用已處理幣種能湊 s，且值為某方案可剩最大枚數。時間 O(nm)，空間 O(m)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nint countReachable(const vector<int>& denomination,const vector<int>& quantity,int limit) {\n    vector<int> remaining(limit+1,-1); remaining[0]=0;\n    // TODO: For each coin type, scan sums and track remaining usable copies.\n    return 0;\n}\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete HDU-2844 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;int main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,m;while(cin>>n>>m&&(n||m)){vector<int>a(n),c(n),dp(m+1,-1);for(int&i:a)cin>>i;for(int&i:c)cin>>i;dp[0]=0;for(int i=0;i<n;i++)for(int s=0;s<=m;s++)if(dp[s]>=0)dp[s]=c[i];else if(s<a[i]||dp[s-a[i]]<=0)dp[s]=-1;else dp[s]=dp[s-a[i]]-1;int ans=0;for(int s=1;s<=m;s++)ans+=dp[s]>=0;cout<<ans<<\"\\n\";}}"
+  },
+  {
+    "id": "hdu-1712",
+    "title": "ACboy needs your help",
+    "origin": "HDU-1712",
+    "originalUrl": "https://vjudge.net/problem/HDU-1712",
+    "moduleId": "advanced-dp",
+    "section": "7.1.2 分組背包／訓練 價值最大化",
+    "summary": "多組資料；每組給課程數 n、可用天數 m，接 n 行，每行第 j 個數為在該課投入 j 天的收益；`0 0` 結束。每門課可投入 0..m 天，總天數不超過 m，求最大收益。n,m≤100，輸出一行。",
+    "hints": [
+      "每門課是一組互斥選項：投入 0、1、…、m 天。",
+      "按課程更新 dp[總天數]，枚舉該課投入天數；用新陣列避免同組取多次。"
+    ],
+    "analysis": "處理前 i 門後 dp[j] 是恰用 j 天的最大收益。對第 i+1 門枚舉 k 天，所有合法方案可唯一分成此前 j-k 天與本課 k 天，取最大即完整且不重複。答案為 dp[m]（收益非負，未用天可視為投入 0 收益）。時間 O(nm²)，空間 O(m)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nint groupedKnapsack(const vector<vector<int>>& profit,int days) {\n    vector<int> dp(days+1,0);\n    // TODO: For each course, choose exactly one allocation (possibly zero days).\n    return dp[days];\n}\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete HDU-1712 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;int main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,m;while(cin>>n>>m&&(n||m)){vector<int>dp(m+1);for(int i=0;i<n;i++){vector<int>v(m+1),ndp(m+1);for(int j=1;j<=m;j++)cin>>v[j];for(int j=0;j<=m;j++)for(int k=0;k<=j;k++)ndp[j]=max(ndp[j],dp[j-k]+v[k]);dp.swap(ndp);}cout<<dp[m]<<\"\\n\";}}"
+  },
+  {
+    "id": "luogu-p2851",
+    "title": "The Fewest Coins G",
+    "origin": "洛谷-P2851",
+    "originalUrl": "https://vjudge.net/problem/洛谷-P2851",
+    "moduleId": "advanced-dp",
+    "section": "7.1.3 混合背包／訓練 最少硬幣",
+    "summary": "給幣種數 N、商品價 T、N 個面值 Vi 與 John 持有數量 Ci。John 可多付，由店主以無限供應的同種貨幣找零；最小化付出與找回的硬幣總枚數，無解輸出 -1。N≤100、T≤10000、Vi≤120、Ci≤10^4。",
+    "hints": [
+      "分別求 John 以有限硬幣付出各金額的最少枚數，以及店主用無限硬幣找各零錢的最少枚數。",
+      "只需枚舉付到 T+Vmax²；有限側用二進位拆分多重背包，無限側用完全背包。"
+    ],
+    "analysis": "若付 P，找零固定為 P-T，兩側硬幣互不影響，故最優值是 `min(pay[P]+change[P-T])`。兩個背包 DP 分別正確求最少枚數；標準上界 Vmax² 保證超過此找零量的最優方案可用最大面額替換而不增枚數。時間 O((T+Vmax²)Σlog Ci + NVmax²)，空間 O(T+Vmax²)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nvector<int> boundedMinimumCoins(const vector<int>& value,const vector<int>& count,int limit) { /* TODO: Binary-split bounded coins. */ return vector<int>(limit+1,INT_MAX/4); }\nvector<int> unboundedMinimumCoins(const vector<int>& value,int limit) { /* TODO: Complete-knapsack change. */ return vector<int>(limit+1,INT_MAX/4); }\nint minimumTransferredCoins(const vector<int>& value,const vector<int>& count,int target) { /* TODO: Combine payment and change tables. */ return -1; }\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete 洛谷-P2851 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;int main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,T;cin>>n>>T;vector<int>v(n),c(n);int mx=0;for(int&i:v)cin>>i,mx=max(mx,i);for(int&i:c)cin>>i;int B=T+mx*mx,INF=1e9;vector<int>pay(B+1,INF),chg(mx*mx+1,INF);pay[0]=chg[0]=0;for(int x:v)for(int s=x;s<(int)chg.size();s++)chg[s]=min(chg[s],chg[s-x]+1);for(int i=0;i<n;i++){int z=c[i];for(int k=1;z;k<<=1){int q=min(k,z),w=q*v[i];z-=q;for(int s=B;s>=w;s--)pay[s]=min(pay[s],pay[s-w]+q);}}int ans=INF;for(int s=T;s<=B;s++)if(pay[s]<INF&&chg[s-T]<INF)ans=min(ans,pay[s]+chg[s-T]);cout<<(ans==INF?-1:ans)<<\"\\n\";}"
+  },
+  {
+    "id": "hdu-1561",
+    "title": "The more, The Better",
+    "origin": "HDU-1561",
+    "originalUrl": "https://vjudge.net/problem/HDU-1561",
+    "moduleId": "advanced-dp",
+    "section": "7.2.1 背包類樹形 DP／訓練1 城堡中的寶物",
+    "summary": "多組資料；每組給城堡數 n、可攻占數 m，接 n 行父城編號 a 與寶物值 b；攻城 i 前必須先攻其父城，a=0 表示無先決城。`0 0` 結束。最多攻 m 座，求最大寶物。n,m≤200。",
+    "hints": [
+      "加虛根 0，把所有無父城的節點接到它。",
+      "樹形背包 dp[u][k] 表示在 u 子樹選 k 點且若 k>0 必選 u；虛根不計名額。"
+    ],
+    "analysis": "依賴關係形成以虛根為根的森林。選中任一後代必選祖先，所以每個合法方案在各子樹中都是包含子根的集合；子樹合併枚舉分配名額可列舉所有且僅合法方案。最後虛根合併後取 m 名額。時間 O(nm²)，空間 O(nm)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct PrerequisiteTreeDP {\n    vector<vector<int>> children; vector<int> treasure; vector<vector<int>> dp; int limit=0;\n    int dfs(int node) { /* TODO: Merge child knapsacks while forcing a selected non-virtual root. */ return 0; }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete HDU-1561 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;int main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,m;while(cin>>n>>m&&(n||m)){vector<vector<int>>ch(n+1);vector<int>w(n+1);for(int i=1,p;i<=n;i++)cin>>p>>w[i],ch[p].push_back(i);vector<vector<int>>dp(n+1,vector<int>(m+2,-1e9));function<int(int)>dfs=[&](int u){dp[u][u?1:0]=u?w[u]:0;int sz=u?1:0;for(int v:ch[u]){int vs=dfs(v);for(int i=min(m,sz);i>=0;i--)if(dp[u][i]>-1e8)for(int j=1;j<=min(vs,m-i);j++)dp[u][i+j]=max(dp[u][i+j],dp[u][i]+dp[v][j]);sz=min(m,sz+vs);}return sz;};dfs(0);cout<<dp[0][m]<<\"\\n\";}}"
+  },
+  {
+    "id": "poj-2486",
+    "title": "Apple Tree",
+    "origin": "POJ-2486",
+    "originalUrl": "https://vjudge.net/problem/POJ-2486",
+    "moduleId": "advanced-dp",
+    "section": "7.2.1 背包類樹形 DP／訓練2 蘋果樹",
+    "summary": "多組直到 EOF。每組給 N、最多步數 K、各節點蘋果數及 N-1 條樹邊。從節點 1 出發，每走一邊一步，首次到點可吃其全部蘋果；可在任意點停止，求至多 K 步最大蘋果。N≤100、K≤200。",
+    "hints": [
+      "樹形背包需區分最後是否回到子樹根。",
+      "ret[u][j]：走 j 步回 u；open[u][j]：走 j 步可停在子樹。合併孩子時，往返多花 2 邊，作為最後一支只花 1 邊。"
+    ],
+    "analysis": "從 u 進入某孩子後，若還要探索其他孩子就必須回 u；至多一個孩子可成為最後不返回分支。三種合併（都返回、原先開放加新孩子往返、原先返回加新孩子開放）完整涵蓋所有行程。DP 歸納得最優值。時間 O(NK²)，空間 O(NK)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct TreeWalkDP {\n    vector<vector<int>> graph; vector<int> apples; vector<vector<array<int,2>>> dp; int steps=0;\n    void dfs(int node,int parent) {\n        // TODO: Merge return/open states; entering a child costs two/one edge respectively.\n    }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete POJ-2486 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;int main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,K;while(cin>>n>>K){vector<int>w(n+1);for(int i=1;i<=n;i++)cin>>w[i];vector<vector<int>>g(n+1);for(int i=1,u,v;i<n;i++)cin>>u>>v,g[u].push_back(v),g[v].push_back(u);vector<vector<array<int,2>>>dp(n+1,vector<array<int,2>>(K+1));function<void(int,int)>dfs=[&](int u,int p){for(int j=0;j<=K;j++)dp[u][j]={w[u],w[u]};for(int v:g[u])if(v!=p){dfs(v,u);auto old=dp[u];for(int j=0;j<=K;j++)for(int k=0;k<=j;k++){if(k>=2){dp[u][j][0]=max(dp[u][j][0],old[j-k][0]+dp[v][k-2][0]);dp[u][j][1]=max(dp[u][j][1],old[j-k][1]+dp[v][k-2][0]);}if(k>=1)dp[u][j][1]=max(dp[u][j][1],old[j-k][0]+dp[v][k-1][1]);}}};dfs(1,0);cout<<dp[1][K][1]<<\"\\n\";}}"
+  },
+  {
+    "id": "poj-3585",
+    "title": "Accumulation Degree",
+    "origin": "POJ-3585",
+    "originalUrl": "https://vjudge.net/problem/POJ-3585",
+    "moduleId": "advanced-dp",
+    "section": "7.2.2 不定根樹形 DP／訓練1 最大累積度",
+    "summary": "第一行 T。每組給 n 與 n-1 條帶容量樹邊。選一節點為水源，水沿樹向所有葉流動；一條邊流量不超容量，求所有根選擇中的最大總流出量（累積度），輸出一行。所有數值≤200000。",
+    "hints": [
+      "先以 1 為根，down[u]=各孩子分支可流量之和；葉視為可接受無限流。",
+      "換根：對邊 u-v，v 從父方向可得 `min(cap, total[u]-contribution(v))`，再加 v 的其他孩子貢獻。"
+    ],
+    "analysis": "對固定根，每個分支獨立；經邊容量 c 且其後子樹可吸收 f，該分支貢獻 min(c,f)，葉可吸收無限。第一次 DFS 得向下值，第二次把父側視為另一分支並套同公式，故得到每點作根的完整總和，取最大正確。時間 O(n)，空間 O(n)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct RerootFlowDP {\n    vector<vector<pair<int,int>>> graph; vector<long long> downward,total;\n    void buildDown(int node,int parent) { /* TODO: Sum min(edge capacity, child absorption), with leaves infinite. */ }\n    void reroot(int node,int parent,long long fromParent) { /* TODO: Pass the complementary branch contribution. */ }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete POJ-3585 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;int main(){ios::sync_with_stdio(false);cin.tie(nullptr);int T;cin>>T;while(T--){int n;cin>>n;vector<vector<pair<int,int>>>g(n+1);for(int i=1,u,v,w;i<n;i++)cin>>u>>v>>w,g[u].push_back({v,w}),g[v].push_back({u,w});const long long INF=1LL<<55;vector<long long>down(n+1),all(n+1);function<void(int,int)>d1=[&](int u,int p){bool leaf=1;for(auto[v,c]:g[u])if(v!=p)leaf=0,d1(v,u),down[u]+=min<long long>(c,down[v]);if(leaf)down[u]=INF;};d1(1,0);long long ans=0;function<void(int,int,long long)>d2=[&](int u,int p,long long from){long long base=from;for(auto[v,c]:g[u])if(v!=p)base+=min<long long>(c,down[v]);all[u]=base;ans=max(ans,base);for(auto[v,c]:g[u])if(v!=p){long long rest=base-min<long long>(c,down[v]);d2(v,u,min<long long>(c,rest));}};d2(1,0,0);cout<<ans<<\"\\n\";}}"
+  },
+  {
+    "id": "hdu-2196",
+    "title": "Computer",
+    "origin": "HDU-2196",
+    "originalUrl": "https://vjudge.net/problem/HDU-2196",
+    "moduleId": "advanced-dp",
+    "section": "7.2.2 不定根樹形 DP／訓練2 最遠距離",
+    "summary": "多組直到 EOF。每組先給 n；對節點 i=2..n 各給父節點與邊長，形成樹。依節點 1..n 每行輸出它到最遠節點的距離。n≤10000。",
+    "hints": [
+      "樹的任一直徑端點可由兩次 DFS/BFS 得到。",
+      "若直徑端點為 A、B，任意點 x 的最遠距離等於 max(dist(x,A),dist(x,B))。"
+    ],
+    "analysis": "取任意點最遠者 A 是某條直徑端點，再由 A 最遠得 B。樹上對任意 x，最遠點可替換為直徑端點之一而距離不減，因此 eccentricity(x)=max(dA[x],dB[x])。三次樹遍歷 O(n)，空間 O(n)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nvector<long long> treeDistances(int source,const vector<vector<pair<int,int>>>& graph) { /* TODO: Traverse the weighted tree. */ return vector<long long>(graph.size()); }\npair<int,int> diameterEndpoints(const vector<vector<pair<int,int>>>& graph) { /* TODO: Two farthest-node traversals. */ return {0,0}; }\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete HDU-2196 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;int main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n;while(cin>>n){vector<vector<pair<int,int>>>g(n+1);for(int i=2,p,w;i<=n;i++)cin>>p>>w,g[i].push_back({p,w}),g[p].push_back({i,w});auto run=[&](int s){vector<long long>d(n+1,-1);stack<int>q;q.push(s);d[s]=0;while(q.size()){int u=q.top();q.pop();for(auto[v,w]:g[u])if(d[v]<0)d[v]=d[u]+w,q.push(v);}return d;};auto d0=run(1);int A=max_element(d0.begin()+1,d0.end())-d0.begin();auto da=run(A);int B=max_element(da.begin()+1,da.end())-da.begin();auto db=run(B);for(int i=1;i<=n;i++)cout<<max(da[i],db[i])<<\"\\n\";}}"
+  },
+  {
+    "id": "hdu-2089",
+    "title": "不要62",
+    "origin": "HDU-2089",
+    "originalUrl": "https://vjudge.net/problem/HDU-2089",
+    "moduleId": "advanced-complex-dp",
+    "section": "8.1 數位 DP／訓練1 不吉利的數字",
+    "summary": "多組區間 n、m，以 `0 0` 結束。統計閉區間 [n,m] 中十進位表示不含數字 4、也不含相鄰子字串 62 的整數數量，輸出一行。0<n≤m<10^6。",
+    "hints": [
+      "寫 count(x) 計算 0..x 合法數，答案 count(m)-count(n-1)。",
+      "數位 DP 狀態只需位置、前一位是否為 6、tight；前導零可當一般 0。"
+    ],
+    "analysis": "由高位逐位決定。是否合法新增一位只依賴它是否為 4 及前位是否為 6 且本位為 2，因此狀態資訊充分；枚舉所有允許數位且 tight 正確限制上界，無重無漏。每個 count 僅約位數×2×10，時間 O(log x)，空間 O(log x)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nlong long countValid(long long upperBound) {\n    // TODO: Digit DP state = position, previous-is-six, tight; forbid digit 4 and transition 6->2.\n    return 0;\n}\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete HDU-2089 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;long long calc(int x){if(x<0)return 0;string s=to_string(x);long long memo[12][2];memset(memo,-1,sizeof memo);function<long long(int,int,bool)>f=[&](int p,int six,bool tight){if(p==(int)s.size())return 1LL;if(!tight&&memo[p][six]>=0)return memo[p][six];long long z=0;int hi=tight?s[p]-'0':9;for(int d=0;d<=hi;d++)if(d!=4&&!(six&&d==2))z+=f(p+1,d==6,tight&&d==hi);if(!tight)memo[p][six]=z;return z;};return f(0,0,1);}int main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n,m;while(cin>>n>>m&&(n||m))cout<<calc(m)-calc(n-1)<<\"\\n\";}"
+  },
+  {
+    "id": "hdu-3555",
+    "title": "Bomb",
+    "origin": "HDU-3555",
+    "originalUrl": "https://vjudge.net/problem/HDU-3555",
+    "moduleId": "advanced-complex-dp",
+    "section": "8.1 數位 DP／訓練2 定時炸彈",
+    "summary": "第一行測試組數 T。每組給非負整數 N（可達 2^63-1 的題目常用範圍），求 0..N 中十進位表示含連續子字串 `49` 的數量，輸出一行。",
+    "hints": [
+      "先計算不含 49 的數量，再由 N+1 相減。",
+      "數位 DP 記前一位是否為 4；若下一位 9 就禁止，tight 控制上界。"
+    ],
+    "analysis": "不含 49 的判定只依賴前位是否為 4；DP 枚舉所有不造成 49 的位數，故精確計數合法數。0..N 共 N+1 個，補集即含 49 數量。每組 O(位數×20)，空間 O(位數)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nunsigned long long countContaining49(unsigned long long upperBound) {\n    // TODO: Count the complement with digit DP (position, previous-is-four, tight).\n    return 0;\n}\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete HDU-3555 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;using ull=unsigned long long;ull good(ull x){string s=to_string(x);long long memo[25][2];memset(memo,-1,sizeof memo);function<ull(int,int,bool)>f=[&](int p,int four,bool tight)->ull{if(p==(int)s.size())return 1;if(!tight&&memo[p][four]>=0)return memo[p][four];ull z=0;int hi=tight?s[p]-'0':9;for(int d=0;d<=hi;d++)if(!(four&&d==9))z+=f(p+1,d==4,tight&&d==hi);if(!tight)memo[p][four]=z;return z;};return f(0,0,1);}int main(){ios::sync_with_stdio(false);cin.tie(nullptr);int T;cin>>T;while(T--){unsigned long long n;cin>>n;cout<<n+1-good(n)<<\"\\n\";}}"
+  },
+  {
+    "id": "poj-2411",
+    "title": "Mondriaan's Dream",
+    "origin": "POJ-2411",
+    "originalUrl": "https://vjudge.net/problem/POJ-2411",
+    "moduleId": "advanced-complex-dp",
+    "section": "8.2 插頭 DP／訓練1 鋪磚",
+    "summary": "多組棋盤 h、w，以 `0 0` 結束。用 1×2 骨牌完整鋪滿 h×w，骨牌不可重疊，求方案數並輸出一行。h,w≤11，答案用 64 位元。",
+    "hints": [
+      "逐格輪廓 DP，mask 的最低位表示當前格是否已由前一列的直骨牌占用。",
+      "已占則移過；未占可向下放直骨牌，或在右格也空時放橫骨牌。每列結束自然右移完成。"
+    ],
+    "analysis": "在行優先掃描下，尚未決定的影響只有下一些格是否已被先前骨牌占用，mask 足夠。每個空當前格必且只能選向右或向下（若合法），已占格不能再放；因此轉移對每個鋪法唯一。最後 mask=0 表示無伸出棋盤。時間 O(hw2^w)，空間 O(2^w)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nlong long dominoTilings(int height,int width) {\n    vector<long long> dp(1<<width), next(1<<width); dp[0]=1;\n    // TODO: Scan cells; consume occupied bits or place a horizontal/vertical domino.\n    return 0;\n}\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete POJ-2411 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;using ll=long long;int main(){ios::sync_with_stdio(false);cin.tie(nullptr);int h,w;while(cin>>h>>w&&(h||w)){if(w>h)swap(w,h);int M=1<<w;vector<ll>dp(M),ndp(M);dp[0]=1;for(int pos=0;pos<h*w;pos++){fill(ndp.begin(),ndp.end(),0);int col=pos%w;for(int s=0;s<M;s++)if(dp[s]){if(s&1)ndp[s>>1]+=dp[s];else{if(pos/w+1<h)ndp[(s>>1)|(1<<(w-1))]+=dp[s];if(col+1<w&&!(s&2))ndp[(s>>1)|1]+=dp[s];}}dp.swap(ndp);}cout<<dp[0]<<\"\\n\";}}"
+  },
+  {
+    "id": "hdu-1693",
+    "title": "Eat the Trees",
+    "origin": "HDU-1693",
+    "originalUrl": "https://vjudge.net/problem/HDU-1693",
+    "moduleId": "advanced-complex-dp",
+    "section": "8.2 插頭 DP／訓練2 多迴路連通性問題",
+    "summary": "第一行 T（≤10）。每組給 N、M（≤11）及 0/1 矩陣；1 的格子必須都位於所選的一條或多條封閉迴路上，0 格不可經過。求鋪線方式數。輸出精確格式 `Case X: There are Y ways to eat the trees.`，答案小於 2^63。",
+    "hints": [
+      "每個有樹格在格點圖中的度數必為 2；允許多個迴路，因此輪廓只需記每條邊有無插頭，不必配對連通標籤。",
+      "當前格看左、上插頭：有樹時可選右、下使總度數為 2；無樹時兩者必皆為 0。"
+    ],
+    "analysis": "逐格時，左與上是已決定邊，右與下是待決定邊。對有樹格枚舉右、下並保留四邊度數恰 2 的組合；空格只允許四邊皆無。因題目允許多迴路，局部度 2 已保證所有有限分量為環，無需額外連通資訊。每種線配置有唯一轉移序列。時間 O(NM2^(M+1))，空間 O(2^(M+1))。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nlong long circuitCoverCount(const vector<vector<int>>& hasTree) {\n    int width=hasTree.empty()?0:(int)hasTree[0].size(); vector<long long> dp(1<<(width+1)),next(dp.size()); dp[0]=1;\n    // TODO: Contour DP; every tree cell must have degree two, empty cells degree zero.\n    return 0;\n}\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete HDU-1693 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;using ll=long long;int main(){ios::sync_with_stdio(false);cin.tie(nullptr);int T;cin>>T;for(int cs=1;cs<=T;cs++){int n,m;cin>>n>>m;vector<vector<int>>a(n,vector<int>(m+1));for(int i=0;i<n;i++)for(int j=1;j<=m;j++)cin>>a[i][j];int S=1<<(m+1);vector<ll>dp(S),ndp(S);dp[0]=1;for(int i=0;i<n;i++){fill(ndp.begin(),ndp.end(),0);for(int s=0;s<(1<<m);s++)ndp[s<<1]=dp[s];dp.swap(ndp);for(int j=1;j<=m;j++){fill(ndp.begin(),ndp.end(),0);int L=1<<(j-1),U=1<<j;for(int s=0;s<S;s++)if(dp[s]){bool l=s&L,u=s&U;if(!a[i][j]){if(!l&&!u)ndp[s]+=dp[s];}else if(l==u)ndp[s^L^U]+=dp[s];else ndp[s]+=dp[s],ndp[s^L^U]+=dp[s];}dp.swap(ndp);}}cout<<\"Case \"<<cs<<\": There are \"<<dp[0]<<\" ways to eat the trees.\\n\";}}"
+  },
+  {
+    "id": "hdu-3507",
+    "title": "Print Article",
+    "origin": "HDU-3507",
+    "originalUrl": "https://vjudge.net/problem/HDU-3507",
+    "moduleId": "advanced-complex-dp",
+    "section": "8.3 斜率優化／訓練1 列印文章",
+    "summary": "多組直到 EOF。每組給 n、常數 M 及 n 個非負整數。把序列切成若干連續段，每段成本為該段元素和的平方加 M，求最小總成本，輸出一行。n≤5×10^5。",
+    "hints": [
+      "令前綴和 S，轉移 `dp[i]=min_j dp[j]+(S[i]-S[j])²+M`。",
+      "展開後每個 j 是直線 `y=(-2S[j])x + dp[j]+S[j]²`；S 單調，可用單調凸包。"
+    ],
+    "analysis": "展開式與原轉移完全等價。在查詢 x=S[i] 時，凸包隊首兩線若後者值更小即可淘汰前者；新增斜率單調的線時，叉積判斷中間線永不最優並刪除。故每條線進出一次且得到所有 j 中最小值。時間 O(n)，空間 O(n)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct Line { long long slope=0, intercept=0; long long value(long long x) const { return slope*x+intercept; } };\nstruct MonotoneHull { deque<Line> lines; void add(Line line) { /* TODO: Remove obsolete equal-slope/non-convex lines. */ } long long minimum(long long x) { /* TODO: Advance front for monotone x. */ return 0; } };\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete HDU-3507 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;using ll=long long;int main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n;ll M;while(cin>>n>>M){vector<ll>s(n+1),dp(n+1);for(int i=1,x;i<=n;i++)cin>>x,s[i]=s[i-1]+x;vector<int>q(n+1);int h=0,t=0;q[0]=0;auto Y=[&](int j){return dp[j]+s[j]*s[j];};auto val=[&](int j,ll x){return Y(j)-2*s[j]*x;};for(int i=1;i<=n;i++){while(h<t&&val(q[h+1],s[i])<=val(q[h],s[i]))h++;int j=q[h];dp[i]=s[i]*s[i]+M+val(j,s[i]);while(h<t&&(Y(q[t])-Y(q[t-1]))*(s[i]-s[q[t]])>=(Y(i)-Y(q[t]))*(s[q[t]]-s[q[t-1]]))t--;q[++t]=i;}cout<<dp[n]<<\"\\n\";}}"
+  },
+  {
+    "id": "poj-1180",
+    "title": "Batch Scheduling",
+    "origin": "POJ-1180",
+    "originalUrl": "https://vjudge.net/problem/POJ-1180",
+    "moduleId": "advanced-complex-dp",
+    "section": "8.3 斜率優化／訓練2 批次處理作業",
+    "summary": "給作業數 N、每批設定時間 S，接 N 行處理時間 Ti 與成本因子 Fi。作業順序固定，可切成連續批次；同批作業在設定及整批處理完同時輸出，總成本為各作業完成時間×Fi。求最小總成本。N≤10000，輸出一個整數。",
+    "hints": [
+      "用前綴和 T、F，標準轉移可寫 `dp[i]=min_j dp[j]+S*(F[n]-F[j])+T[i]*(F[i]-F[j])`。",
+      "將 j 視為點 (F[j], dp[j]-S*F[j])，對單調查詢斜率 T[i] 維護下凸包。"
+    ],
+    "analysis": "轉移枚舉最後一批開始於 j+1，正確加入此前成本、每批設定對尚未完成作業的影響及處理時間。代數展開後對固定 i 只需最小化 `dp[j]-S F[j]-T[i]F[j]`；F、T 均遞增，單調凸包以叉積維持候選並依查詢移頭，得到全域最小。時間 O(N)，空間 O(N)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct ConvexHullQueue {\n    vector<int> candidate; int head=0;\n    void addCandidate(int index,const vector<long long>& x,const vector<long long>& y) { /* TODO: Cross-product convexity maintenance. */ }\n    int best(long long querySlope,const vector<long long>& x,const vector<long long>& y) { /* TODO: Advance head for monotone queries. */ return 0; }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete POJ-1180 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;using ll=long long;int main(){ios::sync_with_stdio(false);cin.tie(nullptr);int n;ll S;cin>>n>>S;vector<ll>T(n+1),F(n+1),dp(n+1);for(int i=1,t,f;i<=n;i++)cin>>t>>f,T[i]=T[i-1]+t,F[i]=F[i-1]+f;vector<int>q(n+1);int h=0,r=0;auto Y=[&](int j){return dp[j]-S*F[j];};auto val=[&](int j,ll x){return Y(j)-x*F[j];};for(int i=1;i<=n;i++){while(h<r&&val(q[h+1],T[i])<=val(q[h],T[i]))h++;int j=q[h];dp[i]=S*F[n]+T[i]*F[i]+val(j,T[i]);while(h<r&&(Y(q[r])-Y(q[r-1]))*(F[i]-F[q[r]])>=(Y(i)-Y(q[r]))*(F[q[r]]-F[q[r-1]]))r--;q[++r]=i;}cout<<dp[n]<<\"\\n\";}"
+  },
+  {
+    "id": "hdu-3480",
+    "title": "Division",
+    "origin": "HDU-3480",
+    "originalUrl": "https://vjudge.net/problem/HDU-3480",
+    "moduleId": "advanced-complex-dp",
+    "section": "8.4 四邊形不等式優化／訓練 劃分",
+    "summary": "第一行 T。每組給 N、M 及 N 個可重複整數；把所有元素分成 M 個非空子集，每組成本為 `(max-min)²`，最小化總成本。N≤10000、M≤5000。輸出 `Case X: answer`。若 M≥N 答案為 0。",
+    "hints": [
+      "排序後存在最優解把相鄰元素分在同組。",
+      "DP `f_g[i]=min_{j<i} f_{g-1}[j]+(a[i]-a[j+1])²`；對固定 g，把 j 化為直線並用單調凸包。"
+    ],
+    "analysis": "若兩組在排序序列中交錯，交換交錯尾部不增兩組極差，故可取連續分組。展開轉移後候選 j 的斜率為 -2a[j+1]、截距為 prev[j]+a[j+1]²；斜率與查詢 x=a[i] 均單調，凸包精確取最小。每層 O(N)，總 O(MN)，空間 O(N)。",
+    "skeleton": "#include <bits/stdc++.h>\nusing namespace std;\n\nstruct PartitionHull {\n    vector<int> candidate; int head=0;\n    void clear() { candidate.clear(); head=0; }\n    void add(int split,const vector<long long>& coordinate,const vector<long long>& previousDP) { /* TODO: Handle equal slopes and remove obsolete lines. */ }\n    long long query(long long endpoint,const vector<long long>& coordinate,const vector<long long>& previousDP) { /* TODO: Return the best split. */ return 0; }\n};\n\nclass Solver {\npublic:\n    void solve(istream& in, ostream& out) {\n        // TODO: Read the complete HDU-3480 input, invoke the structures above,\n        // TODO: and write every answer using the required multi-case/output format.\n        (void)in;\n        (void)out;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    Solver solver;\n    solver.solve(cin, cout);\n    return 0;\n}",
+    "solution": "#include <bits/stdc++.h>\nusing namespace std;using ll=long long;int main(){ios::sync_with_stdio(false);cin.tie(nullptr);int T;cin>>T;for(int cs=1;cs<=T;cs++){int n,M;cin>>n>>M;vector<ll>a(n+1);for(int i=1;i<=n;i++)cin>>a[i];sort(a.begin()+1,a.end());M=min(M,n);const ll INF=4e18;vector<ll>pre(n+1,INF),cur(n+1,INF);pre[0]=0;for(int g=1;g<=M;g++){fill(cur.begin(),cur.end(),INF);vector<int>q(n+1);int h=0,t=-1;auto X=[&](int j){return a[j+1];};auto Y=[&](int j){return pre[j]+X(j)*X(j);};auto val=[&](int j,ll x){return Y(j)-2*X(j)*x;};for(int i=g;i<=n;i++){int j=i-1;if(pre[j]<INF){bool use=1;if(h<=t&&X(q[t])==X(j)){if(Y(q[t])<=Y(j))use=0;else t--;}if(use){while(h<t&&(Y(q[t])-Y(q[t-1]))*(X(j)-X(q[t]))>=(Y(j)-Y(q[t]))*(X(q[t])-X(q[t-1])))t--;q[++t]=j;}}while(h<t&&val(q[h+1],a[i])<=val(q[h],a[i]))h++;cur[i]=a[i]*a[i]+val(q[h],a[i]);}pre.swap(cur);}cout<<\"Case \"<<cs<<\": \"<<pre[n]<<\"\\n\";}}"
+  }
+]

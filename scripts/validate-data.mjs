@@ -16,6 +16,14 @@ function fail(errors) {
 const kTopics = readJson('data/topics.json');
 const kSubtopics = readJson('data/subtopics.json');
 const kProblems = readJson('data/problems.json');
+const kTrainingProblemFiles = [
+  'data/training-camp-problems-foundation.json',
+  'data/training-camp-problems-strengthening.json',
+  'data/training-camp-problems-advanced.json'
+];
+const kTrainingProblems = kTrainingProblemFiles.flatMap((file) =>
+  readJson(file).map((problem) => ({ ...problem, file }))
+);
 
 const kErrors = [];
 const kTopicIds = new Set(kTopics.map((topic) => topic.id));
@@ -28,6 +36,33 @@ const kSourceProblemKeys = new Map();
 const kSources = new Set(['leetcode', 'codeforces', 'luogu', 'atcoder', 'cses']);
 const kProblemTypes = new Set(['template', 'classic', 'insight_transfer']);
 const kTiers = new Set(['warmup', 'core', 'advanced', 'challenge']);
+const kTrainingModuleIds = new Set([
+  'foundation-cpp-basics',
+  'foundation-algorithm-beauty',
+  'foundation-linear-list',
+  'foundation-tree',
+  'foundation-graph',
+  'foundation-algorithm-intro',
+  'foundation-big-integer',
+  'foundation-search',
+  'foundation-dp',
+  'strengthening-stl',
+  'strengthening-practical-data-structures',
+  'strengthening-searching',
+  'strengthening-balanced-trees',
+  'strengthening-graph-advanced',
+  'strengthening-graph-algorithms',
+  'strengthening-search-advanced',
+  'strengthening-dp',
+  'advanced-data-structures',
+  'advanced-string-algorithms',
+  'advanced-tree-operations',
+  'advanced-complex-trees',
+  'advanced-persistent-data-structures',
+  'advanced-graph-algorithms',
+  'advanced-dp',
+  'advanced-complex-dp'
+]);
 
 function requireText(owner, field, value) {
   if (typeof value !== 'string' || value.trim() === '') {
@@ -160,6 +195,60 @@ for (const problem of kProblems) {
   }
 }
 
+const kTrainingIdsByFile = new Map();
+const kTrainingOriginsByFile = new Map();
+const kTrainingOriginById = new Map();
+for (const problem of kTrainingProblems) {
+  const owner = `training problem ${problem.id} (${problem.file})`;
+  for (const field of [
+    'id',
+    'title',
+    'origin',
+    'originalUrl',
+    'moduleId',
+    'section',
+    'summary',
+    'analysis',
+    'skeleton',
+    'solution'
+  ]) {
+    requireText(owner, field, problem[field]);
+  }
+  if (!Array.isArray(problem.hints) || problem.hints.length < 2) {
+    kErrors.push(`${owner} needs at least two hints`);
+  }
+  if (!problem.skeleton.includes('TODO')) kErrors.push(`${owner} skeleton has no TODO`);
+  if (problem.skeleton.trim() === problem.solution.trim()) {
+    kErrors.push(`${owner} skeleton is identical to its solution`);
+  }
+  if (!/^https:\/\/vjudge\.net\/problem\/.+/.test(problem.originalUrl)) {
+    kErrors.push(`${owner} has invalid VJudge URL ${problem.originalUrl}`);
+  }
+  for (const moduleId of [problem.moduleId, ...(problem.moduleIds ?? [])]) {
+    if (!kTrainingModuleIds.has(moduleId)) {
+      kErrors.push(`${owner} references missing training module ${moduleId}`);
+    }
+  }
+
+  const ids = kTrainingIdsByFile.get(problem.file) ?? new Set();
+  if (ids.has(problem.id)) kErrors.push(`${problem.file} repeats training problem id ${problem.id}`);
+  ids.add(problem.id);
+  kTrainingIdsByFile.set(problem.file, ids);
+
+  const origins = kTrainingOriginsByFile.get(problem.file) ?? new Set();
+  if (origins.has(problem.origin)) {
+    kErrors.push(`${problem.file} repeats training problem origin ${problem.origin}`);
+  }
+  origins.add(problem.origin);
+  kTrainingOriginsByFile.set(problem.file, origins);
+
+  const existingOrigin = kTrainingOriginById.get(problem.id);
+  if (existingOrigin && existingOrigin !== problem.origin) {
+    kErrors.push(`training problem id ${problem.id} maps to both ${existingOrigin} and ${problem.origin}`);
+  }
+  kTrainingOriginById.set(problem.id, problem.origin);
+}
+
 for (const file of [
   'lib/trainingCampFoundation.ts',
   'lib/trainingCampStrengthening.ts',
@@ -180,6 +269,9 @@ for (const file of [
 if (kErrors.length === 0) {
   console.log(
     `data ok: ${kTopics.length} topics, ${kSubtopics.length} subtopics, ${kProblems.length} problems, ${kLeetcodeSlugs.size} LeetCode slugs`
+  );
+  console.log(
+    `training data ok: ${kTrainingProblems.length} placements, ${kTrainingOriginById.size} unique problems`
   );
 }
 

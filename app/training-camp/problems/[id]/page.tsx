@@ -4,20 +4,13 @@ import { ArrowLeft, ExternalLink, Lightbulb } from 'lucide-react';
 import { CodeReveal } from '@/components/CodeReveal';
 import { InlineMarkdown } from '@/components/MarkdownBlock';
 import { PageTransition } from '@/components/PageTransition';
-import {
-  kTrainingCampProblemById,
-  kTrainingCampProblems
-} from '@/lib/trainingCampProblems';
+import { kTrainingCampProblemById, kTrainingCampProblems } from '@/lib/trainingCampProblems';
 
 export function generateStaticParams() {
   return kTrainingCampProblems.map((problem) => ({ id: problem.id }));
 }
 
-export default async function TrainingCampProblemPage({
-  params
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function TrainingCampProblemPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const problem = kTrainingCampProblemById.get(id);
 

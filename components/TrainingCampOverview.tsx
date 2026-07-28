@@ -132,7 +132,8 @@ export function TrainingCampOverview({
               <h1 className="mt-2 text-3xl font-bold sm:text-4xl">競程解題訓練營</h1>
               <p className="mt-4 max-w-3xl leading-7 text-muted-foreground">
                 將完整教材重編為 {stats.moduleCount} 個關卡，分成起步、核心、挑戰三個區域。
-                每個章節與子項目都採用學習目標式命名，並提供概念說明、C++ 實作與複雜度，讓你循著流程由淺入深練習。
+                每個章節與子項目都採用學習目標式命名，並提供概念說明、C++
+                實作與複雜度，讓你循著流程由淺入深練習。
               </p>
             </div>
           </div>
@@ -219,7 +220,8 @@ export function TrainingCampOverview({
                         </div>
 
                         <p className="text-sm leading-6 text-muted-foreground sm:justify-self-start">
-                          {topic_count} 個訓練節點，{training_problems.length + leetcode_problems.length} 題練習
+                          {topic_count} 個訓練節點，{training_problems.length + leetcode_problems.length}{' '}
+                          題練習
                         </p>
 
                         <ChevronDown

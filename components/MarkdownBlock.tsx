@@ -1,10 +1,11 @@
-import { Fragment, type ReactNode, useMemo } from 'react';
+import { Children, Fragment, isValidElement, type ReactNode, useMemo } from 'react';
 import { AlertCircle, AlertTriangle, Info, Lightbulb, XCircle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import 'katex/dist/katex.min.css';
+import { CopyCodeButton } from '@/components/CopyCodeButton';
 import { remarkGithubAlerts } from '@/lib/remarkGithubAlerts';
 import { cn } from '@/lib/utils';
 
@@ -207,6 +208,12 @@ function HighlightedCode({ children, className: class_name }: { children: string
         ))}
     </code>
   );
+}
+
+function codeTextFromNode(node: ReactNode): string {
+  if (typeof node === 'string' || typeof node === 'number') return String(node);
+  if (!isValidElement<{ children?: ReactNode }>(node)) return '';
+  return Children.toArray(node.props.children).map(codeTextFromNode).join('');
 }
 
 function highlightCppLine(line: string) {
@@ -512,11 +519,21 @@ export function MarkdownBlock({ children, className: class_name }: { children: s
             </code>
           );
         },
-        pre: ({ children: pre_children }) => (
-          <pre className="overflow-x-auto rounded-2xl border border-border bg-slate-100 p-4 font-mono leading-6 text-slate-900 dark:bg-[#0d1117] dark:text-slate-100">
-            {pre_children}
-          </pre>
-        )
+        pre: ({ children: pre_children }) => {
+          const code = codeTextFromNode(pre_children).replace(/\n$/, '');
+
+          return (
+            <div className="group/code-block relative">
+              <CopyCodeButton
+                code={code}
+                className="absolute right-2.5 top-2.5 z-10 opacity-100 sm:opacity-0 sm:group-hover/code-block:opacity-100 sm:focus-visible:opacity-100"
+              />
+              <pre className="overflow-x-auto rounded-2xl border border-border bg-slate-100 p-4 pr-24 font-mono leading-6 text-slate-900 dark:bg-[#0d1117] dark:text-slate-100">
+                {pre_children}
+              </pre>
+            </div>
+          );
+        }
       }}
     >
       {normalized_children}

@@ -33,11 +33,13 @@ export const advancedModules: TrainingCampModule[] = [
             title: '預處理',
             summary: '決定塊大小（約 √n）、算出每個下標所屬塊、預處理每塊的彙總資訊（和、最值等）。',
             code: `// 預處理: 塊長取 sqrt(n)，再計算每個位置所屬塊。
-int block_size, block_id[kMaxN], left_bound[kMaxM], right_bound[kMaxM];
+int block_size, block_id[k_max_n], left_bound[k_max_m], right_bound[k_max_m];
 void build() {
-    block_size = max(1, static_cast<int>(sqrt(n)));   // 取 max(1, ...) 避免 n 很小時 sqrt(n) 捨去成 0 導致除以零
+    block_size = max(
+        1, static_cast<int>(sqrt(n)));  // 取 max(1, ...) 避免 n 很小時 sqrt(n) 捨去成 0 導致除以零
     for (int i = 1; i <= n; ++i) {
-        block_id[i] = (i - 1) / block_size + 1;   // 用整數除法把下標依序分進大小相同（最後一塊可能較短）的塊
+        block_id[i] =
+            (i - 1) / block_size + 1;  // 用整數除法把下標依序分進大小相同（最後一塊可能較短）的塊
     }
     // left_bound[b], right_bound[b] store the left/right boundaries of each block
 }`
@@ -63,7 +65,10 @@ void build() {
             title: '跳躍表的結構體定義',
             summary: '每個節點有隨機層數，第 k 層的 forward 指標跳過約 2^k 個元素。',
             code: `// 跳躍表的結構體定義: 每個節點的 forward 長度就是它的層數，forward[k] 指向「同一層」的下一個節點。
-struct Node { int val; vector<Node*> forward; };   // forward.size() 是隨機決定的層數，越高層的指標平均跳過越多節點`
+struct Node {
+    int val;
+    vector<Node*> forward;
+};  // forward.size() 是隨機決定的層數，越高層的指標平均跳過越多節點`
           },
           {
             title: '查找',
@@ -90,14 +95,17 @@ struct Node { int val; vector<Node*> forward; };   // forward.size() 是隨機�
           {
             title: '基礎莫隊',
             summary: '查詢按 (bel[l], r) 排序後，move 指標 add/del 元素維護當前答案。',
-            code: `// 基礎莫隊: 按左端點所在塊排序後，右指標在同一塊內只會單調前進；奇偶塊交替反轉右端點排序方向可省去右指標的來回抖動。
+            code: `// 基礎莫隊:
+// 按左端點所在塊排序後，右指標在同一塊內只會單調前進；奇偶塊交替反轉右端點排序方向可省去右指標的來回抖動。
 sort(qs, qs + q, [](auto& a, auto& b) {
-    // 左端點所在塊不同就按塊排序；塊相同則依「塊的奇偶」決定右端點升冪或降冪，這是常數優化（避免每個新塊都要讓 r 大幅跳動）
+    // 左端點所在塊不同就按塊排序；塊相同則依「塊的奇偶」決定右端點升冪或降冪，這是常數優化（避免每個新塊都要讓
+    // r 大幅跳動）
     return block_id[a.l] != block_id[b.l] ? a.l < b.l : (block_id[a.l] & 1 ? a.r < b.r : a.r > b.r);
 });
-int l = 1, r = 0;                 // 目前維護的區間是 (l, r]/[l, r]，視 add/del 的定義而定，這裡先從「空區間」開始
+int l = 1, r = 0;  // 目前維護的區間是 (l, r]/[l, r]，視 add/del 的定義而定，這裡先從「空區間」開始
 for (auto& q : qs) {
-    // 四個方向的移動順序沒有強制規定，但都要先擴張（add）才收縮（del），確保視窗內元素數量與答案 cur 的定義隨時一致
+    // 四個方向的移動順序沒有強制規定，但都要先擴張（add）才收縮（del），確保視窗內元素數量與答案
+    // cur 的定義隨時一致
     while (r < q.r) {
         add(++r);
     }
@@ -110,7 +118,7 @@ for (auto& q : qs) {
     while (l < q.l) {
         del(l++);
     }
-    ans[q.id] = cur;   // 排序打亂了查詢的原始順序，用 q.id 記錄它原本的編號，才能把答案填回正確位置
+    ans[q.id] = cur;  // 排序打亂了查詢的原始順序，用 q.id 記錄它原本的編號，才能把答案填回正確位置
 }`,
             complexity: 'O((n+q)√n)'
           },
@@ -135,29 +143,33 @@ for (auto& q : qs) {
             title: '處理多維偏序問題 (三維偏序)',
             summary:
               '第一維排序、第二維在 CDQ 分治中用「左半按第二維、右半按第二維歸併」處理、第三維用樹狀陣列統計。總複雜度 O(n log^2 n)。',
-            code: `// 處理多維偏序問題 (三維偏序): 第一維排序後用分治消掉，第二維在合併時用雙指標（歸併排序的技巧），第三維交給樹狀陣列統計。
-// a[] is sorted by the first dimension x (deduplicated per group with counts)
-// for [l, r]: recurse on both halves, then count cross-subarray contributions from left to right
+            code: `// 處理多維偏序問題 (三維偏序):
+// 第一維排序後用分治消掉，第二維在合併時用雙指標（歸併排序的技巧），第三維交給樹狀陣列統計。 a[] is
+// sorted by the first dimension x (deduplicated per group with counts) for [l, r]: recurse on both
+// halves, then count cross-subarray contributions from left to right
 void cdq(int l, int r) {
     if (l == r) {
-        return;               // 只剩一個元素，沒有「跨越左右半」的貢獻需要統計
+        return;  // 只剩一個元素，沒有「跨越左右半」的貢獻需要統計
     }
     int mid = (l + r) >> 1;
-    cdq(l, mid);               // 先遞迴處理左半內部的偏序關係
-    cdq(mid + 1, r);           // 再遞迴處理右半內部的偏序關係
-    sort(a + l, a + mid + 1, compare_y);      // 左右兩半各自按第二維 y 排序，準備用雙指標歸併
+    cdq(l, mid);                          // 先遞迴處理左半內部的偏序關係
+    cdq(mid + 1, r);                      // 再遞迴處理右半內部的偏序關係
+    sort(a + l, a + mid + 1, compare_y);  // 左右兩半各自按第二維 y 排序，準備用雙指標歸併
     sort(a + mid + 1, a + r + 1, compare_y);
     int i = l;
-    for (int j = mid + 1; j <= r; ++j) {      // 走訪右半（按 y 遞增），用它們去查詢左半的貢獻
+    for (int j = mid + 1; j <= r; ++j) {  // 走訪右半（按 y 遞增），用它們去查詢左半的貢獻
         while (i <= mid && a[i].y <= a[j].y) {
-            // 因為第一維已保證左半 x <= 右半 x，這裡再滿足 y <= y，代表左半這個點對右半 a[j] 有貢獻，計入樹狀陣列
+            // 因為第一維已保證左半 x <= 右半 x，這裡再滿足 y <= y，代表左半這個點對右半 a[j]
+            // 有貢獻，計入樹狀陣列
             bit.add(a[i].z, a[i].cnt);
             ++i;
         }
-        a[j].ans += bit.query(a[j].z);        // 樹狀陣列統計「第三維 z 也滿足關係」的個數，即三維偏序的答案
+        a[j].ans +=
+            bit.query(a[j].z);  // 樹狀陣列統計「第三維 z 也滿足關係」的個數，即三維偏序的答案
     }
     for (int k = l; k < i; ++k) {
-        bit.clear(a[k].z);  // undo additions to keep amortized O(n log n) overall：清空本輪加進去的紀錄，避免汙染其他遞迴分支
+        bit.clear(a[k].z);  // undo additions to keep amortized O(n log n)
+                            // overall：清空本輪加進去的紀錄，避免汙染其他遞迴分支
     }
 }`,
             complexity: 'O(n log^2 n)'
@@ -193,17 +205,17 @@ void cdq(int l, int r) {
             title: '創建字典樹',
             summary: '把所有模式串插入 Trie，終點記錄該串資訊（如編號或計數）。',
             code: `// 創建字典樹: 與一般 Trie 的插入完全相同，AC 自動機是在這棵樹的基礎上再多建一層 fail 指標。
-int ch[kMaxN][26], cnt[kMaxN], total_nodes;
+int ch[k_max_n][26], cnt[k_max_n], total_nodes;
 void insert(const string& s) {
     int u = 0;
     for (char c : s) {
         int x = c - 'a';
         if (!ch[u][x]) {
-            ch[u][x] = ++total_nodes;   // 這條路徑第一次出現，新開節點
+            ch[u][x] = ++total_nodes;  // 這條路徑第一次出現，新開節點
         }
         u = ch[u][x];
     }
-    cnt[u]++;   // 標記這裡是某個模式串的結尾，之後匹配時用來判斷「命中了哪個模式」
+    cnt[u]++;  // 標記這裡是某個模式串的結尾，之後匹配時用來判斷「命中了哪個模式」
 }`
           },
           {
@@ -214,19 +226,24 @@ void insert(const string& s) {
 queue<int> q;
 for (int c = 0; c < 26; ++c) {
     if (ch[0][c]) {
-        q.push(ch[0][c]);   // 深度 1 的節點 fail 一定指向根（沒有比它更短的真後綴），直接入隊當 BFS 起點
+        q.push(ch[0][c]);  // 深度 1 的節點 fail 一定指向根（沒有比它更短的真後綴），直接入隊當 BFS
+                           // 起點
     }
 }
 while (!q.empty()) {
     int u = q.front();
     q.pop();
     for (int c = 0; c < 26; ++c) {
-        int& v = ch[u][c];   // 用引用直接改寫 ch[u][c]，讓「補齊缺失轉移」與「往下建樹」共用同一段程式碼
+        int& v =
+            ch[u][c];  // 用引用直接改寫 ch[u][c]，讓「補齊缺失轉移」與「往下建樹」共用同一段程式碼
         if (v) {
-            fail[v] = ch[fail[u]][c];   // v 存在：它的 fail 是「u 的 fail 沿同一字元 c 轉移」到的節點
+            fail[v] =
+                ch[fail[u]][c];  // v 存在：它的 fail 是「u 的 fail 沿同一字元 c 轉移」到的節點
             q.push(v);
         } else {
-            v = ch[fail[u]][c];   // fill missing transitions to avoid branching in queries：直接把不存在的邊「借用」fail 指向節點的對應邊，查詢時就不必再手動沿 fail 跳
+            v = ch[fail[u]][c];  // fill missing transitions to avoid branching in
+                                 // queries：直接把不存在的邊「借用」fail
+                                 // 指向節點的對應邊，查詢時就不必再手動沿 fail 跳
         }
     }
 }`,
@@ -249,9 +266,10 @@ while (!q.empty()) {
             title: '基數排序',
             summary:
               '倍增建 SA 時，每一輪都要把後綴依 `(rk[i], rk[i + w])` 這組「雙關鍵字」重新排序。若用 `std::sort` 比較排序，每輪是 O(n log n)，總計 O(n log² n)。改用兩趟穩定計數排序（先按次關鍵字 `rk[i + w]`，再按主關鍵字 `rk[i]`），因為關鍵字值域只有 O(n)，每輪可壓到 O(n)，總體變成 O(n log n)。關鍵在於第二趟必須「穩定」——次關鍵字相同的順序要保留，所以逆序掃描已按次關鍵字排好的 `id[]`。',
-            code: `// 基數排序: 用兩趟穩定計數排序取代 std::sort，把每輪倍增的排序成本從 O(n log n) 壓到 O(n)，這是標準 C++ 寫法（無任何非標準擴充），只是排序演算法本身選得比較講究。
-int n, m;               // n: string length; m: current value range size (initially the alphabet size)
-int sa[kMaxN], rk[kMaxN], id[kMaxN], cnt[kMaxN];
+            code: `// 基數排序: 用兩趟穩定計數排序取代 std::sort，把每輪倍增的排序成本從 O(n log n) 壓到 O(n)，這是標準
+// C++ 寫法（無任何非標準擴充），只是排序演算法本身選得比較講究。
+int n, m;  // n: string length; m: current value range size (initially the alphabet size)
+int sa[k_max_n], rk[k_max_n], id[k_max_n], cnt[k_max_n];
 
 // One doubling round: given ranks for length w, compute sa[] for length 2w
 void radix_sort(int w) {
@@ -263,21 +281,23 @@ void radix_sort(int w) {
     }
     for (int i = 1; i <= n; ++i) {
         if (sa[i] > w) {
-            id[++p] = sa[i] - w;   // reuse previous sa[] to obtain the ordered secondary-key sequence
+            id[++p] =
+                sa[i] - w;  // reuse previous sa[] to obtain the ordered secondary-key sequence
         }
     }
     // primary key: stable counting sort on id[] by rank[]
     for (int i = 0; i <= m; ++i) {
-        cnt[i] = 0;   // 每輪重新清空桶計數
+        cnt[i] = 0;  // 每輪重新清空桶計數
     }
     for (int i = 1; i <= n; ++i) {
-        cnt[rk[i]]++;   // 統計每個排名值出現幾次
+        cnt[rk[i]]++;  // 統計每個排名值出現幾次
     }
     for (int i = 1; i <= m; ++i) {
-        cnt[i] += cnt[i - 1];   // 前綴和後，cnt[i] 就是「排名 <= i」的元素應該放到的最終區段右界
+        cnt[i] += cnt[i - 1];  // 前綴和後，cnt[i] 就是「排名 <= i」的元素應該放到的最終區段右界
     }
-    for (int i = n; i >= 1; --i) {   // scan backwards to preserve stability
-        // 從後往前掃描已按次關鍵字排好的 id[]，才能保證次關鍵字相同的元素彼此相對順序不變（穩定排序的關鍵）
+    for (int i = n; i >= 1; --i) {  // scan backwards to preserve stability
+        // 從後往前掃描已按次關鍵字排好的
+        // id[]，才能保證次關鍵字相同的元素彼此相對順序不變（穩定排序的關鍵）
         sa[cnt[rk[id[i]]]--] = id[i];
     }
 }`,
@@ -292,17 +312,18 @@ void radix_sort(int w) {
             title: '後綴數組的應用',
             summary:
               'height 用 h[i]≥h[i−1]−1 的性質 O(n) 求得。之後：不同子串個數 = n(n+1)/2 − Σheight；兩後綴 LCP = height 區間最小值（RMQ）；可求最長重複子串等。',
-            code: `// 後綴數組的應用: 利用 h[i] >= h[i-1] - 1 的性質，讓 k 不必每次歸零重新比對，均攤下來整體只需 O(n)。
-// linear height computation using rank[] / sa[]
+            code: `// 後綴數組的應用: 利用 h[i] >= h[i-1] - 1 的性質，讓 k 不必每次歸零重新比對，均攤下來整體只需
+// O(n)。 linear height computation using rank[] / sa[]
 for (int i = 1, k = 0; i <= n; ++i) {
     if (k) {
-        --k;    // 這一步是關鍵：上一個後綴算出的公共前綴長度減一，就是這個後綴的公共前綴長度下界，不用從 0 開始比對
+        --k;  // 這一步是關鍵：上一個後綴算出的公共前綴長度減一，就是這個後綴的公共前綴長度下界，不用從
+              // 0 開始比對
     }
-    int j = sa[rk[i] - 1];   // 找到排名恰好在「後綴 i」前一名的後綴起點 j，height 定義在相鄰排名之間
+    int j = sa[rk[i] - 1];  // 找到排名恰好在「後綴 i」前一名的後綴起點 j，height 定義在相鄰排名之間
     while (i + k <= n && j + k <= n && s[i + k] == s[j + k]) {
-        ++k;                 // 從下界繼續往後暴力擴展，找出真正最長公共前綴
+        ++k;  // 從下界繼續往後暴力擴展，找出真正最長公共前綴
     }
-    height[rk[i]] = k;        // 存到「排名」對應的位置，而不是原始下標 i
+    height[rk[i]] = k;  // 存到「排名」對應的位置，而不是原始下標 i
 }`,
             complexity: '建構 O(n log n)'
           }
@@ -368,31 +389,35 @@ for (int i = 1, k = 0; i <= n; ++i) {
             title: '預處理',
             summary:
               '兩次 DFS：第一次求子樹大小、深度、父、重兒子（子樹最大者）；第二次按「優先走重兒子」給每點連續的 dfs 序與所在鏈頂 top。',
-            code: `// 預處理: 第一次 DFS 找出每個點子樹最大的孩子（重兒子），第二次 DFS 讓「重鏈」共用同一個 top 並取得連續的 dfs 序。
-int sz[kMaxN], depth[kMaxN], parent[kMaxN], heavy_child[kMaxN], top[kMaxN], discovery_time[kMaxN], timer;
+            code: `// 預處理: 第一次 DFS 找出每個點子樹最大的孩子（重兒子），第二次 DFS 讓「重鏈」共用同一個 top
+// 並取得連續的 dfs 序。
+int sz[k_max_n], depth[k_max_n], parent[k_max_n], heavy_child[k_max_n], top[k_max_n],
+    discovery_time[k_max_n], timer;
 void dfs1(int u, int f) {
-    sz[u] = 1;                     // 自己算一個節點
+    sz[u] = 1;  // 自己算一個節點
     for (int v : g[u]) {
-        if (v != f) {               // 避免往回走到父節點
+        if (v != f) {  // 避免往回走到父節點
             parent[v] = f;
             depth[v] = depth[u] + 1;
             dfs1(v, u);
-            sz[u] += sz[v];         // 回溯時把子樹大小累加回父節點
+            sz[u] += sz[v];  // 回溯時把子樹大小累加回父節點
             if (sz[v] > sz[heavy_child[u]]) {
-                heavy_child[u] = v;   // 子樹最大的孩子稱為「重兒子」，重鏈剖分保證從任一點到根，重鏈數不超過 O(log n) 條
+                heavy_child[u] =
+                    v;  // 子樹最大的孩子稱為「重兒子」，重鏈剖分保證從任一點到根，重鏈數不超過
+                        // O(log n) 條
             }
         }
     }
 }
 void dfs2(int u, int t) {
-    top[u] = t;                     // t 是 u 所在重鏈最頂端的節點，同一條重鏈上所有點的 top 都相同
-    discovery_time[u] = ++timer;    // 分配連續遞增的 dfs 序，供線段樹按區間操作使用
+    top[u] = t;  // t 是 u 所在重鏈最頂端的節點，同一條重鏈上所有點的 top 都相同
+    discovery_time[u] = ++timer;  // 分配連續遞增的 dfs 序，供線段樹按區間操作使用
     if (heavy_child[u]) {
-        dfs2(heavy_child[u], t);    // 優先走重兒子，讓整條重鏈在 dfs 序上是連續的一段
+        dfs2(heavy_child[u], t);  // 優先走重兒子，讓整條重鏈在 dfs 序上是連續的一段
     }
     for (int v : g[u]) {
         if (v != parent[u] && v != heavy_child[u]) {
-            dfs2(v, v);              // 輕兒子各自另開一條新的重鏈，自己就是鏈頂
+            dfs2(v, v);  // 輕兒子各自另開一條新的重鏈，自己就是鏈頂
         }
     }
 }`
@@ -400,15 +425,17 @@ void dfs2(int u, int t) {
           {
             title: '求解最近公共祖先',
             summary: '兩點不斷把「鏈頂較深」的一方跳到其鏈頂的父節點，直到同鏈，較淺者即 LCA。O(log n)。',
-            code: `// 求解最近公共祖先: 兩點不同鏈時，把「鏈頂較深」的一方跳到其鏈頂的父節點，一次至少跳過一整條重鏈，故只需 O(log n) 次跳躍。
+            code: `// 求解最近公共祖先:
+// 兩點不同鏈時，把「鏈頂較深」的一方跳到其鏈頂的父節點，一次至少跳過一整條重鏈，故只需 O(log n)
+// 次跳躍。
 int lca(int u, int v) {
-    while (top[u] != top[v]) {         // 不在同一條重鏈上，就繼續往上跳
+    while (top[u] != top[v]) {  // 不在同一條重鏈上，就繼續往上跳
         if (depth[top[u]] < depth[top[v]]) {
-            swap(u, v);                  // 保證每次都跳「鏈頂較深」的那一方，才不會跳過頭錯過真正的 LCA
+            swap(u, v);  // 保證每次都跳「鏈頂較深」的那一方，才不會跳過頭錯過真正的 LCA
         }
-        u = parent[top[u]];             // 跳到鏈頂的父節點，等於一次跨過整條重鏈
+        u = parent[top[u]];  // 跳到鏈頂的父節點，等於一次跨過整條重鏈
     }
-    return depth[u] < depth[v] ? u : v;   // 同一條鏈上，深度較淺的那個就是 LCA
+    return depth[u] < depth[v] ? u : v;  // 同一條鏈上，深度較淺的那個就是 LCA
 }`,
             complexity: 'O(log n)'
           },
@@ -430,17 +457,17 @@ int lca(int u, int v) {
             summary: '刪去後最大子樹最小的點。以它為根，每棵子樹大小 ≤ n/2，保證分治層數 O(log n)。',
             code: `// 樹的重心: 對每個候選點，比較「刪去它之後，最大那塊子樹有多大」，取這個值最小的點就是重心。
 void find_centroid(int u, int parent, int total_nodes, int& c, int& best) {
-    int mx = 0, s = 1;    // mx: 目前看過最大的子樹大小；s: 以 u 為根的子樹目前累積大小（含自己）
+    int mx = 0, s = 1;  // mx: 目前看過最大的子樹大小；s: 以 u 為根的子樹目前累積大小（含自己）
     for (int v : g[u]) {
-        if (v != parent && !del[v]) {   // del 標記點分治中已經處理過、要當作不存在的節點
+        if (v != parent && !del[v]) {  // del 標記點分治中已經處理過、要當作不存在的節點
             find_centroid(v, u, total_nodes, c, best);
             s += sz[v];
-            mx = max(mx, sz[v]);         // 每個子節點的子樹都是刪去 u 後的一塊
+            mx = max(mx, sz[v]);  // 每個子節點的子樹都是刪去 u 後的一塊
         }
     }
     sz[u] = s;
-    mx = max(mx, total_nodes - s);   // 別忘了「u 上方」也是一塊（整體減去 u 子樹），這塊常被新手漏算
-    if (mx < best) {                  // 最大子塊越小，代表刪去這個點後越「均衡」，是更好的分治中心候選
+    mx = max(mx, total_nodes - s);  // 別忘了「u 上方」也是一塊（整體減去 u 子樹），這塊常被新手漏算
+    if (mx < best) {  // 最大子塊越小，代表刪去這個點後越「均衡」，是更好的分治中心候選
         best = mx;
         c = u;
     }
@@ -503,23 +530,23 @@ void find_centroid(int u, int parent, int total_nodes, int& c, int& best) {
             summary: '每層按一個維度（輪流或方差最大者）取中位數切分，左右遞迴建子樹。',
             code: `// 創建 KD 樹: 每層輪流依不同維度切中位數，讓樹自動維持平衡（類似不需旋轉的平衡 BST）。
 struct Point {
-    int x[kDimension];
+    int x[k_dimension];
 };
-Point p[kMaxN];
-int lc[kMaxN], rc[kMaxN];
+Point p[k_max_n];
+int lc[k_max_n], rc[k_max_n];
 // return the root of the subtree built from [l, r), stored at array index mid
 int build(int l, int r, int depth) {
     if (l >= r) {
-        return 0;              // 空區間，回傳 0 代表「沒有這個節點」
+        return 0;  // 空區間，回傳 0 代表「沒有這個節點」
     }
     int mid = (l + r) >> 1;
-    int dim = depth % kDimension;   // 深度對維度數取模，逐層輪流切不同的座標軸
+    int dim = depth % k_dimension;  // 深度對維度數取模，逐層輪流切不同的座標軸
     nth_element(p + l, p + mid, p + r, [dim](const Point& a, const Point& b) {
-        return a.x[dim] < b.x[dim];   // 只依當前這一維排序，把中位數移到 mid，不必整段完全排序
+        return a.x[dim] < b.x[dim];  // 只依當前這一維排序，把中位數移到 mid，不必整段完全排序
     });
-    lc[mid] = build(l, mid, depth + 1);       // 中位數左邊的點都在這一維較小，遞迴建成左子樹
-    rc[mid] = build(mid + 1, r, depth + 1);   // 右邊同理，深度 +1 讓下一層切換到下一個維度
-    return mid;   // 直接把陣列下標當節點編號，省去額外配置節點的開銷
+    lc[mid] = build(l, mid, depth + 1);  // 中位數左邊的點都在這一維較小，遞迴建成左子樹
+    rc[mid] = build(mid + 1, r, depth + 1);  // 右邊同理，深度 +1 讓下一層切換到下一個維度
+    return mid;  // 直接把陣列下標當節點編號，省去額外配置節點的開銷
 }`,
             complexity: '建樹 O(n log n)'
           },
@@ -544,20 +571,23 @@ int build(int l, int r, int depth) {
             title: '基本操作',
             summary:
               '合併：取兩根中較優者為新根，遞迴合併其右子與另一堆，再依左偏性質必要時交換左右並更新 dist。插入=與單點堆合併；刪頂=合併左右子。',
-            code: `// 基本操作: 合併永遠沿著「右鏈」遞迴下去，左偏性質保證右鏈長度是 O(log n)，因此合併是 O(log n) 而非 O(n)。
+            code: `// 基本操作: 合併永遠沿著「右鏈」遞迴下去，左偏性質保證右鏈長度是 O(log n)，因此合併是 O(log n) 而非
+// O(n)。
 int merge(int a, int b) {
     if (!a || !b) {
-        // 其中一堆是空的（下標 0 代表空節點），回傳非空的那一個；因為兩者恰有一個是 0，用 | 取代 if-else 只是簡潔寫法
+        // 其中一堆是空的（下標 0 代表空節點），回傳非空的那一個；因為兩者恰有一個是 0，用 | 取代
+        // if-else 只是簡潔寫法
         return a | b;
     }
     if (val[b] < val[a]) {
-        swap(a, b);     // min-heap：保證 a 是值較小（優先權較高）的根，讓 a 留在新樹的根
+        swap(a, b);  // min-heap：保證 a 是值較小（優先權較高）的根，讓 a 留在新樹的根
     }
-    rc[a] = merge(rc[a], b);   // 把 a 的右子樹跟另一堆 b 遞迴合併，結果掛回 a 的右邊
+    rc[a] = merge(rc[a], b);  // 把 a 的右子樹跟另一堆 b 遞迴合併，結果掛回 a 的右邊
     if (dist[lc[a]] < dist[rc[a]]) {
-        swap(lc[a], rc[a]);    // 左偏樹要求左子的 dist 不小於右子，不滿足就交換，維持右鏈永遠是較短的一側
+        swap(lc[a],
+             rc[a]);  // 左偏樹要求左子的 dist 不小於右子，不滿足就交換，維持右鏈永遠是較短的一側
     }
-    dist[a] = dist[rc[a]] + 1;   // dist 定義成「到最近外節點（缺孩子的節點）的距離」，靠右子遞推
+    dist[a] = dist[rc[a]] + 1;  // dist 定義成「到最近外節點（缺孩子的節點）的距離」，靠右子遞推
     return a;
 }`,
             complexity: 'O(log n)'
@@ -577,13 +607,15 @@ int merge(int a, int b) {
             title: 'LCT 的基本操作',
             summary:
               'access(x) 把根到 x 打通成一條實鏈，是一切操作的基礎；makeroot 靠翻轉標記換根；link/cut 改虛實邊。每步 splay 前後的 pushup/pushdown 極易漏。',
-            code: `// LCT 的基本操作: access(x) 沿著虛實邊一路往根走，每一步都把「原本連到 y 的實邊」換成新的一段，最終串成根到 x 的一條實鏈。
+            code: `// LCT 的基本操作: access(x) 沿著虛實邊一路往根走，每一步都把「原本連到 y
+// 的實邊」換成新的一段，最終串成根到 x 的一條實鏈。
 void access(int x) {
-    for (int y = 0; x; y = x, x = parent[x]) {   // y 記錄上一步處理過的節點（一開始是虛節點 0，代表「沒有右子」）
-        splay(x);           // 先把 x 伸展到它所在 Splay 的根，方便直接修改右子指標
-        rc[x] = y;           // 把 x 原本的右子換成 y：捨棄舊的實鏈延伸，改連到剛剛處理過的那一段
-        push_up(x);          // 子樹結構變了，需要重新彙總 x 的維護資訊
-    }   // 迴圈結束時 x 變成 0（走到了真正的根之上），代表整條路徑都已經串成一條實鏈
+    for (int y = 0; x;
+         y = x, x = parent[x]) {  // y 記錄上一步處理過的節點（一開始是虛節點 0，代表「沒有右子」）
+        splay(x);  // 先把 x 伸展到它所在 Splay 的根，方便直接修改右子指標
+        rc[x] = y;  // 把 x 原本的右子換成 y：捨棄舊的實鏈延伸，改連到剛剛處理過的那一段
+        push_up(x);  // 子樹結構變了，需要重新彙總 x 的維護資訊
+    }  // 迴圈結束時 x 變成 0（走到了真正的根之上），代表整條路徑都已經串成一條實鏈
 }`,
             complexity: '均攤 O(log n)'
           }
@@ -636,22 +668,24 @@ void access(int x) {
             title: '版本共享與新建路徑',
             summary:
               '新版本沿修改路徑複製節點、其餘指標指向舊節點，故單次修改僅 O(log n) 新節點。節點池要開 n·log(值域) 級，開小會 RE。',
-            code: `// 版本共享與新建路徑: 只複製「本次修改會經過」的節點，沒被動到的子樹直接沿用舊版本的指標，達到節省空間的目的。
+            code: `// 版本共享與新建路徑:
+// 只複製「本次修改會經過」的節點，沒被動到的子樹直接沿用舊版本的指標，達到節省空間的目的。
 int update(int pre, int l, int r, int pos) {
-    int cur = ++total_nodes;   // 為這個節點在這個新版本開一個全新的位置，舊版本 pre 完全不受影響
-    ls[cur] = ls[pre];          // 先假設左右子都沿用舊版本
+    int cur = ++total_nodes;  // 為這個節點在這個新版本開一個全新的位置，舊版本 pre 完全不受影響
+    ls[cur] = ls[pre];  // 先假設左右子都沿用舊版本
     rs[cur] = rs[pre];
-    sum[cur] = sum[pre] + 1;    // 這條路徑上的計數都要加一
+    sum[cur] = sum[pre] + 1;  // 這條路徑上的計數都要加一
     if (l == r) {
-        return cur;              // 到達葉節點，這裡就是 pos 對應的位置，不用再往下修改
+        return cur;  // 到達葉節點，這裡就是 pos 對應的位置，不用再往下修改
     }
     int m = (l + r) >> 1;
     if (pos <= m) {
-        ls[cur] = update(ls[pre], l, m, pos);   // 只有真正需要修改的那一側才遞迴新建節點，另一側維持指向舊節點
+        ls[cur] = update(ls[pre], l, m,
+                         pos);  // 只有真正需要修改的那一側才遞迴新建節點，另一側維持指向舊節點
     } else {
         rs[cur] = update(rs[pre], m + 1, r, pos);
     }
-    return cur;   // 回傳這個版本新建的（子）樹根，供上一層或呼叫端記錄
+    return cur;  // 回傳這個版本新建的（子）樹根，供上一層或呼叫端記錄
 }`,
             complexity: '每次 O(log n)'
           },
@@ -659,16 +693,19 @@ int update(int pre, int l, int r, int pos) {
             title: '區間第 k 小',
             summary:
               '對每個前綴建一棵權值線段樹（可持久化共享）。查詢 [l,r] 時用 root[r] 與 root[l−1] 的節點計數相減，在樹上二分定位第 k 小。值域大要先離散化。',
-            code: `// 區間第 k 小: 兩個版本的權值線段樹相減，恰好還原出「只屬於 [l, r] 這個區間」的資料分布，再在上面做值域二分。
-int kth(int u, int v, int l, int r, int k) {   // v=root[r], u=root[l-1]
+            code: `// 區間第 k 小: 兩個版本的權值線段樹相減，恰好還原出「只屬於 [l, r]
+// 這個區間」的資料分布，再在上面做值域二分。
+int kth(int u, int v, int l, int r, int k) {  // v=root[r], u=root[l-1]
     if (l == r) {
-        return l;              // 值域區間縮到單一個值，這個值就是答案
+        return l;  // 值域區間縮到單一個值，這個值就是答案
     }
-    int m = (l + r) >> 1, cnt = sum[ls[v]] - sum[ls[u]];   // 用兩個版本前綴的差，得到「值落在左半值域」且下標在 [l,r] 內的個數
+    int m = (l + r) >> 1,
+        cnt = sum[ls[v]] -
+              sum[ls[u]];  // 用兩個版本前綴的差，得到「值落在左半值域」且下標在 [l,r] 內的個數
     if (k <= cnt) {
-        return kth(ls[u], ls[v], l, m, k);    // 第 k 小落在左半值域，帶著相同的 k 往左遞迴
+        return kth(ls[u], ls[v], l, m, k);  // 第 k 小落在左半值域，帶著相同的 k 往左遞迴
     }
-    return kth(rs[u], rs[v], m + 1, r, k - cnt);   // 否則要找的是右半值域中的第 (k - cnt) 小
+    return kth(rs[u], rs[v], m + 1, r, k - cnt);  // 否則要找的是右半值域中的第 (k - cnt) 小
 }`,
             complexity: '每次查詢 O(log n)'
           }
@@ -683,33 +720,35 @@ int kth(int u, int v, int l, int r, int k) {   // v=root[r], u=root[l-1]
             title: '最大異或和',
             summary:
               '建可持久化 01-Trie（每位存子樹計數），查詢時貪心地優先往「與目標當前位相反」的分支走，並用版本差分限制下標範圍。',
-            code: `// 最大異或和: 可持久化 01-Trie，按位元從高到低建樹，每個版本只新建自己那條路徑，其餘與前一版本共享。
-int ch[kMaxN * 24][2], cnt[kMaxN * 24], total_nodes;
+            code: `// 最大異或和: 可持久化
+// 01-Trie，按位元從高到低建樹，每個版本只新建自己那條路徑，其餘與前一版本共享。
+int ch[k_max_n * 24][2], cnt[k_max_n * 24], total_nodes;
 // insert val based on version pre (from bit kMaxBit down to 0)
 int insert(int pre, int val) {
     int cur = ++total_nodes, root = cur;
-    for (int b = kMaxBit; b >= 0; --b) {
-        int x = (val >> b) & 1;              // 取出 val 第 b 位的值（0 或 1），決定這一層往哪個孩子走
-        ch[cur][x ^ 1] = ch[pre][x ^ 1];      // 另一個分支（沒被走到的那個）直接沿用舊版本，不需複製
-        ch[cur][x] = ++total_nodes;           // 這一步真正走到的分支要新建節點，屬於本次插入的新路徑
+    for (int b = k_max_bit; b >= 0; --b) {
+        int x = (val >> b) & 1;  // 取出 val 第 b 位的值（0 或 1），決定這一層往哪個孩子走
+        ch[cur][x ^ 1] = ch[pre][x ^ 1];  // 另一個分支（沒被走到的那個）直接沿用舊版本，不需複製
+        ch[cur][x] = ++total_nodes;  // 這一步真正走到的分支要新建節點，屬於本次插入的新路徑
         cur = ch[cur][x];
         pre = ch[pre][x];
-        cnt[cur] = cnt[pre] + 1;              // 沿路徑的計數加一，之後查詢時用「兩個版本計數相減」限制下標範圍
+        cnt[cur] = cnt[pre] + 1;  // 沿路徑的計數加一，之後查詢時用「兩個版本計數相減」限制下標範圍
     }
     return root;
 }
 // query the maximum xor with val over version interval (l, r]
 int query(int l, int r, int val) {
     int res = 0;
-    for (int b = kMaxBit; b >= 0; --b) {
+    for (int b = k_max_bit; b >= 0; --b) {
         int x = (val >> b) & 1;
         // 貪心：優先走與 val 這一位「相反」的分支，這樣異或後這一位是 1，對高位優先的異或值最有利
-        if (cnt[ch[r][x ^ 1]] - cnt[ch[l][x ^ 1]] > 0) {   // 版本差分確認這個分支在 (l, r] 範圍內真的存在
-            res |= (1 << b);   // 這一位能異或出 1，累加進最終答案
+        if (cnt[ch[r][x ^ 1]] - cnt[ch[l][x ^ 1]] >
+            0) {              // 版本差分確認這個分支在 (l, r] 範圍內真的存在
+            res |= (1 << b);  // 這一位能異或出 1，累加進最終答案
             l = ch[l][x ^ 1];
             r = ch[r][x ^ 1];
         } else {
-            l = ch[l][x];   // 相反分支不存在，只好走相同分支（這一位異或後是 0）
+            l = ch[l][x];  // 相反分支不存在，只好走相同分支（這一位異或後是 0）
             r = ch[r][x];
         }
     }
@@ -750,10 +789,11 @@ int query(int l, int r, int val) {
         title: 'Dinic 算法',
         summary:
           '主流最大流：先 BFS 分層建層次圖，再 DFS 沿「層次遞增」的邊多路增廣，反覆直到無法分層。配當前弧優化避免重掃滿邊。二分圖匹配上跑得極快。',
-        code: `// Dinic 算法: BFS 先分層（只允許沿層數遞增的邊走），DFS 再用「當前弧優化」一次找出多條增廣路，減少重複掃描。
-int level[kMaxN], cur[kMaxN];
+        code: `// Dinic 算法: BFS 先分層（只允許沿層數遞增的邊走），DFS
+// 再用「當前弧優化」一次找出多條增廣路，減少重複掃描。
+int level[k_max_n], cur[k_max_n];
 bool bfs(int s, int t) {
-    fill(level, level + n, -1);   // -1 代表還沒分到層
+    fill(level, level + n, -1);  // -1 代表還沒分到層
     queue<int> q;
     q.push(s);
     level[s] = 0;
@@ -762,30 +802,34 @@ bool bfs(int s, int t) {
         q.pop();
         for (int id : g[u]) {
             auto& e = edges[id];
-            if (e.cap > 0 && level[e.to] == -1) {   // 還有剩餘容量，且還沒被分層
+            if (e.cap > 0 && level[e.to] == -1) {  // 還有剩餘容量，且還沒被分層
                 level[e.to] = level[u] + 1;
                 q.push(e.to);
             }
         }
     }
-    return level[t] != -1;   // 分層後 t 有沒有被標到層數，決定是否還存在增廣路
+    return level[t] != -1;  // 分層後 t 有沒有被標到層數，決定是否還存在增廣路
 }
-int dfs(int u, int t, int f) {   // f 是這條路徑目前允許通過的最大流量（由沿途最窄的邊決定）
+int dfs(int u, int t, int f) {  // f 是這條路徑目前允許通過的最大流量（由沿途最窄的邊決定）
     if (u == t) {
-        return f;   // 走到匯點，這條路徑能貢獻 f 這麼多流量
+        return f;  // 走到匯點，這條路徑能貢獻 f 這麼多流量
     }
     int res = 0;
-    // 用引用 cur[u]，讓下一次從這個點出發時直接接著上次掃到的地方繼續，跳過已經榨乾（或不合法）的邊，避免重複掃描
+    // 用引用
+    // cur[u]，讓下一次從這個點出發時直接接著上次掃到的地方繼續，跳過已經榨乾（或不合法）的邊，避免重複掃描
     for (int& i = cur[u]; i < (int)g[u].size(); ++i) {
         auto& e = edges[g[u][i]];
-        if (e.cap > 0 && level[e.to] == level[u] + 1) {   // 只沿「層數剛好加一」的邊走，這是 Dinic 限制搜索範圍的關鍵
+        if (e.cap > 0 &&
+            level[e.to] ==
+                level[u] + 1) {  // 只沿「層數剛好加一」的邊走，這是 Dinic 限制搜索範圍的關鍵
             int d = dfs(e.to, t, min(f, e.cap));
-            e.cap -= d;                                    // 正向邊扣掉用掉的流量
-            edges[g[u][i] ^ 1].cap += d;                    // 反向邊加回同樣的量，之後可以「反悔」走回頭路調整流量分配
+            e.cap -= d;  // 正向邊扣掉用掉的流量
+            edges[g[u][i] ^ 1].cap +=
+                d;  // 反向邊加回同樣的量，之後可以「反悔」走回頭路調整流量分配
             res += d;
             f -= d;
             if (!f) {
-                break;   // 這條路徑能承載的流量已經用完，不用再嘗試其他出邊
+                break;  // 這條路徑能承載的流量已經用完，不用再嘗試其他出邊
             }
         }
     }
@@ -812,23 +856,27 @@ int dfs(int u, int t, int f) {   // f 是這條路徑目前允許通過的最大
             title: '匈牙利算法',
             summary:
               '對左部每點嘗試找增廣路：若對面點未匹配、或其現匹配能讓出，就完成匹配。實作短，複雜度 O(VE)。',
-            code: `// 匈牙利算法: 對左部每個點嘗試找「增廣路」——若對面點空著就直接配對，否則讓對面點原本的配偶「讓賢」去找別的對象。
+            code: `// 匈牙利算法:
+// 對左部每個點嘗試找「增廣路」——若對面點空著就直接配對，否則讓對面點原本的配偶「讓賢」去找別的對象。
 bool find(int u) {
     for (int v : g[u]) {
-        if (!visited[v]) {           // 本輪還沒試過 v，避免同一輪內在多個遞迴分支間重複嘗試同一個點形成死循環
+        if (!visited[v]) {  // 本輪還沒試過
+                            // v，避免同一輪內在多個遞迴分支間重複嘗試同一個點形成死循環
             visited[v] = true;
             if (match[v] == -1 || find(match[v])) {
-                // v 目前沒配對，或者 v 原本配對的 match[v] 能改去找到別的對象讓出 v：兩種情況都能把 v 讓給 u
+                // v 目前沒配對，或者 v 原本配對的 match[v] 能改去找到別的對象讓出 v：兩種情況都能把
+                // v 讓給 u
                 match[v] = u;
                 return true;
             }
         }
     }
-    return false;   // 嘗試過所有鄰居都無法讓 u 配對成功，這條增廣路不存在
+    return false;  // 嘗試過所有鄰居都無法讓 u 配對成功，這條增廣路不存在
 }
 int res = 0;
 for (int u = 0; u < nl; ++u) {
-    fill(visited, visited + nr, false);   // 每個左部點都要重新開始一輪嘗試，visited 只在「單次尋找增廣路」的過程中有效
+    fill(visited, visited + nr,
+         false);  // 每個左部點都要重新開始一輪嘗試，visited 只在「單次尋找增廣路」的過程中有效
     res += find(u);
 }`,
             complexity: 'O(VE)'
@@ -919,11 +967,13 @@ for (int u = 0; u < nl; ++u) {
             title: '多重背包問題',
             summary:
               '每種物品有限量 k 件。二進位拆分成 1,2,4,…,剩餘 的若干「捆」，每捆當一件做 01 背包，把 O(nWk) 降到 O(nW log k)；更進一步可用單調隊列 O(nW)。',
-            code: `// 多重背包問題: 二進位拆分——任何 0..cnt 之間的數量都能用 1,2,4,...這些「捆」湊出來，於是把件數為 cnt 的物品變成 O(log cnt) 個 01 背包物品。
-for (int k = 1; cnt > 0; k <<= 1) {         // k 依序是 1, 2, 4, 8, ...
-    int use = min(k, cnt);                   // 最後一捆可能湊不滿 2 的冪，剩多少就拿多少
+            code: `// 多重背包問題: 二進位拆分——任何 0..cnt 之間的數量都能用 1,2,4,...這些「捆」湊出來，於是把件數為
+// cnt 的物品變成 O(log cnt) 個 01 背包物品。
+for (int k = 1; cnt > 0; k <<= 1) {  // k 依序是 1, 2, 4, 8, ...
+    int use = min(k, cnt);           // 最後一捆可能湊不滿 2 的冪，剩多少就拿多少
     cnt -= use;
-    for (int j = capacity; j >= use * w; --j) {   // 把「use 件」打包成一件重量 use*w、價值 use*v 的物品，照 01 背包逆序處理
+    for (int j = capacity; j >= use * w;
+         --j) {  // 把「use 件」打包成一件重量 use*w、價值 use*v 的物品，照 01 背包逆序處理
         f[j] = max(f[j], f[j - use * w] + use * v);
     }
 }`,
@@ -933,10 +983,13 @@ for (int k = 1; cnt > 0; k <<= 1) {         // k 依序是 1, 2, 4, 8, ...
             title: '分組背包問題',
             summary:
               '物品分組、每組至多選一件。迴圈順序必須「組在最外層、容量在中層、組內物品在最內層」，否則同組會被選多個。',
-            code: `// 分組背包問題: 「組」必須在最外層，確保同一組的物品在更新容量 j 時互相看不到彼此本輪的更新，才不會一組選超過一件。
-for (int g = 0; g < group_count; ++g) {          // 外層：一次只決定「這一組」要不要選、選哪件
-    for (int j = capacity; j >= 0; --j) {         // 中層：容量逆序，讓同一組的物品共用「上一組」算好的 f 值
-        for (auto& it : group[g]) {               // 內層：組內物品互斥，逐一嘗試但都基於同一份尚未更新的 f[j - it.w]
+            code: `// 分組背包問題: 「組」必須在最外層，確保同一組的物品在更新容量 j
+// 時互相看不到彼此本輪的更新，才不會一組選超過一件。
+for (int g = 0; g < group_count; ++g) {  // 外層：一次只決定「這一組」要不要選、選哪件
+    for (int j = capacity; j >= 0;
+         --j) {  // 中層：容量逆序，讓同一組的物品共用「上一組」算好的 f 值
+        for (auto& it :
+             group[g]) {  // 內層：組內物品互斥，逐一嘗試但都基於同一份尚未更新的 f[j - it.w]
             if (j >= it.w) {
                 f[j] = max(f[j], f[j - it.w] + it.v);
             }
@@ -966,14 +1019,16 @@ for (int g = 0; g < group_count; ++g) {          // 外層：一次只決定「�
             title: '不定根樹形 DP',
             summary:
               '即換根 DP：先一次 DFS 求「以固定根」的答案，再一次 DFS 從父到子 O(1) 調整，得到「以每個點為根」的答案。',
-            code: `// 不定根樹形 DP: 第一次 DFS 已經算出「以某個固定點為根」的答案，這裡第二次 DFS 利用父子關係 O(1) 遞推出換根後的答案。
+            code: `// 不定根樹形 DP: 第一次 DFS 已經算出「以某個固定點為根」的答案，這裡第二次 DFS 利用父子關係 O(1)
+// 遞推出換根後的答案。
 void dfs2(int u, int parent) {
     for (int v : g[u]) {
         if (v != parent) {
             // reroot: remove child v's contribution from u, then attach u under v
-            // 概念上：把 g_ans[u] 減去「v 對 u 的貢獻」，再加上「u 對 v 的貢獻」，就得到把根從 u 換到 v 的答案
+            // 概念上：把 g_ans[u] 減去「v 對 u 的貢獻」，再加上「u 對 v 的貢獻」，就得到把根從 u
+            // 換到 v 的答案
             g_ans[v] = adjust(g_ans[u], u, v);
-            dfs2(v, u);   // 以 v 為新的已知答案，繼續往它的子節點遞推
+            dfs2(v, u);  // 以 v 為新的已知答案，繼續往它的子節點遞推
         }
     }
 }`,
@@ -1007,21 +1062,26 @@ void dfs2(int u, int parent) {
         title: '數位 DP',
         summary:
           '統計 [0, N] 中滿足某數位性質的數量。按位從高到低 DFS，帶「是否貼上界 limit」與「是否前導零 lead」兩旗標；非 limit 且非 lead 的狀態可記憶化重用。',
-        code: `// 數位 DP: limit 記錄「目前是否還貼著上界」，決定這一位能填到多大；只有非 limit、非前導零的狀態才有「與具體上界無關」的通用性，可以放心快取。
+        code: `// 數位 DP: limit 記錄「目前是否還貼著上界」，決定這一位能填到多大；只有非
+// limit、非前導零的狀態才有「與具體上界無關」的通用性，可以放心快取。
 int dfs(int pos, int state, bool limit, bool lead) {
     if (pos < 0) {
-        return /* count valid numbers */ 1;   // 所有位都填完了，這是一個合法方案
+        return /* count valid numbers */ 1;  // 所有位都填完了，這是一個合法方案
     }
     if (!limit && !lead && f[pos][state] != -1) {
-        return f[pos][state];    // 只有「不貼上界、不是前導零」的狀態才與具體數字無關，能安全複用快取結果
+        return f[pos]
+                [state];  // 只有「不貼上界、不是前導零」的狀態才與具體數字無關，能安全複用快取結果
     }
-    int up = limit ? digit[pos] : 9, res = 0;   // 貼上界時這一位最多只能填到原數字對應位，否則會超過 N；不貼上界則任填 0-9
+    int up = limit ? digit[pos] : 9,
+        res = 0;  // 貼上界時這一位最多只能填到原數字對應位，否則會超過 N；不貼上界則任填 0-9
     for (int d = 0; d <= up; ++d) {
-        // 下一層是否仍貼上界，取決於這一位是否也填到了上界值 up；前導零的傳遞同理，只要目前是前導零且這位仍填 0 就延續
+        // 下一層是否仍貼上界，取決於這一位是否也填到了上界值
+        // up；前導零的傳遞同理，只要目前是前導零且這位仍填 0 就延續
         res += dfs(pos - 1, nxt(state, d), limit && d == up, lead && d == 0);
     }
     if (!limit && !lead) {
-        f[pos][state] = res;   // 同樣只快取「通用」狀態，貼上界或前導零的結果只對這一次呼叫有意義，快取了也沒用還會出錯
+        f[pos][state] =
+            res;  // 同樣只快取「通用」狀態，貼上界或前導零的結果只對這一次呼叫有意義，快取了也沒用還會出錯
     }
     return res;
 }`,
@@ -1037,31 +1097,35 @@ int dfs(int pos, int state, bool limit, bool lead) {
         title: '斜率優化',
         summary:
           '把轉移式整理成 y=kx+b 的直線形式（把只含 j 的項當座標點、含 i 的項當斜率），用單調隊列維護下凸/上凸殼，均攤 O(1) 取最優決策，把 O(n^2) 降到 O(n)。橫座標與斜率不單調時改用二分或李超線段樹。',
-        code: `// 斜率優化: 把每個決策點看成平面上一個點，隊列維護的是下凸殼；查詢時的「詢問斜率」若單調，隊頭彈出的邊即最優決策，均攤 O(1)。
-// Example: f[i] = min(f[j] + cost(j, i)). After reformulating into slope form...
-// use monotone deque q[] to maintain lower hull; x_value()/y_value() are decision-point coordinates
-int q[kMaxN], head, tail;
+        code: `// 斜率優化:
+// 把每個決策點看成平面上一個點，隊列維護的是下凸殼；查詢時的「詢問斜率」若單調，隊頭彈出的邊即最優決策，均攤
+// O(1)。 Example: f[i] = min(f[j] + cost(j, i)). After reformulating into slope form... use
+// monotone deque q[] to maintain lower hull; x_value()/y_value() are decision-point coordinates
+int q[k_max_n], head, tail;
 double slope(int a, int b) {
-    return static_cast<double>(y_value(b) - y_value(a)) / (x_value(b) - x_value(a));   // 兩個決策點連線的斜率
+    return static_cast<double>(y_value(b) - y_value(a)) /
+           (x_value(b) - x_value(a));  // 兩個決策點連線的斜率
 }
 void solve(int n) {
     head = tail = 0;
-    q[tail++] = 0;   // 決策點 0（邊界）先放進隊列
+    q[tail++] = 0;  // 決策點 0（邊界）先放進隊列
     for (int i = 1; i <= n; ++i) {
-        // 查詢的「目標斜率」k(i) 若單調遞增，隊頭到下一個點的斜率一旦已經 <= k(i)，代表隊頭不會再是最優，永久彈出
+        // 查詢的「目標斜率」k(i) 若單調遞增，隊頭到下一個點的斜率一旦已經 <=
+        // k(i)，代表隊頭不會再是最優，永久彈出
         while (head + 1 < tail && slope(q[head], q[head + 1]) <= k(i)) {
             ++head;
         }
-        int j = q[head];             // 隊頭就是當前查詢下最優的決策點
+        int j = q[head];  // 隊頭就是當前查詢下最優的決策點
         f[i] = f[j] + cost(j, i);
         while (head + 1 < tail) {
-            // 加入 i 之前，先把「使凸殼不再是凸的」隊尾點彈掉：新加的點若讓最後兩段斜率不再遞增，中間那個點就不可能是最優
+            // 加入 i
+            // 之前，先把「使凸殼不再是凸的」隊尾點彈掉：新加的點若讓最後兩段斜率不再遞增，中間那個點就不可能是最優
             if (slope(q[tail - 2], q[tail - 1]) < slope(q[tail - 1], i)) {
                 break;
             }
             --tail;
         }
-        q[tail++] = i;   // i 自己也是未來查詢的候選決策點，加入隊尾
+        q[tail++] = i;  // i 自己也是未來查詢的候選決策點，加入隊尾
     }
 }`,
         complexity: 'O(n)'
